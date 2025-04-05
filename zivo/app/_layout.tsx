@@ -1,8 +1,9 @@
-import { Slot } from "expo-router"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import '../global.css'
+import { Slot } from "expo-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "../global.css";
+import { AuthProvider } from "../context/AuthContext";
 
-// Create a client
+// React Query Client ayarı
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -10,13 +11,14 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-})
+});
 
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Slot />
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }
-

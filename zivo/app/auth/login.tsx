@@ -15,12 +15,15 @@ import {
 import { useRouter } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { mockLogin } from "../../services/auth.service"
+import { useAuth } from "../../context/AuthContext"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth() // context fonksiyonu
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -31,25 +34,20 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      // Simüle edilmiş login işlemi
-      // Gerçek uygulamada burada API çağrısı yaparsınız
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const res: any = await mockLogin(email, password)
 
-      // Başarılı giriş sonrası kullanıcı bilgilerini kaydet
-      await AsyncStorage.setItem("auth_token", "sample_token")
-      await AsyncStorage.setItem(
-        "user_data",
-        JSON.stringify({
-          id: "1",
-          email: email,
-          fullName: "Test User",
-        }),
-      )
+      // AuthContext'e kaydet
+      login(res)
 
+      // AsyncStorage'e token & user kaydet
+      await AsyncStorage.setItem("auth_token", res.token)
+      await AsyncStorage.setItem("user_data", JSON.stringify(res.user))
+
+      // yönlendirme
       router.replace("/tabs")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error)
-      Alert.alert("Hata", "Giriş yapılırken bir sorun oluştu")
+      Alert.alert("Hata", error.message || "Giriş yapılırken bir sorun oluştu")
     } finally {
       setIsLoading(false)
     }
@@ -126,4 +124,3 @@ export default function Login() {
     </KeyboardAvoidingView>
   )
 }
-
