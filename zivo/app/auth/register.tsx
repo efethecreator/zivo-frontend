@@ -1,167 +1,196 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native"
-import { useMutation } from "@tanstack/react-query"
-import { authApi } from "../../utils/api"
-import { useRouter } from "expo-router"
-import { StatusBar } from "expo-status-bar"
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import type { User } from "../../types";
 
-export default function Register() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const router = useRouter()
+export default function RegisterScreen() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
 
-  // Register mutation with TanStack Query
-  const registerMutation = useMutation({
-    mutationFn: (userData: {
-      fullName: string
-      email: string
-      password: string
-      userType: string
-    }) => authApi.register(userData),
-    onSuccess: async (data) => {
-      // Backend'in döndürdüğü başarı mesajını kullanıyoruz
-      const successMessage = data.message || "Kayıt başarılı"
+  const handleRegister = async () => {
+    if (!email.trim() || !name.trim() || !password.trim()) return;
 
-      Alert.alert("Kayıt Başarılı", successMessage, [
-        {
-          text: "Giriş Yap",
-          onPress: () => router.replace("../auth/login"),
-        },
-      ])
-    },
-    onError: (error: any) => {
-      console.error("Register error:", error)
+    setIsLoading(true);
 
-      // Backend'in hata formatına göre mesajı alıyoruz
-      const errorMessage = error.response?.data?.message || "Kayıt başarısız. Lütfen tekrar deneyin."
-
-      Alert.alert("Kayıt Başarısız", errorMessage)
-    },
-  })
-
-  const handleRegister = () => {
-    // Form validation
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert("Hata", "Lütfen tüm alanları doldurun")
-      return
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Hata", "Şifreler eşleşmiyor")
-      return
-    }
-
-    if (password.length < 3) {
-      Alert.alert("Hata", "Şifre en az 3 karakter olmalıdır")
-      return
-    }
-
-    // Backend'in beklediği formatta veri gönderiyoruz
-    registerMutation.mutate({
-      fullName: name,
-      email,
-      password,
-      userType: "customer", // Kullanıcı tipini customer olarak ayarlıyoruz
-    })
-  }
+    // Simulate API call
+    setTimeout(() => {
+      const userData: Partial<User> = { email, name, phone, password };
+      register(userData);
+      setIsLoading(false);
+      router.replace("/(tabs)");
+    }, 1000);
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-white">
-      <StatusBar style="dark" />
-      <ScrollView contentContainerClassName="flex-grow">
-        <View className="flex-1 justify-center px-6 pt-10 pb-16">
-          {/* Logo and Header */}
-          <View className="items-center mb-10">
-            <Text className="text-3xl font-bold text-purple-600 mb-2">BookMe</Text>
-            <Text className="text-gray-500 text-center">Book your beauty appointments with ease</Text>
-          </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
 
-          {/* Register Form */}
-          <View className="space-y-4">
-            <Text className="text-2xl font-bold text-gray-800 mb-6">Create an account</Text>
+        <Text style={styles.title}>Sign up to ZIVO</Text>
+        <Text style={styles.subtitle}>Complete the form</Text>
+        <Text style={styles.description}>
+          in case the business needs to contact you
+        </Text>
 
-            <View>
-              <Text className="text-gray-700 mb-2 font-medium">Full Name</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-gray-800"
-                placeholder="Enter your full name"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
-            </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
-            <View>
-              <Text className="text-gray-700 mb-2 font-medium">Email</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-gray-800"
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-            </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>First and last name</Text>
+          <TextInput style={styles.input} value={name} onChangeText={setName} />
+        </View>
 
-            <View>
-              <Text className="text-gray-700 mb-2 font-medium">Password</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-gray-800"
-                placeholder="Create a password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Phone number</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+        </View>
 
-            <View>
-              <Text className="text-gray-700 mb-2 font-medium">Confirm Password</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-gray-800"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
-            </View>
-
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Set password</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
             <TouchableOpacity
-              className={`rounded-lg py-3 px-4 mt-6 items-center ${registerMutation.isPending ? "bg-purple-400" : "bg-purple-600"}`}
-              onPress={handleRegister}
-              disabled={registerMutation.isPending}
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
             >
-              {registerMutation.isPending ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Create Account</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Login Link */}
-          <View className="flex-row justify-center mt-8">
-            <Text className="text-gray-600">Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push("../auth/login")}>
-              <Text className="text-purple-600 font-bold">Login</Text>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color="#666"
+              />
             </TouchableOpacity>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton]}
+          onPress={handleRegister}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Creating account..." : "Create an account"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
+  },
+  backButton: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  description: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: "#1B9AAA",
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 15,
+    fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 10,
+  },
+  button: {
+    borderRadius: 8,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  primaryButton: {
+    backgroundColor: "#1B9AAA",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

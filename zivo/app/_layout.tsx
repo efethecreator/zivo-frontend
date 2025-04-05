@@ -1,24 +1,15 @@
-import { Slot } from "expo-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "../global.css";
-import { AuthProvider } from "../context/AuthContext";
+import { Slot } from "expo-router"
+import { AuthProvider } from "../context/AuthContext"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-// React Query Client ayarı
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
+const queryClient = new QueryClient()
 
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Slot />
+        <Slot /> {/* Alt sayfaları slot ile inject eder */}
       </AuthProvider>
     </QueryClientProvider>
-  );
+  )
 }
