@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, ScrollView } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import { mockBusinesses } from '../../mocks/businesses';
-import { Business } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Image,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { mockBusinesses } from "../../mocks/businesses";
+import { Business } from "../../types";
 
 const categories = [
-  { id: 'all', name: 'All' },
-  { id: 'barbers', name: 'Barbers' },
-  { id: 'hair', name: 'Hair salons' },
-  { id: 'spa', name: 'Day SPA' },
-  { id: 'skin', name: 'Skin care' },
-  { id: 'pet', name: 'Pet services' },
+  { id: "all", name: "All" },
+  { id: "barbers", name: "Barbers" },
+  { id: "hair", name: "Hair salons" },
+  { id: "spa", name: "Day SPA" },
+  { id: "skin", name: "Skin care" },
+  { id: "pet", name: "Pet services" },
 ];
 
 export default function ExploreScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,14 +38,17 @@ export default function ExploreScreen() {
   }, []);
 
   const renderBusinessItem = ({ item }: { item: Business }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.businessCard}
       onPress={() => router.push(`/business/${item.id}` as any)}
     >
-      <Image 
-        source={{ uri: item.images[0] || 'https://via.placeholder.com/300' }} 
-        style={styles.businessImage} 
-      />
+      {item.images?.[0] && (
+        <Image
+          source={item.images[0]} // ✅ require(...) şeklinde
+          style={styles.businessImage}
+          resizeMode="cover"
+        />
+      )}
       <View style={styles.ratingContainer}>
         <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
         <Text style={styles.reviewsText}>{item.reviews} reviews</Text>
@@ -49,11 +61,18 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.logo}>ZİVO</Text>
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+          Explore
+        </Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+        <Ionicons
+          name="search"
+          size={20}
+          color="#666"
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search for service or business name"
@@ -66,31 +85,31 @@ export default function ExploreScreen() {
         <TouchableOpacity style={styles.locationButton}>
           <Text style={styles.locationText}>Near You</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.dateButton}>
           <Ionicons name="calendar-outline" size={20} color="#000" />
           <Text style={styles.dateText}>When?</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.categoriesContainer}
       >
-        {categories.map(category => (
-          <TouchableOpacity 
+        {categories.map((category) => (
+          <TouchableOpacity
             key={category.id}
             style={[
               styles.categoryButton,
-              selectedCategory === category.id && styles.selectedCategory
+              selectedCategory === category.id && styles.selectedCategory,
             ]}
             onPress={() => setSelectedCategory(category.id)}
           >
-            <Text 
+            <Text
               style={[
                 styles.categoryText,
-                selectedCategory === category.id && styles.selectedCategoryText
+                selectedCategory === category.id && styles.selectedCategoryText,
               ]}
             >
               {category.name}
@@ -112,12 +131,17 @@ export default function ExploreScreen() {
       </View>
 
       <View style={styles.resultsContainer}>
-        <Text style={styles.resultsText}>
-          Results ({businesses.length})
-        </Text>
-        <TouchableOpacity>
+        <Text style={styles.resultsText}>Results ({businesses.length})</Text>
+        <TouchableOpacity
+          style={{ flexDirection: "row", alignItems: "center" }}
+        >
           <Text style={styles.infoText}>What affects the search results?</Text>
-          <Ionicons name="information-circle-outline" size={16} color="#666" />
+          <Ionicons
+            name="information-circle-outline"
+            size={16}
+            color="#666"
+            style={{ marginLeft: 4 }}
+          />
         </TouchableOpacity>
       </View>
 
@@ -129,7 +153,7 @@ export default function ExploreScreen() {
         <FlatList
           data={businesses}
           renderItem={renderBusinessItem}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.businessList}
         />
@@ -141,24 +165,24 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    padding: 15,
-    alignItems: 'center',
-    backgroundColor: '#1A2F36',
+    padding: 5,
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   logo: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     margin: 15,
     paddingHorizontal: 15,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 8,
   },
   searchIcon: {
@@ -170,18 +194,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 15,
     marginBottom: 15,
   },
   locationButton: {
     flex: 1,
     height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     marginRight: 10,
   },
@@ -191,12 +215,12 @@ const styles = StyleSheet.create({
   dateButton: {
     flex: 1,
     height: 45,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
   },
   dateText: {
@@ -206,6 +230,8 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     paddingHorizontal: 10,
     marginBottom: 15,
+    height: 60, // Bunu ekle
+    zIndex: 2, // Üstte kalmasını sağla
   },
   categoryButton: {
     paddingHorizontal: 15,
@@ -214,27 +240,29 @@ const styles = StyleSheet.create({
   },
   selectedCategory: {
     borderBottomWidth: 2,
-    borderBottomColor: '#1B9AAA',
+    borderBottomColor: "#1B9AAA",
   },
   categoryText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   selectedCategoryText: {
-    color: '#000',
-    fontWeight: '500',
+    color: "#000",
+    fontWeight: "500",
   },
   filterActionsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 15,
     marginBottom: 15,
+    zIndex: 1, // kategori barının altında kalmasını sağlar
   },
+
   filtersButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 15,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
     marginRight: 10,
   },
@@ -243,36 +271,36 @@ const styles = StyleSheet.create({
   },
   sortButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 8,
     paddingHorizontal: 15,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
   },
   sortText: {
     fontSize: 14,
   },
   resultsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
     marginBottom: 10,
   },
   resultsText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   businessList: {
     padding: 15,
@@ -280,44 +308,44 @@ const styles = StyleSheet.create({
   businessCard: {
     marginBottom: 20,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   businessImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
   ratingContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: "rgba(0,0,0,0.7)",
     borderRadius: 4,
     padding: 5,
   },
   ratingText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   reviewsText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
   },
   businessName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 10,
   },
   businessAddress: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     paddingHorizontal: 10,
     paddingBottom: 10,
   },

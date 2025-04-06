@@ -19,7 +19,7 @@ export default function AppointmentsScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Image 
-        source={require('../../assets/images/favicon.png')} 
+        source={require('../../assets/images/images.jpeg')} 
         style={styles.emptyIcon}
       />
       <Text style={styles.emptyTitle}>Scheduled Appointments</Text>
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 40,
   },
   title: {
     fontSize: 28,

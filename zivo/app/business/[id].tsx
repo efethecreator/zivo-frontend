@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { mockBusinesses } from "../../mocks/businesses";
 import { mockServices } from "../../mocks/services";
 import { Business, Service } from "../../types";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -52,214 +53,192 @@ export default function BusinessDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header with back button */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Business Images */}
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.imageContainer}
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* Görsel + Floating Back + Rating */}
+      <View style={{ position: "relative" }}>
+        <Image
+          source={business.images[0]}
+          style={{
+            width: "100%",
+            height: 300,
+            resizeMode: "cover",
+          }}
+        />
+  
+        {/* Back Button */}
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 50,
+            left: 20,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            padding: 10,
+            borderRadius: 20,
+            zIndex: 10,
+          }}
+          onPress={() => router.back()}
         >
-          {business.images.map((image: string, index: number) => (
-            <Image
-              key={index}
-              source={{ uri: image || "https://via.placeholder.com/400" }}
-              style={styles.businessImage}
-            />
-          ))}
-        </ScrollView>
-
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+  
         {/* Rating Badge */}
-        <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>{business.rating.toFixed(1)}</Text>
-          <Text style={styles.reviewsText}>{business.reviews} reviews</Text>
+        <View
+          style={{
+            position: "absolute",
+            top: 50,
+            right: 20,
+            backgroundColor: "rgba(0,0,0,0.7)",
+            borderRadius: 4,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            alignItems: "center",
+            zIndex: 10,
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+            {business.rating.toFixed(1)}
+          </Text>
+          <Text style={{ color: "#fff", fontSize: 10 }}>
+            {business.reviews} reviews
+          </Text>
         </View>
-
-        {/* Business Info */}
-        <View style={styles.businessInfo}>
-          <View style={styles.businessNameContainer}>
-            <Text style={styles.businessName}>{business.name}</Text>
-            <View style={styles.businessActions}>
-              <TouchableOpacity style={styles.shareButton}>
-                <Ionicons name="share-outline" size={24} color="#666" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.favoriteButton}
-                onPress={() => setIsFavorite(!isFavorite)}
-              >
-                <Ionicons
-                  name={isFavorite ? "heart" : "heart-outline"}
-                  size={24}
-                  color={isFavorite ? "#ff3b30" : "#666"}
-                />
-              </TouchableOpacity>
-            </View>
+      </View>
+  
+      {/* Business Info */}
+      <View style={styles.businessInfo}>
+        <View style={styles.businessNameContainer}>
+          <Text style={styles.businessName}>{business.name}</Text>
+          <View style={styles.businessActions}>
+            <TouchableOpacity style={styles.shareButton}>
+              <Ionicons name="share-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={() => setIsFavorite(!isFavorite)}
+            >
+              <Ionicons
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={24}
+                color={isFavorite ? "#ff3b30" : "#666"}
+              />
+            </TouchableOpacity>
           </View>
-
-          <Text style={styles.businessAddress}>{business.address}</Text>
-          <Text style={styles.businessType}>Entrepreneur</Text>
         </View>
-
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
+        <Text style={styles.businessAddress}>{business.address}</Text>
+        <Text style={styles.businessType}>Entrepreneur</Text>
+      </View>
+  
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        {["SERVICES", "REVIEWS", "PORTFOLIO", "DETAILS"].map((tab) => (
           <TouchableOpacity
-            style={[styles.tab, activeTab === "SERVICES" && styles.activeTab]}
-            onPress={() => setActiveTab("SERVICES")}
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            onPress={() => setActiveTab(tab)}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === "SERVICES" && styles.activeTabText,
+                activeTab === tab && styles.activeTabText,
               ]}
             >
-              SERVICES
+              {tab}
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "REVIEWS" && styles.activeTab]}
-            onPress={() => setActiveTab("REVIEWS")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "REVIEWS" && styles.activeTabText,
-              ]}
-            >
-              REVIEWS
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "PORTFOLIO" && styles.activeTab]}
-            onPress={() => setActiveTab("PORTFOLIO")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "PORTFOLIO" && styles.activeTabText,
-              ]}
-            >
-              PORTFOLIO
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "DETAILS" && styles.activeTab]}
-            onPress={() => setActiveTab("DETAILS")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "DETAILS" && styles.activeTabText,
-              ]}
-            >
-              DETAILS
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Services */}
+        ))}
+      </View>
+  
+      {/* Scrollable Content */}
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {activeTab === "SERVICES" && (
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#666"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for service"
-            />
-          </View>
-        )}
-
-        {/* Services List */}
-        {activeTab === "SERVICES" && (
-          <View style={styles.servicesContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Popular Services</Text>
-              <Ionicons name="chevron-up" size={24} color="#666" />
+          <>
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for service"
+              />
             </View>
-
-            {services.map((service: Service) => (
-              <View key={service.id} style={styles.serviceItem}>
-                <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceDuration}>
-                    {service.duration}d
-                  </Text>
-                </View>
-                <View style={styles.servicePriceContainer}>
-                  <Text style={styles.servicePrice}>
-                    € {service.price.toFixed(2)}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.bookButton}
-                    onPress={() => handleBookService(service.id)}
-                  >
-                    <Text style={styles.bookButtonText}>Book</Text>
-                  </TouchableOpacity>
-                </View>
+  
+            <View style={styles.servicesContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Popular Services</Text>
+                <Ionicons name="chevron-up" size={24} color="#666" />
               </View>
-            ))}
-
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Other Services</Text>
-              <Ionicons name="chevron-up" size={24} color="#666" />
+  
+              {services.map((service) => (
+                <View key={service.id} style={styles.serviceItem}>
+                  <View style={styles.serviceInfo}>
+                    <Text style={styles.serviceName}>{service.name}</Text>
+                    <Text style={styles.serviceDuration}>
+                      {service.duration}d
+                    </Text>
+                  </View>
+                  <View style={styles.servicePriceContainer}>
+                    <Text style={styles.servicePrice}>
+                      € {service.price.toFixed(2)}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.bookButton}
+                      onPress={() => handleBookService(service.id)}
+                    >
+                      <Text style={styles.bookButtonText}>Book</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+  
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Other Services</Text>
+                <Ionicons name="chevron-up" size={24} color="#666" />
+              </View>
+  
+              {services.map((service) => (
+                <View key={`other-${service.id}`} style={styles.serviceItem}>
+                  <View style={styles.serviceInfo}>
+                    <Text style={styles.serviceName}>{service.name}</Text>
+                    <Text style={styles.serviceDuration}>
+                      {service.duration}d
+                    </Text>
+                  </View>
+                  <View style={styles.servicePriceContainer}>
+                    <Text style={styles.servicePrice}>
+                      € {service.price.toFixed(2)}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.bookButton}
+                      onPress={() => handleBookService(service.id)}
+                    >
+                      <Text style={styles.bookButtonText}>Book</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
             </View>
-
-            {services.map((service: Service) => (
-              <View key={`other-${service.id}`} style={styles.serviceItem}>
-                <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceDuration}>
-                    {service.duration}d
-                  </Text>
-                </View>
-                <View style={styles.servicePriceContainer}>
-                  <Text style={styles.servicePrice}>
-                    € {service.price.toFixed(2)}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.bookButton}
-                    onPress={() => handleBookService(service.id)}
-                  >
-                    <Text style={styles.bookButtonText}>Book</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
+          </>
         )}
-
-        {/* Reviews Tab Content */}
+  
         {activeTab === "REVIEWS" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Reviews coming soon</Text>
           </View>
         )}
-
-        {/* Portfolio Tab Content */}
+  
         {activeTab === "PORTFOLIO" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Portfolio coming soon</Text>
           </View>
         )}
-
-        {/* Details Tab Content */}
+  
         {activeTab === "DETAILS" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Details coming soon</Text>
@@ -268,12 +247,18 @@ export default function BusinessDetailScreen() {
       </ScrollView>
     </View>
   );
+  
+  
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    marginTop: 30,
+  },
+  imageWrapper: {
+    position: "relative",
   },
   loadingContainer: {
     flex: 1,
@@ -297,12 +282,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   imageContainer: {
-    height: 250,
+    height: 1,
   },
   businessImage: {
-    width: 400,
-    height: 250,
-    resizeMode: "cover",
+    width: "100%",
+    height: 300,
+    
   },
   ratingBadge: {
     position: "absolute",
@@ -323,6 +308,7 @@ const styles = StyleSheet.create({
   },
   businessInfo: {
     padding: 15,
+    backgroundColor: "#fff",
   },
   businessNameContainer: {
     flexDirection: "row",

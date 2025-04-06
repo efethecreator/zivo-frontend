@@ -19,27 +19,27 @@ const categories = [
   {
     id: "massage",
     name: "Massage",
-    icon: require("../../assets/images/favicon.png"),
+    icon: require("../../assets/images/images.jpeg"),
   },
   {
     id: "spa",
     name: "Day SPA",
-    icon: require("../../assets/images/favicon.png"),
+    icon: require("../../assets/images/spa.jpg"),
   },
   {
     id: "skin",
     name: "Skin care",
-    icon: require("../../assets/images/favicon.png"),
+    icon: require("../../assets/images/Facial-providence-ri.jpg"),
   },
   {
     id: "pet",
     name: "Pet services",
-    icon: require("../../assets/images/favicon.png"),
+    icon: require("../../assets/images/pet-sitters.jpg"),
   },
   {
-    id: "home",
-    name: "Home",
-    icon: require("../../assets/images/favicon.png"),
+    id: "hair",
+    name: "Hair salons",
+    icon: require("../../assets/images/24pt-tif-gould-sprowston-240208-20-1400x800.jpg"),
   },
 ];
 
@@ -62,9 +62,11 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeContainer}>
       {/* ✅ Sabit header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>zivo</Text>
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+          zivo
+        </Text>
       </View>
-
+  
       {/* 🔽 Scroll edilebilir içerik */}
       <ScrollView style={styles.container}>
         <View style={styles.searchContainer}>
@@ -79,7 +81,7 @@ export default function HomeScreen() {
             placeholder="Search services or businesses"
           />
         </View>
-
+  
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -96,11 +98,11 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
+  
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>VISITED AND FAVORITES</Text>
         </View>
-
+  
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -112,12 +114,13 @@ export default function HomeScreen() {
               style={styles.favoriteItem}
               onPress={() => navigateTo(`/business/${business.id}`)}
             >
-              <Image
-                source={{
-                  uri: business.images[0] || "https://via.placeholder.com/150",
-                }}
-                style={styles.favoriteImage}
-              />
+              {business.images?.[0] && (
+                <Image
+                  source={business.images[0]}
+                  style={styles.favoriteImage}
+                  resizeMode="cover"
+                />
+              )}
               <View style={styles.favoriteRating}>
                 <Text style={styles.favoriteRatingText}>
                   {business.rating.toFixed(1)}
@@ -131,27 +134,28 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
+  
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>NO UPCOMING APPOINTMENTS</Text>
         </View>
-
+  
         <TouchableOpacity
           style={styles.appointmentsButton}
           onPress={() => navigateTo("/(tabs)/appointments")}
         >
-          <Text style={styles.appointmentsButtonText}>Go to my appointments</Text>
+          <Text style={styles.appointmentsButtonText}>
+            Go to my appointments
+          </Text>
           <Ionicons name="arrow-forward" size={20} color="#000" />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
-}
-
+}  
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#2596be",
   },
   container: {
     flex: 1,
@@ -163,9 +167,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    padding: 15,
+    padding: 11,
     alignItems: "center",
-    backgroundColor: "#1A2F36",
+    backgroundColor: "#2596be",
   },
   logo: {
     fontSize: 24,

@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { mockServices } from '../../mocks/services';
-import { Service } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { mockServices } from "../../mocks/services";
+import { Service } from "../../types";
 
 type CalendarDay = {
   day: number;
@@ -12,42 +19,53 @@ type CalendarDay = {
   isCurrentMonth: boolean;
 };
 
-const daysOfWeek = ['MA', 'DI', 'WO', 'DO', 'VR', 'ZA', 'ZO'];
+const daysOfWeek = ["MA", "DI", "WO", "DO", "VR", "ZA", "ZO"];
 
 // Generate calendar days for April 2025
 const generateCalendarDays = (): CalendarDay[] => {
   const days: CalendarDay[] = [];
   // Start with March 31 (previous month)
   days.push({ day: 31, month: 3, year: 2025, isCurrentMonth: false });
-  
+
   // April has 30 days
   for (let i = 1; i <= 30; i++) {
     days.push({ day: i, month: 4, year: 2025, isCurrentMonth: true });
   }
-  
+
   // Add first few days of May
   for (let i = 1; i <= 4; i++) {
     days.push({ day: i, month: 5, year: 2025, isCurrentMonth: false });
   }
-  
+
   return days;
 };
 
-const timeSlots = ['19:30', '20:00', '20:30'];
+const timeSlots = ["19:30", "20:00", "20:30"];
 
 export default function BookingScreen() {
   const { appointmentId } = useLocalSearchParams();
   const [service, setService] = useState<Service | null>(null);
-  const [selectedDate, setSelectedDate] = useState<CalendarDay>({ day: 11, month: 4, year: 2025, isCurrentMonth: true });
-  const [selectedTime, setSelectedTime] = useState('19:30');
+  const [selectedDate, setSelectedDate] = useState<CalendarDay>({
+    day: 11,
+    month: 4,
+    year: 2025,
+    isCurrentMonth: true,
+  });
+  const [selectedTime, setSelectedTime] = useState("19:30");
   const [isLoading, setIsLoading] = useState(true);
-  const [staff, setStaff] = useState({ name: 'Mudie', image: 'https://via.placeholder.com/50' });
+  const [staff, setStaff] = useState({
+    name: "Mudie",
+    image: require("../../assets/images/barber1.jpg"), // local path kullan
+  });
+
   const calendarDays = generateCalendarDays();
 
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const foundService = mockServices.find(s => s.id.toString() === appointmentId);
+      const foundService = mockServices.find(
+        (s) => s.id.toString() === appointmentId
+      );
       if (foundService) {
         setService(foundService);
       }
@@ -69,51 +87,66 @@ export default function BookingScreen() {
     );
   }
 
+  const getEndTime = (startTime: string, duration: number) => {
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const totalMinutes = startHour * 60 + startMinute + duration;
+  
+    const endHour = Math.floor(totalMinutes / 60)
+      .toString()
+      .padStart(2, "0");
+    const endMinute = (totalMinutes % 60).toString().padStart(2, "0");
+  
+    return `${endHour}:${endMinute}`;
+  };
+  
+
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Book an Appointment</Text>
       </View>
-
+  
+      {/* Main Content */}
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Calendar */}
         <View style={styles.calendarContainer}>
           <Text style={styles.monthTitle}>April 2025</Text>
-          
-          {/* Days of week */}
+  
           <View style={styles.daysOfWeekContainer}>
             {daysOfWeek.map((day, index) => (
-              <Text key={index} style={styles.dayOfWeekText}>{day}</Text>
+              <Text key={index} style={styles.dayOfWeekText}>
+                {day}
+              </Text>
             ))}
           </View>
-          
-          {/* Calendar grid */}
+  
           <View style={styles.calendarGrid}>
             {calendarDays.map((day, index) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={index}
                 style={[
                   styles.calendarDay,
                   day.isCurrentMonth ? {} : styles.otherMonthDay,
-                  selectedDate.day === day.day && 
-                  selectedDate.month === day.month ? 
-                  styles.selectedDay : {}
+                  selectedDate.day === day.day &&
+                  selectedDate.month === day.month
+                    ? styles.selectedDay
+                    : {},
                 ]}
                 onPress={() => setSelectedDate(day)}
                 disabled={!day.isCurrentMonth}
               >
-                <Text 
+                <Text
                   style={[
                     styles.calendarDayText,
                     day.isCurrentMonth ? {} : styles.otherMonthDayText,
-                    selectedDate.day === day.day && 
-                    selectedDate.month === day.month ? 
-                    styles.selectedDayText : {}
+                    selectedDate.day === day.day &&
+                    selectedDate.month === day.month
+                      ? styles.selectedDayText
+                      : {},
                   ]}
                 >
                   {day.day}
@@ -122,22 +155,22 @@ export default function BookingScreen() {
             ))}
           </View>
         </View>
-
-        {/* Time slots */}
+  
+        {/* Time Slots */}
         <View style={styles.timeSlotsContainer}>
           {timeSlots.map((time, index) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={index}
               style={[
                 styles.timeSlot,
-                selectedTime === time ? styles.selectedTimeSlot : {}
+                selectedTime === time ? styles.selectedTimeSlot : {},
               ]}
               onPress={() => setSelectedTime(time)}
             >
-              <Text 
+              <Text
                 style={[
                   styles.timeSlotText,
-                  selectedTime === time ? styles.selectedTimeSlotText : {}
+                  selectedTime === time ? styles.selectedTimeSlotText : {},
                 ]}
               >
                 {time}
@@ -145,114 +178,105 @@ export default function BookingScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Service details */}
+  
+        {/* Service Details */}
         <View style={styles.serviceDetailsContainer}>
           <View style={styles.serviceItem}>
             <Text style={styles.serviceName}>{service.name}</Text>
-            <Text style={styles.serviceTime}>{selectedTime} - {
-              // Calculate end time (add 30 minutes)
-              selectedTime.split(':').map((part, i) => 
-                i === 0 ? 
-                  (parseInt(part) + Math.floor(service.duration / 60)).toString().padStart(2, '0') : 
-                  ((parseInt(part) + (service.duration % 60)) % 60).toString().padStart(2, '0')
-              ).join(':')
-            }</Text>
+            <Text style={styles.serviceTime}>
+              {`${selectedTime} - ${getEndTime(selectedTime, service.duration)}`}
+            </Text>
           </View>
-          
+  
           <View style={styles.staffContainer}>
             <Text style={styles.staffLabel}>Staff:</Text>
             <View style={styles.staffInfo}>
-              <Image 
-                source={{ uri: staff.image }} 
-                style={styles.staffImage} 
-              />
+              <Image source={staff.image} style={styles.staffImage} />
               <Text style={styles.staffName}>{staff.name}</Text>
             </View>
           </View>
-          
+  
           <TouchableOpacity style={styles.addServiceButton}>
             <Ionicons name="add" size={20} color="#1B9AAA" />
             <Text style={styles.addServiceText}>Add another service</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Bottom bar with price and continue button */}
+  
+      {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceText}>€ {service.price.toFixed(2)}</Text>
-          <Text style={styles.priceSubtext}>30d</Text>
+          <Text style={styles.priceSubtext}>{service.duration}d</Text>
         </View>
-        
-        <TouchableOpacity 
-          style={styles.continueButton}
-          onPress={handleContinue}
-        >
+  
+        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-
+  
+      {/* Privacy Info */}
       <Text style={styles.privacyText}>
-        Your personal data will be processed by the partner with whom you are booking an appointment. You can find more information <Text style={styles.privacyLink}>here</Text>.
+        Your personal data will be processed by the partner with whom you are
+        booking an appointment. You can find more information{" "}
+        <Text style={styles.privacyLink}>here</Text>.
       </Text>
     </View>
   );
-}
-
+};  
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   backButton: {
     marginRight: 15,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   calendarContainer: {
     padding: 15,
   },
   monthTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
   },
   daysOfWeekContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginBottom: 10,
   },
   dayOfWeekText: {
     width: 40,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
   },
   calendarDay: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     margin: 5,
   },
   calendarDayText: {
@@ -262,27 +286,27 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   otherMonthDayText: {
-    color: '#ccc',
+    color: "#ccc",
   },
   selectedDay: {
-    backgroundColor: '#1B9AAA',
+    backgroundColor: "#1B9AAA",
     borderRadius: 20,
   },
   selectedDayText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   timeSlotsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 15,
   },
   timeSlot: {
     flex: 1,
     height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 25,
     marginHorizontal: 5,
   },
@@ -290,48 +314,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedTimeSlot: {
-    backgroundColor: '#1B9AAA',
-    borderColor: '#1B9AAA',
+    backgroundColor: "#1B9AAA",
+    borderColor: "#1B9AAA",
   },
   selectedTimeSlotText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   serviceDetailsContainer: {
     padding: 15,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
     margin: 15,
   },
   serviceItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   serviceName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   serviceTime: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   staffContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 15,
   },
   staffLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginRight: 10,
   },
   staffInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   staffImage: {
     width: 30,
@@ -341,55 +365,55 @@ const styles = StyleSheet.create({
   },
   staffName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   addServiceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingTop: 15,
   },
   addServiceText: {
-    color: '#1B9AAA',
+    color: "#1B9AAA",
     marginLeft: 5,
   },
   bottomBar: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 15,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: "#f0f0f0",
   },
   priceContainer: {
     flex: 1,
   },
   priceText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   priceSubtext: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   continueButton: {
-    backgroundColor: '#1B9AAA',
+    backgroundColor: "#1B9AAA",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   continueButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   privacyText: {
     fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     padding: 15,
   },
   privacyLink: {
-    color: '#1B9AAA',
-    textDecorationLine: 'underline',
+    color: "#1B9AAA",
+    textDecorationLine: "underline",
   },
 });
