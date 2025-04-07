@@ -8,6 +8,7 @@ type AuthContextType = {
   register: (userData: Partial<User>) => void;
   logout: () => void;
   isLoading: boolean;
+  updateUser: (userData: Partial<User>) => void; // updateUser fonksiyonunu ekleyin
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -85,8 +86,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // updateUser fonksiyonunu ekleyin
+  const updateUser = async (userData: Partial<User>) => {
+    try {
+      if (!user) return;
+      
+      // Mevcut kullanıcı bilgilerini güncelle
+      const updatedUser: User = {
+        ...user,
+        ...userData
+      };
+      
+      setUser(updatedUser);
+      await AsyncStorage.setItem('@zivo_user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Update user failed', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
