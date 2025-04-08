@@ -1,3 +1,4 @@
+// app/auth/register.tsx
 "use client";
 
 import { useState } from "react";
@@ -32,7 +33,7 @@ export default function RegisterScreen() {
 
     // Simulate API call
     setTimeout(() => {
-      const userData: Partial<User> = { email, name, phone, password };
+      const userData: Partial<User> = { email, name, phone, password, role: "customer" };
       register(userData);
       setIsLoading(false);
       router.replace("/(tabs)");
@@ -115,6 +116,17 @@ export default function RegisterScreen() {
             {isLoading ? "Creating account..." : "Create an account"}
           </Text>
         </TouchableOpacity>
+
+        {/* Hizmetveren seçeneği */}
+        <TouchableOpacity
+          style={styles.businessOption}
+          onPress={() => router.push("/auth/business-register")}
+        >
+          <Text style={styles.businessOptionText}>Hizmetveren misiniz?</Text>
+          <Text style={styles.businessOptionSubtext}>
+            İşletmeniz için hesap oluşturun
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -192,5 +204,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Yeni eklenen stiller
+  businessOption: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 30,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  businessOptionText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1B9AAA",
+  },
+  businessOptionSubtext: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 5,
   },
 });

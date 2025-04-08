@@ -64,9 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: userData.name || 'New User',
         email: userData.email || 'user@example.com',
         phone: userData.phone || '',
-        password: userData.password, // Include password from userData
-        role: 'customer',
+        password: userData.password,
+        role: userData.role || 'customer', // Kullanıcıdan gelen rolü kullan
+        business: userData.business, // Business bilgilerini de ekleyelim
       };
+      
+      console.log("Registering user with role:", mockUser.role); // Debug için
       
       setUser(mockUser);
       await AsyncStorage.setItem('@zivo_user', JSON.stringify(mockUser));
@@ -75,7 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Registration failed', error);
     }
   };
-
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('@zivo_user');
