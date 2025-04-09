@@ -1,28 +1,21 @@
 // app/business/dashboard.tsx
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
-import type { Appointment } from "../../types";
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
+import type { Appointment } from "../../types"
 
 export default function BusinessDashboardScreen() {
-  const { user } = useAuth();
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
+  const { user } = useAuth()
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([])
   const [stats, setStats] = useState({
     todayCount: 0,
     weekCount: 0,
     monthRevenue: 0,
-  });
+  })
 
   useEffect(() => {
     // Burada gerçek bir API çağrısı yapılacak
@@ -70,69 +63,57 @@ export default function BusinessDashboardScreen() {
         duration: 20,
         status: "confirmed",
       },
-    ];
+    ]
 
-    setTodayAppointments(mockAppointments);
+    setTodayAppointments(mockAppointments)
     setStats({
       todayCount: mockAppointments.length,
       weekCount: 15,
       monthRevenue: 2850,
-    });
-  }, []);
+    })
+  }, [])
 
   // Yükleme durumu
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     // Kullanıcı bilgilerinin yüklenmesi için kısa bir gecikme
     const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+      setIsLoading(false)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <Text style={styles.loadingText}>Yükleniyor...</Text>
       </View>
-    );
+    )
   }
 
   if (!user) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Oturum açmanız gerekiyor.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Oturum açmanız gerekiyor.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
-  if (user.role !== 'business') {
+  if (user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <Text style={styles.debugText}>
-          Mevcut rol: {user.role || "tanımlanmamış"}
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <Text style={styles.debugText}>Mevcut rol: {user.role || "tanımlanmamış"}</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -187,16 +168,16 @@ export default function BusinessDashboardScreen() {
                     appointment.status === "confirmed"
                       ? styles.confirmedStatus
                       : appointment.status === "pending"
-                      ? styles.pendingStatus
-                      : styles.cancelledStatus,
+                        ? styles.pendingStatus
+                        : styles.cancelledStatus,
                   ]}
                 />
                 <Text style={styles.statusText}>
                   {appointment.status === "confirmed"
                     ? "Onaylandı"
                     : appointment.status === "pending"
-                    ? "Bekliyor"
-                    : "İptal"}
+                      ? "Bekliyor"
+                      : "İptal"}
                 </Text>
               </View>
             </View>
@@ -212,38 +193,26 @@ export default function BusinessDashboardScreen() {
         </View>
 
         <View style={styles.quickActionsContainer}>
-          <TouchableOpacity
-            style={styles.quickActionButton}
-            onPress={() => router.push("/business/appointments/new")}
-          >
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/appointments/new")}>
             <Ionicons name="calendar-outline" size={24} color="#1B9AAA" />
             <Text style={styles.quickActionText}>Randevu Ekle</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickActionButton}
-            onPress={() => router.push("/business/services")}
-          >
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/services")}>
             <Ionicons name="list-outline" size={24} color="#1B9AAA" />
             <Text style={styles.quickActionText}>Hizmetler</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickActionButton}
-            onPress={() => router.push("/business/staff")}
-          >
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/staff")}>
             <Ionicons name="people-outline" size={24} color="#1B9AAA" />
             <Text style={styles.quickActionText}>Personel</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickActionButton}
-            onPress={() => router.push("/business/customers")}
-          >
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/customers")}>
             <Ionicons name="person-outline" size={24} color="#1B9AAA" />
             <Text style={styles.quickActionText}>Müşteriler</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -441,4 +410,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

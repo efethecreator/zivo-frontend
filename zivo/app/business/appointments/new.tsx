@@ -1,36 +1,28 @@
 // app/business/appointments/new.tsx
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Modal,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../../context/AuthContext";
-import type { Service, Staff } from "../../../types";
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../../context/AuthContext"
+import type { Service, Staff } from "../../../types"
 
 export default function NewAppointmentScreen() {
-  const { user } = useAuth();
-  const [services, setServices] = useState<Service[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [showServiceModal, setShowServiceModal] = useState(false);
-  const [showStaffModal, setShowStaffModal] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false);
-  const [showTimeModal, setShowTimeModal] = useState(false);
+  const { user } = useAuth()
+  const [services, setServices] = useState<Service[]>([])
+  const [staff, setStaff] = useState<Staff[]>([])
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>("")
+  const [selectedTime, setSelectedTime] = useState<string>("")
+  const [customerName, setCustomerName] = useState("")
+  const [customerPhone, setCustomerPhone] = useState("")
+  const [customerEmail, setCustomerEmail] = useState("")
+  const [showServiceModal, setShowServiceModal] = useState(false)
+  const [showStaffModal, setShowStaffModal] = useState(false)
+  const [showDateModal, setShowDateModal] = useState(false)
+  const [showTimeModal, setShowTimeModal] = useState(false)
 
   useEffect(() => {
     // Burada gerçek bir API çağrısı yapılacak
@@ -68,7 +60,7 @@ export default function NewAppointmentScreen() {
         duration: 45,
         category: "Tırnak",
       },
-    ];
+    ]
 
     const mockStaff: Staff[] = [
       {
@@ -89,32 +81,32 @@ export default function NewAppointmentScreen() {
         position: "Manikür Uzmanı",
         services: [4],
       },
-    ];
+    ]
 
-    setServices(mockServices);
-    setStaff(mockStaff);
-  }, []);
+    setServices(mockServices)
+    setStaff(mockStaff)
+  }, [])
 
   const handleCreateAppointment = () => {
     if (!selectedService || !selectedStaff || !selectedDate || !selectedTime || !customerName || !customerPhone) {
-      alert("Lütfen tüm alanları doldurun.");
-      return;
+      alert("Lütfen tüm alanları doldurun.")
+      return
     }
 
     // Burada randevu oluşturma işlemi yapılacak
-    alert("Randevu başarıyla oluşturuldu.");
-    router.back();
-  };
+    alert("Randevu başarıyla oluşturuldu.")
+    router.back()
+  }
 
   const getAvailableStaff = () => {
-    if (!selectedService) return staff;
-    return staff.filter((s) => s.services.includes(selectedService.id));
-  };
+    if (!selectedService) return staff
+    return staff.filter((s) => s.services.includes(selectedService.id))
+  }
 
   // Tarih seçenekleri için 7 günlük bir liste oluştur
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
+    const date = new Date()
+    date.setDate(date.getDate() + i)
     return {
       value: date.toISOString().split("T")[0],
       label: date.toLocaleDateString("tr-TR", {
@@ -122,30 +114,40 @@ export default function NewAppointmentScreen() {
         day: "numeric",
         month: "long",
       }),
-    };
-  });
+    }
+  })
 
   // Saat seçenekleri
   const timeOptions = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-    "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-  ];
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+  ]
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -162,14 +164,9 @@ export default function NewAppointmentScreen() {
           <Text style={styles.sectionTitle}>Hizmet Bilgileri</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.selectButton}
-          onPress={() => setShowServiceModal(true)}
-        >
+        <TouchableOpacity style={styles.selectButton} onPress={() => setShowServiceModal(true)}>
           <Text style={styles.selectButtonLabel}>Hizmet</Text>
-          <Text style={styles.selectButtonValue}>
-            {selectedService ? selectedService.name : "Hizmet seçin"}
-          </Text>
+          <Text style={styles.selectButtonValue}>{selectedService ? selectedService.name : "Hizmet seçin"}</Text>
           <Ionicons name="chevron-down" size={20} color="#666" />
         </TouchableOpacity>
 
@@ -179,17 +176,8 @@ export default function NewAppointmentScreen() {
           disabled={!selectedService}
         >
           <Text style={styles.selectButtonLabel}>Personel</Text>
-          <Text
-            style={[
-              styles.selectButtonValue,
-              !selectedService && styles.disabledText,
-            ]}
-          >
-            {selectedStaff
-              ? selectedStaff.name
-              : !selectedService
-              ? "Önce hizmet seçin"
-              : "Personel seçin"}
+          <Text style={[styles.selectButtonValue, !selectedService && styles.disabledText]}>
+            {selectedStaff ? selectedStaff.name : !selectedService ? "Önce hizmet seçin" : "Personel seçin"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#666" />
         </TouchableOpacity>
@@ -198,10 +186,7 @@ export default function NewAppointmentScreen() {
           <Text style={styles.sectionTitle}>Randevu Zamanı</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.selectButton}
-          onPress={() => setShowDateModal(true)}
-        >
+        <TouchableOpacity style={styles.selectButton} onPress={() => setShowDateModal(true)}>
           <Text style={styles.selectButtonLabel}>Tarih</Text>
           <Text style={styles.selectButtonValue}>
             {selectedDate
@@ -215,23 +200,10 @@ export default function NewAppointmentScreen() {
           <Ionicons name="chevron-down" size={20} color="#666" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.selectButton}
-          onPress={() => setShowTimeModal(true)}
-          disabled={!selectedDate}
-        >
+        <TouchableOpacity style={styles.selectButton} onPress={() => setShowTimeModal(true)} disabled={!selectedDate}>
           <Text style={styles.selectButtonLabel}>Saat</Text>
-          <Text
-            style={[
-              styles.selectButtonValue,
-              !selectedDate && styles.disabledText,
-            ]}
-          >
-            {selectedTime
-              ? selectedTime
-              : !selectedDate
-              ? "Önce tarih seçin"
-              : "Saat seçin"}
+          <Text style={[styles.selectButtonValue, !selectedDate && styles.disabledText]}>
+            {selectedTime ? selectedTime : !selectedDate ? "Önce tarih seçin" : "Saat seçin"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#666" />
         </TouchableOpacity>
@@ -274,10 +246,7 @@ export default function NewAppointmentScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={handleCreateAppointment}
-      >
+      <TouchableOpacity style={styles.createButton} onPress={handleCreateAppointment}>
         <Text style={styles.createButtonText}>Randevu Oluştur</Text>
       </TouchableOpacity>
 
@@ -302,9 +271,9 @@ export default function NewAppointmentScreen() {
                   key={service.id}
                   style={styles.modalItem}
                   onPress={() => {
-                    setSelectedService(service);
-                    setSelectedStaff(null);
-                    setShowServiceModal(false);
+                    setSelectedService(service)
+                    setSelectedStaff(null)
+                    setShowServiceModal(false)
                   }}
                 >
                   <View>
@@ -313,9 +282,7 @@ export default function NewAppointmentScreen() {
                       {service.duration} dk • {service.price} ₺
                     </Text>
                   </View>
-                  {selectedService?.id === service.id && (
-                    <Ionicons name="checkmark" size={24} color="#1B9AAA" />
-                  )}
+                  {selectedService?.id === service.id && <Ionicons name="checkmark" size={24} color="#1B9AAA" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -344,19 +311,15 @@ export default function NewAppointmentScreen() {
                   key={staffMember.id}
                   style={styles.modalItem}
                   onPress={() => {
-                    setSelectedStaff(staffMember);
-                    setShowStaffModal(false);
+                    setSelectedStaff(staffMember)
+                    setShowStaffModal(false)
                   }}
                 >
                   <View>
                     <Text style={styles.modalItemTitle}>{staffMember.name}</Text>
-                    <Text style={styles.modalItemSubtitle}>
-                      {staffMember.position}
-                    </Text>
+                    <Text style={styles.modalItemSubtitle}>{staffMember.position}</Text>
                   </View>
-                  {selectedStaff?.id === staffMember.id && (
-                    <Ionicons name="checkmark" size={24} color="#1B9AAA" />
-                  )}
+                  {selectedStaff?.id === staffMember.id && <Ionicons name="checkmark" size={24} color="#1B9AAA" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -385,14 +348,12 @@ export default function NewAppointmentScreen() {
                   key={dateOption.value}
                   style={styles.modalItem}
                   onPress={() => {
-                    setSelectedDate(dateOption.value);
-                    setShowDateModal(false);
+                    setSelectedDate(dateOption.value)
+                    setShowDateModal(false)
                   }}
                 >
                   <Text style={styles.modalItemTitle}>{dateOption.label}</Text>
-                  {selectedDate === dateOption.value && (
-                    <Ionicons name="checkmark" size={24} color="#1B9AAA" />
-                  )}
+                  {selectedDate === dateOption.value && <Ionicons name="checkmark" size={24} color="#1B9AAA" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -420,21 +381,13 @@ export default function NewAppointmentScreen() {
                 {timeOptions.map((time) => (
                   <TouchableOpacity
                     key={time}
-                    style={[
-                      styles.timeOption,
-                      selectedTime === time && styles.selectedTimeOption,
-                    ]}
+                    style={[styles.timeOption, selectedTime === time && styles.selectedTimeOption]}
                     onPress={() => {
-                      setSelectedTime(time);
-                      setShowTimeModal(false);
+                      setSelectedTime(time)
+                      setShowTimeModal(false)
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.timeOptionText,
-                        selectedTime === time && styles.selectedTimeOptionText,
-                      ]}
-                    >
+                    <Text style={[styles.timeOptionText, selectedTime === time && styles.selectedTimeOptionText]}>
                       {time}
                     </Text>
                   </TouchableOpacity>
@@ -445,7 +398,7 @@ export default function NewAppointmentScreen() {
         </View>
       </Modal>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -623,4 +576,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})
