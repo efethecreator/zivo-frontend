@@ -183,9 +183,15 @@ export default function BusinessProfileScreen() {
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-          <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
-        </TouchableOpacity>
+        <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={() => {
+          logout()
+          router.replace("/auth/login")
+        }}
+      >
+        <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
+      </TouchableOpacity>
       </ScrollView>
     </View>
   );
