@@ -3,9 +3,20 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { View, Text } from "react-native";
+import { usePathname } from "expo-router"
 
 export default function BusinessLayout() {
   const { user } = useAuth();
+  const pathname = usePathname()
+
+  // İşletme detay sayfası için özel durum
+  // URL'de sayısal bir ID varsa (örn: /123), bu müşteri tarafından görüntülenen işletme detay sayfasıdır
+  const isBusinessDetailPage = /^\/\d+$/.test(pathname)
+
+  // Eğer işletme detay sayfasıysa, layout kontrolünü atla
+  if (isBusinessDetailPage) {
+    return <Tabs.Screen options={{ headerShown: false }} />
+  }
 
   // Kullanıcı business değilse veya giriş yapmamışsa
   if (!user || user.role !== "business") {

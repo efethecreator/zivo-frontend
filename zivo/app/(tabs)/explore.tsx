@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Image,
-  ScrollView,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { mockBusinesses } from "../../mocks/businesses";
-import { Business } from "../../types";
+"use client"
+
+import { useState, useEffect } from "react"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, ScrollView } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { mockBusinesses } from "../../mocks/businesses"
+import type { Business } from "../../types"
 
 const categories = [
   { id: "all", name: "All" },
@@ -21,34 +14,25 @@ const categories = [
   { id: "spa", name: "Day SPA" },
   { id: "skin", name: "Skin care" },
   { id: "pet", name: "Pet services" },
-];
+]
 
 export default function ExploreScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [businesses, setBusinesses] = useState<Business[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      setBusinesses(mockBusinesses);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+      setBusinesses(mockBusinesses)
+      setIsLoading(false)
+    }, 1000)
+  }, [])
 
   const renderBusinessItem = ({ item }: { item: Business }) => (
-    <TouchableOpacity
-      style={styles.businessCard}
-      onPress={() => router.push(`/business/${item.id}` as any)}
-    >
-      {item.images?.[0] && (
-        <Image
-          source={item.images[0]} // ✅ require(...) şeklinde
-          style={styles.businessImage}
-          resizeMode="cover"
-        />
-      )}
+    <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id}` as any)}>
+      {item.images?.[0] && <Image source={item.images[0]} style={styles.businessImage} resizeMode="cover" />}
       <View style={styles.ratingContainer}>
         <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
         <Text style={styles.reviewsText}>{item.reviews} reviews</Text>
@@ -56,23 +40,16 @@ export default function ExploreScreen() {
       <Text style={styles.businessName}>{item.name}</Text>
       <Text style={styles.businessAddress}>{item.address}</Text>
     </TouchableOpacity>
-  );
+  )
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-          Explore
-        </Text>
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>Explore</Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#666"
-          style={styles.searchIcon}
-        />
+        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search for service or business name"
@@ -92,26 +69,14 @@ export default function ExploreScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
         {categories.map((category) => (
           <TouchableOpacity
             key={category.id}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.id && styles.selectedCategory,
-            ]}
+            style={[styles.categoryButton, selectedCategory === category.id && styles.selectedCategory]}
             onPress={() => setSelectedCategory(category.id)}
           >
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCategory === category.id && styles.selectedCategoryText,
-              ]}
-            >
+            <Text style={[styles.categoryText, selectedCategory === category.id && styles.selectedCategoryText]}>
               {category.name}
             </Text>
           </TouchableOpacity>
@@ -132,16 +97,9 @@ export default function ExploreScreen() {
 
       <View style={styles.resultsContainer}>
         <Text style={styles.resultsText}>Results ({businesses.length})</Text>
-        <TouchableOpacity
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
+        <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.infoText}>What affects the search results?</Text>
-          <Ionicons
-            name="information-circle-outline"
-            size={16}
-            color="#666"
-            style={{ marginLeft: 4 }}
-          />
+          <Ionicons name="information-circle-outline" size={16} color="#666" style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
 
@@ -159,7 +117,7 @@ export default function ExploreScreen() {
         />
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -349,4 +307,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
-});
+})

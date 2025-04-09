@@ -1,55 +1,46 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-} from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { mockBusinesses } from "../../mocks/businesses";
-import { mockServices } from "../../mocks/services";
-import { Business, Service } from "../../types";
-import { SafeAreaView } from "react-native-safe-area-context";
+"use client"
+
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from "react-native"
+import { useLocalSearchParams, router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { mockBusinesses } from "../mocks/businesses"
+import { mockServices } from "../mocks/services"
+import type { Business, Service } from "../types"
 
 export default function BusinessDetailScreen() {
-  const { id } = useLocalSearchParams();
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [services, setServices] = useState<Service[]>([]);
-  const [activeTab, setActiveTab] = useState("SERVICES");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { id } = useLocalSearchParams()
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [services, setServices] = useState<Service[]>([])
+  const [activeTab, setActiveTab] = useState("SERVICES")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const foundBusiness = mockBusinesses.find((b) => b.id.toString() === id);
+      const foundBusiness = mockBusinesses.find((b) => b.id.toString() === id)
       if (foundBusiness) {
-        setBusiness(foundBusiness);
+        setBusiness(foundBusiness)
       }
 
-      const businessServices = mockServices.filter(
-        (s) => s.businessId.toString() === id
-      );
-      setServices(businessServices);
+      const businessServices = mockServices.filter((s) => s.businessId.toString() === id)
+      setServices(businessServices)
 
-      setIsLoading(false);
-    }, 1000);
-  }, [id]);
+      setIsLoading(false)
+    }, 1000)
+  }, [id])
 
   const handleBookService = (serviceId: number) => {
-    router.push(`/booking/${serviceId}` as any);
-  };
+    router.push(`/booking/${serviceId}` as any)
+  }
 
   if (isLoading || !business) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading business details...</Text>
       </View>
-    );
+    )
   }
 
   return (
@@ -64,7 +55,7 @@ export default function BusinessDetailScreen() {
             resizeMode: "cover",
           }}
         />
-  
+
         {/* Back Button */}
         <TouchableOpacity
           style={{
@@ -80,7 +71,7 @@ export default function BusinessDetailScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-  
+
         {/* Rating Badge */}
         <View
           style={{
@@ -95,15 +86,11 @@ export default function BusinessDetailScreen() {
             zIndex: 10,
           }}
         >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>
-            {business.rating.toFixed(1)}
-          </Text>
-          <Text style={{ color: "#fff", fontSize: 10 }}>
-            {business.reviews} reviews
-          </Text>
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>{business.rating.toFixed(1)}</Text>
+          <Text style={{ color: "#fff", fontSize: 10 }}>{business.reviews} reviews</Text>
         </View>
       </View>
-  
+
       {/* Business Info */}
       <View style={styles.businessInfo}>
         <View style={styles.businessNameContainer}>
@@ -112,10 +99,7 @@ export default function BusinessDetailScreen() {
             <TouchableOpacity style={styles.shareButton}>
               <Ionicons name="share-outline" size={24} color="#666" />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={() => setIsFavorite(!isFavorite)}
-            >
+            <TouchableOpacity style={styles.favoriteButton} onPress={() => setIsFavorite(!isFavorite)}>
               <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={24}
@@ -127,7 +111,7 @@ export default function BusinessDetailScreen() {
         <Text style={styles.businessAddress}>{business.address}</Text>
         <Text style={styles.businessType}>Entrepreneur</Text>
       </View>
-  
+
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         {["SERVICES", "REVIEWS", "PORTFOLIO", "DETAILS"].map((tab) => (
@@ -136,88 +120,55 @@ export default function BusinessDetailScreen() {
             style={[styles.tab, activeTab === tab && styles.activeTab]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
+            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
-  
+
       {/* Scrollable Content */}
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {activeTab === "SERVICES" && (
           <>
             <View style={styles.searchContainer}>
-              <Ionicons
-                name="search"
-                size={20}
-                color="#666"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search for service"
-              />
+              <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+              <TextInput style={styles.searchInput} placeholder="Search for service" />
             </View>
-  
+
             <View style={styles.servicesContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Popular Services</Text>
                 <Ionicons name="chevron-up" size={24} color="#666" />
               </View>
-  
+
               {services.map((service) => (
                 <View key={service.id} style={styles.serviceItem}>
                   <View style={styles.serviceInfo}>
                     <Text style={styles.serviceName}>{service.name}</Text>
-                    <Text style={styles.serviceDuration}>
-                      {service.duration}d
-                    </Text>
+                    <Text style={styles.serviceDuration}>{service.duration}d</Text>
                   </View>
                   <View style={styles.servicePriceContainer}>
-                    <Text style={styles.servicePrice}>
-                      € {service.price.toFixed(2)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.bookButton}
-                      onPress={() => handleBookService(service.id)}
-                    >
+                    <Text style={styles.servicePrice}>€ {service.price.toFixed(2)}</Text>
+                    <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
                       <Text style={styles.bookButtonText}>Book</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               ))}
-  
+
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Other Services</Text>
                 <Ionicons name="chevron-up" size={24} color="#666" />
               </View>
-  
+
               {services.map((service) => (
                 <View key={`other-${service.id}`} style={styles.serviceItem}>
                   <View style={styles.serviceInfo}>
                     <Text style={styles.serviceName}>{service.name}</Text>
-                    <Text style={styles.serviceDuration}>
-                      {service.duration}d
-                    </Text>
+                    <Text style={styles.serviceDuration}>{service.duration}d</Text>
                   </View>
                   <View style={styles.servicePriceContainer}>
-                    <Text style={styles.servicePrice}>
-                      € {service.price.toFixed(2)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.bookButton}
-                      onPress={() => handleBookService(service.id)}
-                    >
+                    <Text style={styles.servicePrice}>€ {service.price.toFixed(2)}</Text>
+                    <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
                       <Text style={styles.bookButtonText}>Book</Text>
                     </TouchableOpacity>
                   </View>
@@ -226,19 +177,19 @@ export default function BusinessDetailScreen() {
             </View>
           </>
         )}
-  
+
         {activeTab === "REVIEWS" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Reviews coming soon</Text>
           </View>
         )}
-  
+
         {activeTab === "PORTFOLIO" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Portfolio coming soon</Text>
           </View>
         )}
-  
+
         {activeTab === "DETAILS" && (
           <View style={styles.tabContent}>
             <Text style={styles.comingSoonText}>Details coming soon</Text>
@@ -246,9 +197,7 @@ export default function BusinessDetailScreen() {
         )}
       </ScrollView>
     </View>
-  );
-  
-  
+  )
 }
 
 const styles = StyleSheet.create({
@@ -287,7 +236,6 @@ const styles = StyleSheet.create({
   businessImage: {
     width: "100%",
     height: 300,
-    
   },
   ratingBadge: {
     position: "absolute",
@@ -433,4 +381,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
-});
+})

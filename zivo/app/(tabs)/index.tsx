@@ -1,19 +1,10 @@
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  SafeAreaView,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
-import { mockBusinesses } from "../../mocks/businesses";
-import { Business } from "../../types";
+"use client"
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, SafeAreaView } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
+import { mockBusinesses } from "../../mocks/businesses"
+import type { Business } from "../../types"
 
 const categories = [
   {
@@ -41,52 +32,38 @@ const categories = [
     name: "Hair salons",
     icon: require("../../assets/images/24pt-tif-gould-sprowston-240208-20-1400x800.jpg"),
   },
-];
+]
 
 export default function HomeScreen() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth()
 
   if (isLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading...</Text>
       </View>
-    );
+    )
   }
 
   const navigateTo = (path: string) => {
-    router.push(path as any);
-  };
+    router.push(path as any)
+  }
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       {/* ✅ Sabit header */}
       <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-          zivo
-        </Text>
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>zivo</Text>
       </View>
-  
+
       {/* 🔽 Scroll edilebilir içerik */}
       <ScrollView style={styles.container}>
         <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#666"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search services or businesses"
-          />
+          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput style={styles.searchInput} placeholder="Search services or businesses" />
         </View>
-  
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-        >
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
@@ -98,60 +75,44 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-  
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>VISITED AND FAVORITES</Text>
         </View>
-  
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.favoritesContainer}
-        >
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.favoritesContainer}>
           {mockBusinesses.slice(0, 3).map((business: Business) => (
             <TouchableOpacity
               key={business.id}
               style={styles.favoriteItem}
-              onPress={() => navigateTo(`/business/${business.id}`)}
+              onPress={() => navigateTo(`/${business.id}`)}
             >
               {business.images?.[0] && (
-                <Image
-                  source={business.images[0]}
-                  style={styles.favoriteImage}
-                  resizeMode="cover"
-                />
+                <Image source={business.images[0]} style={styles.favoriteImage} resizeMode="cover" />
               )}
               <View style={styles.favoriteRating}>
-                <Text style={styles.favoriteRatingText}>
-                  {business.rating.toFixed(1)}
-                </Text>
-                <Text style={styles.favoriteReviewsText}>
-                  {business.reviews} reviews
-                </Text>
+                <Text style={styles.favoriteRatingText}>{business.rating.toFixed(1)}</Text>
+                <Text style={styles.favoriteReviewsText}>{business.reviews} reviews</Text>
               </View>
               <Text style={styles.favoriteName}>{business.name}</Text>
               <Text style={styles.favoriteAddress}>{business.address}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
-  
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>NO UPCOMING APPOINTMENTS</Text>
         </View>
-  
-        <TouchableOpacity
-          style={styles.appointmentsButton}
-          onPress={() => navigateTo("/(tabs)/appointments")}
-        >
-          <Text style={styles.appointmentsButtonText}>
-            Go to my appointments
-          </Text>
+
+        <TouchableOpacity style={styles.appointmentsButton} onPress={() => navigateTo("/(tabs)/appointments")}>
+          <Text style={styles.appointmentsButtonText}>Go to my appointments</Text>
           <Ionicons name="arrow-forward" size={20} color="#000" />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  );
-}  
+  )
+}
+
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
@@ -272,4 +233,4 @@ const styles = StyleSheet.create({
   appointmentsButtonText: {
     fontSize: 16,
   },
-});
+})
