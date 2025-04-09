@@ -21,7 +21,19 @@ export default function BusinessDetailScreen() {
     setTimeout(() => {
       const foundBusiness = mockBusinesses.find((b) => b.id.toString() === id)
       if (foundBusiness) {
-        setBusiness(foundBusiness)
+        // Convert to match Business type
+        const businessWithRequiredProps: Business = {
+          ...foundBusiness,
+          type: "salon", // Default value
+          workingHours: {}, // Default empty object
+          // Ensure address exists
+          address: foundBusiness.address || "",
+          // Ensure other required properties exist
+          rating: foundBusiness.rating || 0,
+          reviews: foundBusiness.reviews || 0,
+          images: foundBusiness.images || [],
+        }
+        setBusiness(businessWithRequiredProps)
       }
 
       const businessServices = mockServices.filter((s) => s.businessId.toString() === id)
@@ -43,18 +55,30 @@ export default function BusinessDetailScreen() {
     )
   }
 
+  // Helper function to safely render address
+  const renderAddress = () => {
+    if (typeof business.address === "string") {
+      return business.address
+    } else if (business.address && typeof business.address === "object") {
+      return `${business.address.street}, ${business.address.city}, ${business.address.postalCode}`
+    }
+    return ""
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Görsel + Floating Back + Rating */}
       <View style={{ position: "relative" }}>
-        <Image
-          source={business.images[0]}
-          style={{
-            width: "100%",
-            height: 300,
-            resizeMode: "cover",
-          }}
-        />
+        {business.images && business.images[0] && (
+          <Image
+            source={business.images[0]}
+            style={{
+              width: "100%",
+              height: 300,
+              resizeMode: "cover",
+            }}
+          />
+        )}
 
         {/* Back Button */}
         <TouchableOpacity
@@ -86,8 +110,8 @@ export default function BusinessDetailScreen() {
             zIndex: 10,
           }}
         >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>{business.rating.toFixed(1)}</Text>
-          <Text style={{ color: "#fff", fontSize: 10 }}>{business.reviews} reviews</Text>
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>{(business.rating || 0).toFixed(1)}</Text>
+          <Text style={{ color: "#fff", fontSize: 10 }}>{business.reviews || 0} reviews</Text>
         </View>
       </View>
 
@@ -108,7 +132,7 @@ export default function BusinessDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.businessAddress}>{business.address}</Text>
+        <Text style={styles.businessAddress}>{renderAddress()}</Text>
         <Text style={styles.businessType}>Entrepreneur</Text>
       </View>
 

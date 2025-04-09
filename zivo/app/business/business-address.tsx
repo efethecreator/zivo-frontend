@@ -1,33 +1,30 @@
-// app/business/business-address.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function BusinessAddressScreen() {
-  const { user, updateUser } = useAuth();
-  const [street, setStreet] = useState(user?.business?.address?.street || "");
-  const [city, setCity] = useState(user?.business?.address?.city || "");
-  const [district, setDistrict] = useState(user?.business?.address?.district || "");
-  const [postCode, setPostCode] = useState(user?.business?.address?.postCode || "");
-  const [phone, setPhone] = useState(user?.business?.phone || "");
-  const [email, setEmail] = useState(user?.business?.email || "");
-  const [website, setWebsite] = useState(user?.business?.website || "");
+  const { user, updateUser } = useAuth()
+  const [street, setStreet] = useState(
+    typeof user?.business?.address === "object" ? user?.business?.address?.street || "" : "",
+  )
+  const [city, setCity] = useState(
+    typeof user?.business?.address === "object" ? user?.business?.address?.city || "" : "",
+  )
+  const [district, setDistrict] = useState("")
+  const [postCode, setPostCode] = useState(
+    typeof user?.business?.address === "object" ? user?.business?.address?.postalCode || "" : "",
+  )
+  const [phone, setPhone] = useState(user?.business?.phone || "")
+  const [email, setEmail] = useState(user?.business?.email || "")
+  const [website, setWebsite] = useState(user?.business?.website || "")
 
   const handleSave = () => {
     if (user) {
@@ -38,32 +35,35 @@ export default function BusinessAddressScreen() {
           address: {
             street,
             city,
-            district,
-            postCode,
+            postalCode: postCode,
           },
+          // Ensure required properties exist
+          id: user.business?.id || 0,
+          name: user.business?.name || "",
+          type: user.business?.type || "salon",
+          workingHours: user.business?.workingHours || {},
+          rating: user.business?.rating || 0,
+          reviews: user.business?.reviews || 0,
+          images: user.business?.images || [],
+          // Add the new properties
           phone,
           email,
           website,
         },
-      });
-      router.back();
+      })
+      router.back()
     }
-  };
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -91,22 +91,12 @@ export default function BusinessAddressScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>İlçe</Text>
-            <TextInput
-              style={styles.input}
-              value={district}
-              onChangeText={setDistrict}
-              placeholder="İlçe girin"
-            />
+            <TextInput style={styles.input} value={district} onChangeText={setDistrict} placeholder="İlçe girin" />
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Şehir</Text>
-            <TextInput
-              style={styles.input}
-              value={city}
-              onChangeText={setCity}
-              placeholder="Şehir girin"
-            />
+            <TextInput style={styles.input} value={city} onChangeText={setCity} placeholder="Şehir girin" />
           </View>
 
           <View style={styles.inputContainer}>
@@ -163,7 +153,7 @@ export default function BusinessAddressScreen() {
         <Text style={styles.saveButtonText}>Kaydet</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -248,4 +238,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

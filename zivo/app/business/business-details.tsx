@@ -1,31 +1,21 @@
-// app/business/business-details.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Image,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function BusinessDetailsScreen() {
-  const { user, updateUser } = useAuth();
-  const [businessName, setBusinessName] = useState(user?.business?.name || "");
-  const [businessType, setBusinessType] = useState(user?.business?.type || "salon");
-  const [description, setDescription] = useState(user?.business?.description || "");
-  const [logo, setLogo] = useState(user?.business?.logo || null);
+  const { user, updateUser } = useAuth()
+  const [businessName, setBusinessName] = useState(user?.business?.name || "")
+  const [businessType, setBusinessType] = useState(user?.business?.type || "salon")
+  const [description, setDescription] = useState(user?.business?.description || "")
+  const [logo, setLogo] = useState<string | undefined>(user?.business?.logo || undefined)
 
   const businessTypes = [
     { id: "salon", name: "Güzellik Salonu" },
@@ -33,7 +23,7 @@ export default function BusinessDetailsScreen() {
     { id: "spa", name: "Spa & Masaj" },
     { id: "nail", name: "Tırnak Bakımı" },
     { id: "other", name: "Diğer" },
-  ];
+  ]
 
   const handleSave = () => {
     if (user) {
@@ -43,34 +33,38 @@ export default function BusinessDetailsScreen() {
           ...user.business,
           name: businessName,
           type: businessType,
-          description: description,
-          logo: logo,
+          // Ensure required properties exist
+          id: user.business?.id || 0,
+          address: user.business?.address || "",
+          workingHours: user.business?.workingHours || {},
+          rating: user.business?.rating || 0,
+          reviews: user.business?.reviews || 0,
+          images: user.business?.images || [],
+          // Add the new properties
+          description,
+          logo: logo || undefined,
         },
-      });
-      router.back();
+      })
+      router.back()
     }
-  };
+  }
 
+  // handleUploadLogo fonksiyonunu da güncelleyelim
   const handleUploadLogo = () => {
     // Burada gerçek bir resim yükleme işlemi yapılacak
     // Şimdilik sadece bir placeholder kullanıyoruz
-    setLogo("https://placeholder.svg?height=200&width=200");
-  };
+    setLogo("https://placeholder.svg?height=200&width=200")
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -83,6 +77,7 @@ export default function BusinessDetailsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
+        {/* logoContainer içindeki koşullu render kısmını da güncelleyelim */}
         <View style={styles.logoContainer}>
           {logo ? (
             <Image source={{ uri: logo }} style={styles.logo} />
@@ -114,18 +109,10 @@ export default function BusinessDetailsScreen() {
             {businessTypes.map((type) => (
               <TouchableOpacity
                 key={type.id}
-                style={[
-                  styles.businessTypeButton,
-                  businessType === type.id && styles.businessTypeButtonActive,
-                ]}
+                style={[styles.businessTypeButton, businessType === type.id && styles.businessTypeButtonActive]}
                 onPress={() => setBusinessType(type.id)}
               >
-                <Text
-                  style={[
-                    styles.businessTypeText,
-                    businessType === type.id && styles.businessTypeTextActive,
-                  ]}
-                >
+                <Text style={[styles.businessTypeText, businessType === type.id && styles.businessTypeTextActive]}>
                   {type.name}
                 </Text>
               </TouchableOpacity>
@@ -151,7 +138,7 @@ export default function BusinessDetailsScreen() {
         <Text style={styles.saveButtonText}>Kaydet</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -287,4 +274,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

@@ -1,94 +1,137 @@
-// app/business/working-hours.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
-
-interface WorkingHour {
-  day: string;
-  isOpen: boolean;
-  openTime: string;
-  closeTime: string;
-  breakStart?: string;
-  breakEnd?: string;
 }
 
+interface WorkingHour {
+  day: string
+  isOpen: boolean
+  openTime: string
+  closeTime: string
+  breakStart?: string
+  breakEnd?: string
+}
+
+// Default working hours
+const defaultWorkingHours: WorkingHour[] = [
+  { day: "Monday", isOpen: true, openTime: "09:00", closeTime: "18:00" },
+  { day: "Tuesday", isOpen: true, openTime: "09:00", closeTime: "18:00" },
+  { day: "Wednesday", isOpen: true, openTime: "09:00", closeTime: "18:00" },
+  { day: "Thursday", isOpen: true, openTime: "09:00", closeTime: "18:00" },
+  { day: "Friday", isOpen: true, openTime: "09:00", closeTime: "18:00" },
+  { day: "Saturday", isOpen: true, openTime: "10:00", closeTime: "16:00" },
+  { day: "Sunday", isOpen: false, openTime: "10:00", closeTime: "16:00" },
+]
+
 export default function WorkingHoursScreen() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser } = useAuth()
   const [workingHours, setWorkingHours] = useState<WorkingHour[]>(() => {
-    const raw = user?.business?.workingHours;
-    if (!raw || typeof raw !== "object") return defaultWorkingHours;
-  
+    const raw = user?.business?.workingHours
+    if (!raw || typeof raw !== "object") return defaultWorkingHours
+
     return Object.entries(raw).map(([day, data]) => ({
       day,
       isOpen: data.isOpen,
       openTime: data.open,
       closeTime: data.close,
-    }));
-  });
-  
+    }))
+  })
 
   const timeOptions = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
-    "20:00", "20:30", "21:00", "21:30", "22:00"
-  ];
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+    "18:30",
+    "19:00",
+    "19:30",
+    "20:00",
+    "20:30",
+    "21:00",
+    "21:30",
+    "22:00",
+  ]
 
   const handleToggleDay = (index: number) => {
-    const newWorkingHours = [...workingHours];
-    newWorkingHours[index].isOpen = !newWorkingHours[index].isOpen;
-    setWorkingHours(newWorkingHours);
-  };
+    const newWorkingHours = [...workingHours]
+    newWorkingHours[index].isOpen = !newWorkingHours[index].isOpen
+    setWorkingHours(newWorkingHours)
+  }
 
   const handleChangeTime = (index: number, field: string, value: string) => {
-    const newWorkingHours = [...workingHours];
-    newWorkingHours[index][field as keyof WorkingHour] = value;
-    setWorkingHours(newWorkingHours);
-  };
+    const newWorkingHours = [...workingHours]
+    if (field === "openTime" || field === "closeTime") {
+      newWorkingHours[index][field] = value
+    }
+    setWorkingHours(newWorkingHours)
+  }
 
   const handleSave = () => {
-    if (user) {
+    if (user && user.business) {
+      // Convert working hours array to object format expected by the API
+      const workingHoursObject = workingHours.reduce(
+        (acc, curr) => {
+          acc[curr.day] = {
+            isOpen: curr.isOpen,
+            open: curr.openTime,
+            close: curr.closeTime,
+          }
+          return acc
+        },
+        {} as Record<string, any>,
+      )
+
+      // Create a new business object with all required fields
+      const updatedBusiness = {
+        ...user.business,
+        workingHours: workingHoursObject,
+        // Ensure required fields are present
+        id: user.business.id || 0,
+        name: user.business.name || "",
+        address: user.business.address || "",
+      }
+
       updateUser({
         ...user,
-        business: {
-          ...user.business,
-          workingHours,
-        },
-      });
-      router.back();
+        business: updatedBusiness,
+      })
+      router.back()
     }
-  };
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -116,26 +159,14 @@ export default function WorkingHoursScreen() {
               <View style={styles.hoursContainer}>
                 <View style={styles.timeSelector}>
                   <Text style={styles.timeLabel}>Açılış</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.timeScroll}
-                  >
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
                     {timeOptions.map((time) => (
                       <TouchableOpacity
                         key={`open-${time}`}
-                        style={[
-                          styles.timeOption,
-                          hours.openTime === time && styles.selectedTimeOption,
-                        ]}
+                        style={[styles.timeOption, hours.openTime === time && styles.selectedTimeOption]}
                         onPress={() => handleChangeTime(index, "openTime", time)}
                       >
-                        <Text
-                          style={[
-                            styles.timeText,
-                            hours.openTime === time && styles.selectedTimeText,
-                          ]}
-                        >
+                        <Text style={[styles.timeText, hours.openTime === time && styles.selectedTimeText]}>
                           {time}
                         </Text>
                       </TouchableOpacity>
@@ -145,26 +176,14 @@ export default function WorkingHoursScreen() {
 
                 <View style={styles.timeSelector}>
                   <Text style={styles.timeLabel}>Kapanış</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.timeScroll}
-                  >
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
                     {timeOptions.map((time) => (
                       <TouchableOpacity
                         key={`close-${time}`}
-                        style={[
-                          styles.timeOption,
-                          hours.closeTime === time && styles.selectedTimeOption,
-                        ]}
+                        style={[styles.timeOption, hours.closeTime === time && styles.selectedTimeOption]}
                         onPress={() => handleChangeTime(index, "closeTime", time)}
                       >
-                        <Text
-                          style={[
-                            styles.timeText,
-                            hours.closeTime === time && styles.selectedTimeText,
-                          ]}
-                        >
+                        <Text style={[styles.timeText, hours.closeTime === time && styles.selectedTimeText]}>
                           {time}
                         </Text>
                       </TouchableOpacity>
@@ -181,7 +200,7 @@ export default function WorkingHoursScreen() {
         <Text style={styles.saveButtonText}>Kaydet</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -290,4 +309,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

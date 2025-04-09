@@ -37,6 +37,16 @@ const categories = [
 export default function HomeScreen() {
   const { user, isLoading } = useAuth()
 
+  // Helper function to safely render address
+  const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
+    if (typeof address === "string") {
+      return address
+    } else if (address && typeof address === "object") {
+      return `${address.street}, ${address.city}, ${address.postalCode}`
+    }
+    return ""
+  }
+
   if (isLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
@@ -81,23 +91,36 @@ export default function HomeScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.favoritesContainer}>
-          {mockBusinesses.slice(0, 3).map((business: Business) => (
-            <TouchableOpacity
-              key={business.id}
-              style={styles.favoriteItem}
-              onPress={() => navigateTo(`/${business.id}`)}
-            >
-              {business.images?.[0] && (
-                <Image source={business.images[0]} style={styles.favoriteImage} resizeMode="cover" />
-              )}
-              <View style={styles.favoriteRating}>
-                <Text style={styles.favoriteRatingText}>{business.rating.toFixed(1)}</Text>
-                <Text style={styles.favoriteReviewsText}>{business.reviews} reviews</Text>
-              </View>
-              <Text style={styles.favoriteName}>{business.name}</Text>
-              <Text style={styles.favoriteAddress}>{business.address}</Text>
-            </TouchableOpacity>
-          ))}
+          {mockBusinesses.slice(0, 3).map((business) => {
+            // Convert to match Business type
+            const typedBusiness: Business = {
+              ...business,
+              type: "salon", // Default value
+              workingHours: {}, // Default empty object
+              // Ensure other required properties exist
+              rating: business.rating || 0,
+              reviews: business.reviews || 0,
+              images: business.images || [],
+            }
+
+            return (
+              <TouchableOpacity
+                key={typedBusiness.id}
+                style={styles.favoriteItem}
+                onPress={() => navigateTo(`/${typedBusiness.id}`)}
+              >
+                {typedBusiness.images?.[0] && (
+                  <Image source={typedBusiness.images[0]} style={styles.favoriteImage} resizeMode="cover" />
+                )}
+                <View style={styles.favoriteRating}>
+                  <Text style={styles.favoriteRatingText}>{(typedBusiness.rating || 0).toFixed(1)}</Text>
+                  <Text style={styles.favoriteReviewsText}>{typedBusiness.reviews || 0} reviews</Text>
+                </View>
+                <Text style={styles.favoriteName}>{typedBusiness.name}</Text>
+                <Text style={styles.favoriteAddress}>{renderAddress(typedBusiness.address)}</Text>
+              </TouchableOpacity>
+            )
+          })}
         </ScrollView>
 
         <View style={styles.sectionHeader}>

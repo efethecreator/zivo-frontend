@@ -25,20 +25,42 @@ export default function ExploreScreen() {
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      setBusinesses(mockBusinesses)
+      // Convert mock data to match Business type
+      const typedBusinesses: Business[] = mockBusinesses.map((business) => ({
+        ...business,
+        type: "salon", // Default value
+        workingHours: {}, // Default empty object
+        // Ensure address is properly handled
+        address: business.address || "",
+        // Ensure other required properties exist
+        rating: business.rating || 0,
+        reviews: business.reviews || 0,
+        images: business.images || [],
+      }))
+      setBusinesses(typedBusinesses)
       setIsLoading(false)
     }, 1000)
   }, [])
 
+  // Helper function to safely render address
+  const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
+    if (typeof address === "string") {
+      return address
+    } else if (address && typeof address === "object") {
+      return `${address.street}, ${address.city}, ${address.postalCode}`
+    }
+    return ""
+  }
+
   const renderBusinessItem = ({ item }: { item: Business }) => (
-    <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id}` as any)}>
+    <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id?.toString()}` as any)}>
       {item.images?.[0] && <Image source={item.images[0]} style={styles.businessImage} resizeMode="cover" />}
       <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-        <Text style={styles.reviewsText}>{item.reviews} reviews</Text>
+        <Text style={styles.ratingText}>{(item.rating || 0).toFixed(1)}</Text>
+        <Text style={styles.reviewsText}>{item.reviews || 0} reviews</Text>
       </View>
       <Text style={styles.businessName}>{item.name}</Text>
-      <Text style={styles.businessAddress}>{item.address}</Text>
+      <Text style={styles.businessAddress}>{renderAddress(item.address)}</Text>
     </TouchableOpacity>
   )
 
@@ -111,7 +133,7 @@ export default function ExploreScreen() {
         <FlatList
           data={businesses}
           renderItem={renderBusinessItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.businessList}
         />
