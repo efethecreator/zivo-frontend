@@ -1,55 +1,41 @@
 // app/business/payment-settings.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  TextInput,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function PaymentSettingsScreen() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("methods");
-  const [showAddCard, setShowAddCard] = useState(false);
-  
+  const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState("methods")
+  const [showAddCard, setShowAddCard] = useState(false)
+
   // Form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
+  const [cardNumber, setCardNumber] = useState("")
+  const [cardName, setCardName] = useState("")
+  const [expiryDate, setExpiryDate] = useState("")
+  const [cvv, setCvv] = useState("")
 
   const handleSave = () => {
     // Burada kart bilgilerini kaydetme işlemi yapılacak
-    setShowAddCard(false);
-  };
+    setShowAddCard(false)
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -58,7 +44,7 @@ export default function PaymentSettingsScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ödeme Ayarları</Text>
+        <Text style={styles.headerTitle}>Payment Settings</Text>
       </View>
 
       <View style={styles.tabContainer}>
@@ -66,13 +52,13 @@ export default function PaymentSettingsScreen() {
           style={[styles.tab, activeTab === "methods" && styles.activeTab]}
           onPress={() => setActiveTab("methods")}
         >
-          <Text style={styles.tabText}>Ödeme Yöntemleri</Text>
+          <Text style={styles.tabText}>Payment Methods</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === "billing" && styles.activeTab]}
           onPress={() => setActiveTab("billing")}
         >
-          <Text style={styles.tabText}>Fatura Bilgileri</Text>
+          <Text style={styles.tabText}>Billing Information</Text>
         </TouchableOpacity>
       </View>
 
@@ -92,7 +78,7 @@ export default function PaymentSettingsScreen() {
                 </View>
                 <View style={styles.paymentMethodInfo}>
                   <Text style={styles.paymentMethodText}>Visa •••• 4242</Text>
-                  <Text style={styles.paymentMethodExpiry}>Son Kullanma: 12/25</Text>
+                  <Text style={styles.paymentMethodExpiry}>Expiry: 12/25</Text>
                 </View>
                 <TouchableOpacity style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={20} color="#F44336" />
@@ -112,7 +98,7 @@ export default function PaymentSettingsScreen() {
                 </View>
                 <View style={styles.paymentMethodInfo}>
                   <Text style={styles.paymentMethodText}>Mastercard •••• 5555</Text>
-                  <Text style={styles.paymentMethodExpiry}>Son Kullanma: 09/24</Text>
+                  <Text style={styles.paymentMethodExpiry}>Expiry: 09/24</Text>
                 </View>
                 <TouchableOpacity style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={20} color="#F44336" />
@@ -123,27 +109,25 @@ export default function PaymentSettingsScreen() {
           ) : (
             <View>
               <View style={styles.billingInfoContainer}>
-                <Text style={styles.billingInfoLabel}>Fatura Adı</Text>
+                <Text style={styles.billingInfoLabel}>Billing Name</Text>
                 <Text style={styles.billingInfoValue}>{user.business?.name || "İşletmem"}</Text>
               </View>
               <View style={styles.divider} />
 
               <View style={styles.billingInfoContainer}>
-                <Text style={styles.billingInfoLabel}>Vergi Numarası</Text>
+                <Text style={styles.billingInfoLabel}>Tax ID</Text>
                 <Text style={styles.billingInfoValue}>1234567890</Text>
               </View>
               <View style={styles.divider} />
 
               <View style={styles.billingInfoContainer}>
-                <Text style={styles.billingInfoLabel}>Fatura Adresi</Text>
-                <Text style={styles.billingInfoValue}>
-                  Örnek Mahallesi, Örnek Caddesi No:123, Örnek İlçe/İl
-                </Text>
+                <Text style={styles.billingInfoLabel}>Billing Address</Text>
+                <Text style={styles.billingInfoValue}>Örnek Mahallesi, Örnek Caddesi No:123, Örnek İlçe/İl</Text>
               </View>
               <View style={styles.divider} />
 
               <TouchableOpacity style={styles.editBillingButton}>
-                <Text style={styles.editBillingButtonText}>Fatura Bilgilerini Düzenle</Text>
+                <Text style={styles.editBillingButtonText}>Edit Billing Information</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -151,10 +135,10 @@ export default function PaymentSettingsScreen() {
       ) : (
         <ScrollView style={styles.content}>
           <View style={styles.cardFormContainer}>
-            <Text style={styles.cardFormTitle}>Yeni Kart Ekle</Text>
+            <Text style={styles.cardFormTitle}>Add New Card</Text>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Kart Numarası</Text>
+              <Text style={styles.label}>Card Number</Text>
               <TextInput
                 style={styles.input}
                 value={cardNumber}
@@ -166,7 +150,7 @@ export default function PaymentSettingsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Kart Üzerindeki İsim</Text>
+              <Text style={styles.label}>Name on Card</Text>
               <TextInput
                 style={styles.input}
                 value={cardName}
@@ -178,7 +162,7 @@ export default function PaymentSettingsScreen() {
 
             <View style={styles.formRow}>
               <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
-                <Text style={styles.label}>Son Kullanma Tarihi</Text>
+                <Text style={styles.label}>Expiry Date</Text>
                 <TextInput
                   style={styles.input}
                   value={expiryDate}
@@ -208,26 +192,20 @@ export default function PaymentSettingsScreen() {
 
       {activeTab === "methods" && !showAddCard ? (
         <TouchableOpacity style={styles.addCardButton} onPress={() => setShowAddCard(true)}>
-          <Text style={styles.addCardButtonText}>Kart Ekle</Text>
+          <Text style={styles.addCardButtonText}>Add Card</Text>
         </TouchableOpacity>
       ) : showAddCard ? (
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={() => setShowAddCard(false)}
-          >
-            <Text style={styles.cancelButtonText}>İptal</Text>
+          <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setShowAddCard(false)}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.saveButton]}
-            onPress={handleSave}
-          >
-            <Text style={styles.saveButtonText}>Kaydet</Text>
+          <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       ) : null}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -407,4 +385,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

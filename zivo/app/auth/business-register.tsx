@@ -1,7 +1,7 @@
 // app/auth/business-register.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState } from "react"
 import {
   View,
   Text,
@@ -12,27 +12,27 @@ import {
   Platform,
   ScrollView,
   Switch,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
-import type { User, Business } from "../../types";
+} from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
+import type { User, Business } from "../../types"
 
 export default function BusinessRegisterScreen() {
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  
+  const [step, setStep] = useState(1)
+  const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+
   // İşletme bilgileri
-  const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState("salon");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  
+  const [businessName, setBusinessName] = useState("")
+  const [businessType, setBusinessType] = useState("salon")
+  const [address, setAddress] = useState("")
+  const [city, setCity] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+
   // Çalışma saatleri
   const [workingHours, setWorkingHours] = useState({
     monday: { isOpen: true, open: "09:00", close: "18:00" },
@@ -42,16 +42,16 @@ export default function BusinessRegisterScreen() {
     friday: { isOpen: true, open: "09:00", close: "18:00" },
     saturday: { isOpen: true, open: "10:00", close: "16:00" },
     sunday: { isOpen: false, open: "10:00", close: "16:00" },
-  });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  })
+
+  const [isLoading, setIsLoading] = useState(false)
+  const { register } = useAuth()
 
   const handleRegister = async () => {
-    if (!email.trim() || !name.trim() || !password.trim() || !businessName.trim()) return;
-  
-    setIsLoading(true);
-  
+    if (!email.trim() || !name.trim() || !password.trim() || !businessName.trim()) return
+
+    setIsLoading(true)
+
     // Simulate API call
     setTimeout(() => {
       const businessData: Business = {
@@ -64,34 +64,32 @@ export default function BusinessRegisterScreen() {
           postalCode,
         },
         workingHours,
-      };
-      
-      const userData: Partial<User> = { 
-        name, 
-        email, 
-        phone, 
-        password, 
-        role: 'business', // Rolü açıkça 'business' olarak ayarlayın
-        business: businessData
-      };
-      
-      console.log("Registering business user:", userData); // Debug için
-      register(userData);
-      setIsLoading(false);
-      router.replace("/business/dashboard");
-    }, 1000);
-  };
+      }
+
+      const userData: Partial<User> = {
+        name,
+        email,
+        phone,
+        password,
+        role: "business", // Rolü açıkça 'business' olarak ayarlayın
+        business: businessData,
+      }
+
+      console.log("Registering business user:", userData) // Debug için
+      register(userData)
+      setIsLoading(false)
+      router.replace("/business/dashboard")
+    }, 1000)
+  }
 
   const renderStep1 = () => (
     <>
-      <Text style={styles.title}>İşletme Hesabı Oluştur</Text>
-      <Text style={styles.subtitle}>Kişisel Bilgiler</Text>
-      <Text style={styles.description}>
-        Önce kişisel bilgilerinizi girelim
-      </Text>
+      <Text style={styles.title}>Create Business Account</Text>
+      <Text style={styles.subtitle}>Personal Information</Text>
+      <Text style={styles.description}>Let's enter your personal information first</Text>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>E-posta</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
           value={email}
@@ -102,22 +100,17 @@ export default function BusinessRegisterScreen() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Ad ve Soyad</Text>
+        <Text style={styles.label}>Full Name</Text>
         <TextInput style={styles.input} value={name} onChangeText={setName} />
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Telefon Numarası</Text>
-        <TextInput
-          style={styles.input}
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-        />
+        <Text style={styles.label}>Phone Number</Text>
+        <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Şifre</Text>
+        <Text style={styles.label}>Password</Text>
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
@@ -125,68 +118,44 @@ export default function BusinessRegisterScreen() {
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons
-              name={showPassword ? "eye-off" : "eye"}
-              size={24}
-              color="#666"
-            />
+          <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#666" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.button, styles.primaryButton]}
-        onPress={() => setStep(2)}
-      >
-        <Text style={styles.buttonText}>Devam Et</Text>
+      <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={() => setStep(2)}>
+        <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
     </>
-  );
+  )
 
   const renderStep2 = () => (
     <>
-      <Text style={styles.title}>İşletme Bilgileri</Text>
-      <Text style={styles.description}>
-        İşletmeniz hakkında bilgi verin
-      </Text>
+      <Text style={styles.title}>Business Information</Text>
+      <Text style={styles.description}>Provide information about your business</Text>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>İşletme Adı</Text>
-        <TextInput
-          style={styles.input}
-          value={businessName}
-          onChangeText={setBusinessName}
-        />
+        <Text style={styles.label}>Business Name</Text>
+        <TextInput style={styles.input} value={businessName} onChangeText={setBusinessName} />
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>İşletme Türü</Text>
+        <Text style={styles.label}>Business Type</Text>
         <View style={styles.businessTypeContainer}>
           {[
-            { id: "salon", label: "Güzellik Salonu" },
-            { id: "barber", label: "Berber" },
-            { id: "spa", label: "Spa & Masaj" },
-            { id: "nail", label: "Tırnak Bakımı" },
-            { id: "other", label: "Diğer" },
+            { id: "salon", label: "Beauty salon" },
+            { id: "barber", label: "Barber" },
+            { id: "spa", label: "Spa & Massage" },
+            { id: "nail", label: "Nail Care" },
+            { id: "other", label: "Other" },
           ].map((type) => (
             <TouchableOpacity
               key={type.id}
-              style={[
-                styles.businessTypeButton,
-                businessType === type.id && styles.businessTypeButtonActive,
-              ]}
+              style={[styles.businessTypeButton, businessType === type.id && styles.businessTypeButtonActive]}
               onPress={() => setBusinessType(type.id)}
             >
-              <Text
-                style={[
-                  styles.businessTypeText,
-                  businessType === type.id && styles.businessTypeTextActive,
-                ]}
-              >
+              <Text style={[styles.businessTypeText, businessType === type.id && styles.businessTypeTextActive]}>
                 {type.label}
               </Text>
             </TouchableOpacity>
@@ -195,71 +164,54 @@ export default function BusinessRegisterScreen() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Adres</Text>
+        <Text style={styles.label}>Address</Text>
         <TextInput
           style={styles.input}
           value={address}
           onChangeText={setAddress}
-          placeholder="Sokak, Mahalle, No"
+          placeholder="Street, Neighborhood, No"
         />
       </View>
 
       <View style={styles.rowContainer}>
         <View style={[styles.inputContainer, { flex: 1, marginRight: 10 }]}>
-          <Text style={styles.label}>Şehir</Text>
-          <TextInput
-            style={styles.input}
-            value={city}
-            onChangeText={setCity}
-          />
+          <Text style={styles.label}>City</Text>
+          <TextInput style={styles.input} value={city} onChangeText={setCity} />
         </View>
 
         <View style={[styles.inputContainer, { flex: 1 }]}>
-          <Text style={styles.label}>Posta Kodu</Text>
-          <TextInput
-            style={styles.input}
-            value={postalCode}
-            onChangeText={setPostalCode}
-            keyboardType="number-pad"
-          />
+          <Text style={styles.label}>Postal Code</Text>
+          <TextInput style={styles.input} value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" />
         </View>
       </View>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={() => setStep(1)}
-        >
-          <Text style={styles.secondaryButtonText}>Geri</Text>
+        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={() => setStep(1)}>
+          <Text style={styles.secondaryButtonText}>Back</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton, { flex: 2 }]}
-          onPress={() => setStep(3)}
-        >
-          <Text style={styles.buttonText}>Devam Et</Text>
+        <TouchableOpacity style={[styles.button, styles.primaryButton, { flex: 2 }]} onPress={() => setStep(3)}>
+          <Text style={styles.buttonText}>Continue</Text>
         </TouchableOpacity>
       </View>
     </>
-  );
+  )
 
   const renderStep3 = () => (
     <>
-      <Text style={styles.title}>Çalışma Saatleri</Text>
-      <Text style={styles.description}>
-        İşletmenizin çalışma saatlerini belirleyin
-      </Text>
+      <Text style={styles.title}>Working Hours</Text>
+      <Text style={styles.description}>Set your business's working hours</Text>
 
       {Object.entries(workingHours).map(([day, hours]) => {
         const dayNames: Record<string, string> = {
-          monday: "Pazartesi",
-          tuesday: "Salı",
-          wednesday: "Çarşamba",
-          thursday: "Perşembe",
-          friday: "Cuma",
-          saturday: "Cumartesi",
-          sunday: "Pazar",
-        };
+          monday: "Monday",
+          tuesday: "Tuesday",
+          wednesday: "Wednesday",
+          thursday: "Thursday",
+          friday: "Friday",
+          saturday: "Saturday",
+          sunday: "Sunday",
+        }
 
         return (
           <View key={day} style={styles.workingHoursRow}>
@@ -280,7 +232,7 @@ export default function BusinessRegisterScreen() {
             {hours.isOpen && (
               <View style={styles.hoursContainer}>
                 <View style={styles.timeContainer}>
-                  <Text style={styles.timeLabel}>Açılış</Text>
+                  <Text style={styles.timeLabel}>Opening</Text>
                   <TextInput
                     style={styles.timeInput}
                     value={hours.open}
@@ -295,7 +247,7 @@ export default function BusinessRegisterScreen() {
                 </View>
 
                 <View style={styles.timeContainer}>
-                  <Text style={styles.timeLabel}>Kapanış</Text>
+                  <Text style={styles.timeLabel}>Closing</Text>
                   <TextInput
                     style={styles.timeInput}
                     value={hours.close}
@@ -311,15 +263,12 @@ export default function BusinessRegisterScreen() {
               </View>
             )}
           </View>
-        );
+        )
       })}
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={() => setStep(2)}
-        >
-          <Text style={styles.secondaryButtonText}>Geri</Text>
+        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={() => setStep(2)}>
+          <Text style={styles.secondaryButtonText}>Back</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -327,24 +276,16 @@ export default function BusinessRegisterScreen() {
           onPress={handleRegister}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
-          </Text>
+          <Text style={styles.buttonText}>{isLoading ? "Creating Account..." : "Create Account"}</Text>
         </TouchableOpacity>
       </View>
     </>
-  );
+  )
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
 
@@ -352,11 +293,7 @@ export default function BusinessRegisterScreen() {
           {[1, 2, 3].map((s) => (
             <View
               key={s}
-              style={[
-                styles.stepDot,
-                s === step && styles.activeStepDot,
-                s < step && styles.completedStepDot,
-              ]}
+              style={[styles.stepDot, s === step && styles.activeStepDot, s < step && styles.completedStepDot]}
             >
               {s < step ? (
                 <Ionicons name="checkmark" size={12} color="#fff" />
@@ -372,7 +309,7 @@ export default function BusinessRegisterScreen() {
         {step === 3 && renderStep3()}
       </ScrollView>
     </KeyboardAvoidingView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -551,4 +488,4 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 14,
   },
-});
+})

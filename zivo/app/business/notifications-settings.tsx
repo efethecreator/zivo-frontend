@@ -1,61 +1,48 @@
 // app/business/notifications-settings.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function NotificationsSettingsScreen() {
-  const { user } = useAuth();
-  const [newAppointmentPush, setNewAppointmentPush] = useState(true);
-  const [newAppointmentEmail, setNewAppointmentEmail] = useState(true);
-  const [newAppointmentSMS, setNewAppointmentSMS] = useState(false);
-  
-  const [cancelledAppointmentPush, setCancelledAppointmentPush] = useState(true);
-  const [cancelledAppointmentEmail, setCancelledAppointmentEmail] = useState(true);
-  const [cancelledAppointmentSMS, setCancelledAppointmentSMS] = useState(false);
-  
-  const [reminderPush, setReminderPush] = useState(true);
-  const [reminderEmail, setReminderEmail] = useState(false);
-  const [reminderSMS, setReminderSMS] = useState(false);
-  
-  const [marketingPush, setMarketingPush] = useState(false);
-  const [marketingEmail, setMarketingEmail] = useState(true);
-  const [marketingSMS, setMarketingSMS] = useState(false);
+  const { user } = useAuth()
+  const [newAppointmentPush, setNewAppointmentPush] = useState(true)
+  const [newAppointmentEmail, setNewAppointmentEmail] = useState(true)
+  const [newAppointmentSMS, setNewAppointmentSMS] = useState(false)
+
+  const [cancelledAppointmentPush, setCancelledAppointmentPush] = useState(true)
+  const [cancelledAppointmentEmail, setCancelledAppointmentEmail] = useState(true)
+  const [cancelledAppointmentSMS, setCancelledAppointmentSMS] = useState(false)
+
+  const [reminderPush, setReminderPush] = useState(true)
+  const [reminderEmail, setReminderEmail] = useState(false)
+  const [reminderSMS, setReminderSMS] = useState(false)
+
+  const [marketingPush, setMarketingPush] = useState(false)
+  const [marketingEmail, setMarketingEmail] = useState(true)
+  const [marketingSMS, setMarketingSMS] = useState(false)
 
   const handleSave = () => {
     // Burada bildirim ayarlarını kaydetme işlemi yapılacak
-    router.back();
-  };
+    router.back()
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -64,16 +51,16 @@ export default function NotificationsSettingsScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bildirim Ayarları</Text>
+        <Text style={styles.headerTitle}>Notification Settings</Text>
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Yeni Randevu Bildirimleri</Text>
+          <Text style={styles.sectionTitle}>New Appointment Notifications</Text>
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>Uygulama Bildirimleri</Text>
+          <Text style={styles.notificationText}>App Notifications</Text>
           <Switch
             value={newAppointmentPush}
             onValueChange={setNewAppointmentPush}
@@ -82,7 +69,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>E-posta Bildirimleri</Text>
+          <Text style={styles.notificationText}>Email Notifications</Text>
           <Switch
             value={newAppointmentEmail}
             onValueChange={setNewAppointmentEmail}
@@ -91,7 +78,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>SMS Bildirimleri</Text>
+          <Text style={styles.notificationText}>SMS Notifications</Text>
           <Switch
             value={newAppointmentSMS}
             onValueChange={setNewAppointmentSMS}
@@ -100,11 +87,11 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>İptal Edilen Randevu Bildirimleri</Text>
+          <Text style={styles.sectionTitle}>Cancelled Appointment Notifications</Text>
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>Uygulama Bildirimleri</Text>
+          <Text style={styles.notificationText}>App Notifications</Text>
           <Switch
             value={cancelledAppointmentPush}
             onValueChange={setCancelledAppointmentPush}
@@ -113,7 +100,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>E-posta Bildirimleri</Text>
+          <Text style={styles.notificationText}>Email Notifications</Text>
           <Switch
             value={cancelledAppointmentEmail}
             onValueChange={setCancelledAppointmentEmail}
@@ -122,7 +109,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>SMS Bildirimleri</Text>
+          <Text style={styles.notificationText}>SMS Notifications</Text>
           <Switch
             value={cancelledAppointmentSMS}
             onValueChange={setCancelledAppointmentSMS}
@@ -131,11 +118,11 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Randevu Hatırlatıcıları</Text>
+          <Text style={styles.sectionTitle}>Appointment Reminders</Text>
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>Uygulama Bildirimleri</Text>
+          <Text style={styles.notificationText}>App Notifications</Text>
           <Switch
             value={reminderPush}
             onValueChange={setReminderPush}
@@ -144,7 +131,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>E-posta Bildirimleri</Text>
+          <Text style={styles.notificationText}>Email Notifications</Text>
           <Switch
             value={reminderEmail}
             onValueChange={setReminderEmail}
@@ -153,20 +140,16 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>SMS Bildirimleri</Text>
-          <Switch
-            value={reminderSMS}
-            onValueChange={setReminderSMS}
-            trackColor={{ false: "#ddd", true: "#1B9AAA" }}
-          />
+          <Text style={styles.notificationText}>SMS Notifications</Text>
+          <Switch value={reminderSMS} onValueChange={setReminderSMS} trackColor={{ false: "#ddd", true: "#1B9AAA" }} />
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Pazarlama Bildirimleri</Text>
+          <Text style={styles.sectionTitle}>Marketing Notifications</Text>
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>Uygulama Bildirimleri</Text>
+          <Text style={styles.notificationText}>App Notifications</Text>
           <Switch
             value={marketingPush}
             onValueChange={setMarketingPush}
@@ -175,7 +158,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>E-posta Bildirimleri</Text>
+          <Text style={styles.notificationText}>Email Notifications</Text>
           <Switch
             value={marketingEmail}
             onValueChange={setMarketingEmail}
@@ -184,7 +167,7 @@ export default function NotificationsSettingsScreen() {
         </View>
 
         <View style={styles.notificationItem}>
-          <Text style={styles.notificationText}>SMS Bildirimleri</Text>
+          <Text style={styles.notificationText}>SMS Notifications</Text>
           <Switch
             value={marketingSMS}
             onValueChange={setMarketingSMS}
@@ -194,10 +177,10 @@ export default function NotificationsSettingsScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Kaydet</Text>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -278,4 +261,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

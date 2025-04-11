@@ -126,9 +126,9 @@ export default function WorkingHoursScreen() {
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
         <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     )
@@ -140,7 +140,7 @@ export default function WorkingHoursScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Çalışma Saatleri</Text>
+        <Text style={styles.headerTitle}>Working Hours</Text>
       </View>
 
       <ScrollView style={styles.content}>
@@ -158,7 +158,7 @@ export default function WorkingHoursScreen() {
             {hours.isOpen && (
               <View style={styles.hoursContainer}>
                 <View style={styles.timeSelector}>
-                  <Text style={styles.timeLabel}>Açılış</Text>
+                  <Text style={styles.timeLabel}>Opening</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
                     {timeOptions.map((time) => (
                       <TouchableOpacity
@@ -175,7 +175,7 @@ export default function WorkingHoursScreen() {
                 </View>
 
                 <View style={styles.timeSelector}>
-                  <Text style={styles.timeLabel}>Kapanış</Text>
+                  <Text style={styles.timeLabel}>Closing</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
                     {timeOptions.map((time) => (
                       <TouchableOpacity
@@ -197,7 +197,7 @@ export default function WorkingHoursScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Kaydet</Text>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </View>
   )

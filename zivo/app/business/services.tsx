@@ -10,6 +10,7 @@ import {
   ScrollView,
   TextInput,
   Modal,
+  SafeAreaView, // <-- iOS çentikli ekranlarda uyumluluk için
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,50 +34,49 @@ export default function BusinessServicesScreen() {
   const [serviceCategory, setServiceCategory] = useState("");
 
   useEffect(() => {
-    // Burada gerçek bir API çağrısı yapılacak
-    // Şimdilik mock veri kullanıyoruz
+    // Burada gerçek bir API çağrısı yapılabilir, şimdilik mock veri kullanılıyor
     const mockServices: Service[] = [
       {
         id: 1,
-        name: "Saç Kesimi",
-        description: "Profesyonel saç kesimi",
+        name: "Haircut",
+        description: "Professional haircut",
         price: 100,
         duration: 30,
-        category: "Saç",
+        category: "Haircut",
       },
       {
         id: 2,
-        name: "Saç Boyama",
-        description: "Tek renk saç boyama",
+        name: "Hair Coloring",
+        description: "Professional hair coloring",
         price: 200,
         duration: 60,
-        category: "Saç",
+        category: "Haircut",
       },
       {
         id: 3,
-        name: "Sakal Tıraşı",
-        description: "Sakal şekillendirme ve tıraş",
+        name: "Beard Trim",
+        description: "Professional beard trim",
         price: 50,
         duration: 20,
-        category: "Sakal",
+        category: "Beard",
       },
       {
         id: 4,
-        name: "Manikür",
-        description: "Tırnak bakımı ve oje",
+        name: "Manicure",
+        description: "Nail care and polish",
         price: 80,
         duration: 45,
-        category: "Tırnak",
+        category: "Nail",
       },
     ];
 
     setServices(mockServices);
 
-    // Kategorileri çıkar
+    // Kategorileri çıkar (tekrarsız liste)
     const uniqueCategories = Array.from(
       new Set(mockServices.map((service) => service.category))
-    ).filter((category): category is string => category !== undefined);
-    
+    ).filter((cat): cat is string => cat !== undefined);
+
     setCategories(uniqueCategories);
   }, []);
 
@@ -95,8 +95,8 @@ export default function BusinessServicesScreen() {
     if (editingService) {
       // Güncelleme
       setServices(
-        services.map((service) =>
-          service.id === editingService.id ? { ...newService, id: service.id } : service
+        services.map((s) =>
+          s.id === editingService.id ? { ...newService, id: s.id } : s
         )
       );
     } else {
@@ -119,7 +119,7 @@ export default function BusinessServicesScreen() {
   };
 
   const handleDeleteService = (id: number) => {
-    setServices(services.filter((service) => service.id !== id));
+    setServices(services.filter((s) => s.id !== id));
   };
 
   const resetForm = () => {
@@ -143,248 +143,290 @@ export default function BusinessServicesScreen() {
 
   if (!user || user.role !== "business") {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>
+            A service provider account is required to view this page.
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.replace("/auth/login")}
+          >
+            <Text style={styles.buttonText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hizmetler</Text>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Hizmet ara..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Services</Text>
         </View>
-      </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilter}>
-        <TouchableOpacity
-          style={[
-            styles.categoryButton,
-            filterCategory === null && styles.activeCategoryButton,
-          ]}
-          onPress={() => setFilterCategory(null)}
-        >
-          <Text
-            style={[
-              styles.categoryButtonText,
-              filterCategory === null && styles.activeCategoryButtonText,
-            ]}
+        {/* TOP BAR: Search + Category Filter */}
+        <View style={styles.topBarContainer}>
+          {/* SEARCH */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholderTextColor="#888"
+                placeholder="Search service..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </View>
+
+          {/* CATEGORY FILTER (Yatay Scroll) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryFilterContent}
           >
-            Tümü
-          </Text>
-        </TouchableOpacity>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              styles.categoryButton,
-              filterCategory === category && styles.activeCategoryButton,
-            ]}
-            onPress={() => setFilterCategory(category)}
-          >
-            <Text
+            <TouchableOpacity
               style={[
-                styles.categoryButtonText,
-                filterCategory === category && styles.activeCategoryButtonText,
+                styles.categoryButton,
+                filterCategory === null && styles.activeCategoryButton,
               ]}
+              onPress={() => setFilterCategory(null)}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <ScrollView style={styles.content}>
-        {filteredServices.map((service) => (
-          <View key={service.id} style={styles.serviceCard}>
-            <View style={styles.serviceInfo}>
-              <Text style={styles.serviceName}>{service.name}</Text>
-              {service.description && (
-                <Text style={styles.serviceDescription}>{service.description}</Text>
-              )}
-              <View style={styles.serviceDetails}>
-                <Text style={styles.servicePrice}>{service.price} ₺</Text>
-                <Text style={styles.serviceDuration}>{service.duration} dk</Text>
-                {service.category && (
-                  <View style={styles.categoryTag}>
-                    <Text style={styles.categoryTagText}>{service.category}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-            <View style={styles.serviceActions}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditService(service)}
+              <Text
+                style={[
+                  styles.categoryButtonText,
+                  filterCategory === null && styles.activeCategoryButtonText,
+                ]}
               >
-                <Ionicons name="create-outline" size={20} color="#1B9AAA" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteService(service.id)}
-              >
-                <Ionicons name="trash-outline" size={20} color="#F44336" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-
-        {filteredServices.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Hizmet bulunamadı</Text>
-          </View>
-        )}
-      </ScrollView>
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => {
-          resetForm();
-          setModalVisible(true);
-        }}
-      >
-        <Ionicons name="add" size={24} color="#fff" />
-      </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editingService ? "Hizmeti Düzenle" : "Yeni Hizmet Ekle"}
+                All
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
 
-            <ScrollView style={styles.modalBody}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Hizmet Adı *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={serviceName}
-                  onChangeText={setServiceName}
-                  placeholder="Hizmet adını girin"
-                />
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Açıklama</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={serviceDescription}
-                  onChangeText={setServiceDescription}
-                  placeholder="Hizmet açıklaması girin"
-                  multiline
-                  numberOfLines={3}
-                />
-              </View>
-
-              <View style={styles.formRow}>
-                <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
-                  <Text style={styles.label}>Fiyat (₺) *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={servicePrice}
-                    onChangeText={setServicePrice}
-                    placeholder="0"
-                    keyboardType="numeric"
-                  />
-                </View>
-
-                <View style={[styles.formGroup, { flex: 1 }]}>
-                  <Text style={styles.label}>Süre (dk) *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={serviceDuration}
-                    onChangeText={setServiceDuration}
-                    placeholder="30"
-                    keyboardType="numeric"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Kategori</Text>
-                <TextInput
-                  style={styles.input}
-                  value={serviceCategory}
-                  onChangeText={setServiceCategory}
-                  placeholder="Kategori girin"
-                />
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
+            {categories.map((category) => (
               <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
+                key={category}
+                style={[
+                  styles.categoryButton,
+                  filterCategory === category && styles.activeCategoryButton,
+                ]}
+                onPress={() => setFilterCategory(category)}
               >
-                <Text style={styles.cancelButtonText}>İptal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton]}
-                onPress={handleAddService}
-              >
-                <Text style={styles.saveButtonText}>
-                  {editingService ? "Güncelle" : "Ekle"}
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    filterCategory === category && styles.activeCategoryButtonText,
+                  ]}
+                >
+                  {category}
                 </Text>
               </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* SERVICE LIST */}
+        <ScrollView
+          contentContainerStyle={styles.servicesContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {filteredServices.map((service) => (
+            <View key={service.id} style={styles.serviceCard}>
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{service.name}</Text>
+                {service.description && (
+                  <Text style={styles.serviceDescription}>
+                    {service.description}
+                  </Text>
+                )}
+                <View style={styles.serviceDetails}>
+                  <Text style={styles.servicePrice}>{service.price} ₺</Text>
+                  <Text style={styles.serviceDuration}>{service.duration} min</Text>
+                  {service.category && (
+                    <View style={styles.categoryTag}>
+                      <Text style={styles.categoryTagText}>{service.category}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              <View style={styles.serviceActions}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleEditService(service)}
+                >
+                  <Ionicons name="create-outline" size={20} color="#1B9AAA" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteService(service.id)}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#F44336" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {filteredServices.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No service found</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* ADD BUTTON */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            resetForm();
+            setModalVisible(true);
+          }}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {/* MODAL FOR ADD/EDIT */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {/* MODAL HEADER */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {editingService ? "Edit Service" : "Add New Service"}
+                </Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#000" />
+                </TouchableOpacity>
+              </View>
+
+              {/* MODAL BODY */}
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Service Name *</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={serviceName}
+                    onChangeText={setServiceName}
+                    placeholder="Hizmet adını girin"
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Description</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={serviceDescription}
+                    onChangeText={setServiceDescription}
+                    placeholder="Hizmet açıklaması girin"
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                <View style={styles.formRow}>
+                  <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
+                    <Text style={styles.label}>Price *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={servicePrice}
+                      onChangeText={setServicePrice}
+                      placeholder="0"
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={[styles.formGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>Duration (min) *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={serviceDuration}
+                      onChangeText={setServiceDuration}
+                      placeholder="30"
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Category</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={serviceCategory}
+                    onChangeText={setServiceCategory}
+                    placeholder="Kategori girin"
+                  />
+                </View>
+              </ScrollView>
+
+              {/* MODAL FOOTER */}
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.saveButton]}
+                  onPress={handleAddService}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {editingService ? "Update" : "Add"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  /*************
+   * SAFE AREA & CONTAINER
+   *************/
+  safeArea: {
     flex: 1,
     backgroundColor: "#fff",
   },
+  container: {
+    flex: 1,
+  },
+
+  /*************
+   * HEADER
+   *************/
   header: {
-    paddingTop: 60,
-    paddingBottom: 20,
+    // Daha az boşluk için büyük paddingTop yerine küçük bir değer kullanın
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
   },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+
+  /*************
+   * TOP BAR (SEARCH + CATEGORY FILTER)
+   *************/
+  topBarContainer: {
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+  },
+  searchSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 10, // Daha küçük tutuldu
   },
   searchInputContainer: {
     flexDirection: "row",
@@ -398,14 +440,14 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
     fontSize: 16,
   },
-  categoryFilter: {
+
+  // Kategori filtresi alanı
+  categoryFilterContent: {
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingVertical: 5, // Daha az boşluk
   },
   categoryButton: {
     paddingHorizontal: 15,
@@ -424,10 +466,14 @@ const styles = StyleSheet.create({
   activeCategoryButtonText: {
     color: "#fff",
   },
-  content: {
-    flex: 1,
+
+  /*************
+   * SERVICES LIST
+   *************/
+  servicesContainer: {
     paddingHorizontal: 20,
-    paddingTop: 15,
+    paddingTop: 10, // Üst boşluğu küçük tutuyoruz
+    paddingBottom: 20,
   },
   serviceCard: {
     flexDirection: "row",
@@ -500,6 +546,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
+
+  /*************
+   * FLOATING ADD BUTTON
+   *************/
   addButton: {
     position: "absolute",
     bottom: 20,
@@ -516,6 +566,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+
+  /*************
+   * MODAL
+   *************/
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -597,6 +651,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
+
+  /*************
+   * ERROR TEXT (UNAUTHORIZED CASE)
+   *************/
   errorText: {
     fontSize: 16,
     color: "#666",

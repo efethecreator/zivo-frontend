@@ -24,12 +24,12 @@ export default function BusinessDashboardScreen() {
       {
         id: 1,
         customerId: 101,
-        customerName: "Ahmet Yılmaz",
+        customerName: "Murat Efe Çetin",
         customerPhone: "555-123-4567",
         serviceId: 1,
-        serviceName: "Saç Kesimi",
+        serviceName: "Haircut",
         staffId: 1,
-        staffName: "Mehmet Usta",
+        staffName: "Murat Efe Çetin",
         date: new Date().toISOString().split("T")[0],
         time: "10:00",
         duration: 30,
@@ -38,12 +38,12 @@ export default function BusinessDashboardScreen() {
       {
         id: 2,
         customerId: 102,
-        customerName: "Ayşe Demir",
+        customerName: "Taha Zeytun",
         customerPhone: "555-987-6543",
         serviceId: 2,
-        serviceName: "Saç Boyama",
+        serviceName: "Hair Coloring",
         staffId: 2,
-        staffName: "Zeynep Hanım",
+        staffName: "Taha Zeytun",
         date: new Date().toISOString().split("T")[0],
         time: "11:30",
         duration: 60,
@@ -55,7 +55,7 @@ export default function BusinessDashboardScreen() {
         customerName: "Mustafa Kaya",
         customerPhone: "555-456-7890",
         serviceId: 3,
-        serviceName: "Sakal Tıraşı",
+        serviceName: "Beard Shave",
         staffId: 1,
         staffName: "Mehmet Usta",
         date: new Date().toISOString().split("T")[0],
@@ -88,7 +88,7 @@ export default function BusinessDashboardScreen() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     )
   }
@@ -96,9 +96,9 @@ export default function BusinessDashboardScreen() {
   if (!user) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Oturum açmanız gerekiyor.</Text>
+        <Text style={styles.errorText}>You need to sign in.</Text>
         <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     )
@@ -107,10 +107,10 @@ export default function BusinessDashboardScreen() {
   if (user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
-        <Text style={styles.debugText}>Mevcut rol: {user.role || "tanımlanmamış"}</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <Text style={styles.debugText}>Current role: {user.role || "tanımlanmamış"}</Text>
         <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     )
@@ -120,8 +120,8 @@ export default function BusinessDashboardScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.welcomeText}>Hoş Geldiniz,</Text>
-          <Text style={styles.businessName}>{user.business?.name || "İşletmem"}</Text>
+          <Text style={styles.welcomeText}>Welcome,</Text>
+          <Text style={styles.businessName}>{user.business?.name || "My Business"}</Text>
         </View>
       </View>
 
@@ -129,22 +129,22 @@ export default function BusinessDashboardScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.todayCount}</Text>
-            <Text style={styles.statLabel}>Bugünkü Randevular</Text>
+            <Text style={styles.statLabel}>Today's Appointments</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.weekCount}</Text>
-            <Text style={styles.statLabel}>Bu Haftaki Randevular</Text>
+            <Text style={styles.statLabel}>This Week's Appointments</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.monthRevenue} ₺</Text>
-            <Text style={styles.statLabel}>Aylık Gelir</Text>
+            <Text style={styles.statLabel}>Monthly Revenue</Text>
           </View>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Bugünkü Randevular</Text>
+          <Text style={styles.sectionTitle}>Today's Appointments</Text>
           <TouchableOpacity onPress={() => router.push("/business/appointments")}>
-            <Text style={styles.seeAllText}>Tümünü Gör</Text>
+            <Text style={styles.seeAllText}>View All</Text>
           </TouchableOpacity>
         </View>
 
@@ -174,40 +174,40 @@ export default function BusinessDashboardScreen() {
                 />
                 <Text style={styles.statusText}>
                   {appointment.status === "confirmed"
-                    ? "Onaylandı"
+                    ? "Confirmed"
                     : appointment.status === "pending"
-                      ? "Bekliyor"
-                      : "İptal"}
+                      ? "Pending"
+                      : "Cancelled"}
                 </Text>
               </View>
             </View>
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Bugün için randevu bulunmuyor</Text>
+            <Text style={styles.emptyStateText}>No appointments for today</Text>
           </View>
         )}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
         </View>
 
         <View style={styles.quickActionsContainer}>
           <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/appointments/new")}>
             <Ionicons name="calendar-outline" size={24} color="#1B9AAA" />
-            <Text style={styles.quickActionText}>Randevu Ekle</Text>
+            <Text style={styles.quickActionText}>Add Appointment</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/services")}>
             <Ionicons name="list-outline" size={24} color="#1B9AAA" />
-            <Text style={styles.quickActionText}>Hizmetler</Text>
+            <Text style={styles.quickActionText}>Services</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/staff")}>
             <Ionicons name="people-outline" size={24} color="#1B9AAA" />
-            <Text style={styles.quickActionText}>Personel</Text>
+            <Text style={styles.quickActionText}>Staff</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionButton} onPress={() => router.push("/business/customers")}>
             <Ionicons name="person-outline" size={24} color="#1B9AAA" />
-            <Text style={styles.quickActionText}>Müşteriler</Text>
+            <Text style={styles.quickActionText}>Customers</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,200 +1,155 @@
 // app/business/profile.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Switch,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export default function BusinessProfileScreen() {
-  const { user, logout } = useAuth();
-  const [isOnline, setIsOnline] = useState(true);
+  const { user, logout } = useAuth()
+  const [isOnline, setIsOnline] = useState(true)
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profil</Text>
+        <Text style={styles.headerTitle}>Profile</Text>
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.profileHeader}>
           <View style={styles.businessAvatar}>
-            <Text style={styles.businessAvatarText}>
-              {user.business?.name?.charAt(0) || "B"}
-            </Text>
+            <Text style={styles.businessAvatarText}>{user.business?.name?.charAt(0) || "B"}</Text>
           </View>
           <View style={styles.businessInfo}>
-            <Text style={styles.businessName}>{user.business?.name || "İşletmem"}</Text>
+            <Text style={styles.businessName}>{user.business?.name || "My Business"}</Text>
             <Text style={styles.businessType}>
               {user.business?.type === "salon"
-                ? "Güzellik Salonu"
+                ? "Beauty Salon"
                 : user.business?.type === "barber"
-                ? "Berber"
+                ? "Barber"
                 : user.business?.type === "spa"
-                ? "Spa & Masaj"
+                ? "Spa & Massage"
                 : user.business?.type === "nail"
-                ? "Tırnak Bakımı"
-                : "Diğer"}
+                ? "Nail Care"
+                : "Other"}
             </Text>
           </View>
         </View>
 
         <View style={styles.onlineStatusContainer}>
-          <Text style={styles.onlineStatusText}>
-            İşletme Durumu: {isOnline ? "Çevrimiçi" : "Çevrimdışı"}
-          </Text>
-          <Switch
-            value={isOnline}
-            onValueChange={setIsOnline}
-            trackColor={{ false: "#ddd", true: "#1B9AAA" }}
-          />
+          <Text style={styles.onlineStatusText}>Business Status: {isOnline ? "Online" : "Offline"}</Text>
+          <Switch value={isOnline} onValueChange={setIsOnline} trackColor={{ false: "#ddd", true: "#1B9AAA" }} />
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>İşletme Bilgileri</Text>
+          <Text style={styles.sectionTitle}>Business Information</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/business-details")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/business-details")}>
           <Ionicons name="business-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>İşletme Detayları</Text>
-            <Text style={styles.menuItemDescription}>İşletme adı, türü ve açıklama</Text>
+            <Text style={styles.menuItemText}>Business Details</Text>
+            <Text style={styles.menuItemDescription}>Business name, type, and description</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/business-address")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/business-address")}>
           <Ionicons name="location-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Adres Bilgileri</Text>
-            <Text style={styles.menuItemDescription}>Konum ve iletişim bilgileri</Text>
+            <Text style={styles.menuItemText}>Address Information</Text>
+            <Text style={styles.menuItemDescription}>Location and contact information</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/working-hours")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/working-hours")}>
           <Ionicons name="time-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Çalışma Saatleri</Text>
-            <Text style={styles.menuItemDescription}>İşletme çalışma günleri ve saatleri</Text>
+            <Text style={styles.menuItemText}>Working Hours</Text>
+            <Text style={styles.menuItemDescription}>Business operating days and hours</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Hesap</Text>
+          <Text style={styles.sectionTitle}>Account</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/account-settings")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/account-settings")}>
           <Ionicons name="settings-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Hesap Ayarları</Text>
-            <Text style={styles.menuItemDescription}>Şifre değiştirme ve güvenlik</Text>
+            <Text style={styles.menuItemText}>Account Settings</Text>
+            <Text style={styles.menuItemDescription}>Password change and security</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/notifications-settings")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/notifications-settings")}>
           <Ionicons name="notifications-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Bildirim Ayarları</Text>
-            <Text style={styles.menuItemDescription}>Bildirim tercihleri</Text>
+            <Text style={styles.menuItemText}>Notification Settings</Text>
+            <Text style={styles.menuItemDescription}>Notification preferences</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/payment-settings")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/payment-settings")}>
           <Ionicons name="card-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Ödeme Ayarları</Text>
-            <Text style={styles.menuItemDescription}>Ödeme yöntemleri ve fatura bilgileri</Text>
+            <Text style={styles.menuItemText}>Payment Settings</Text>
+            <Text style={styles.menuItemDescription}>Payment methods and billing information</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Destek</Text>
+          <Text style={styles.sectionTitle}>Support</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/help-center")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/help-center")}>
           <Ionicons name="help-circle-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Yardım Merkezi</Text>
-            <Text style={styles.menuItemDescription}>SSS ve destek</Text>
+            <Text style={styles.menuItemText}>Help Center</Text>
+            <Text style={styles.menuItemDescription}>FAQ and support</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/business/contact-support")}
-        >
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/business/contact-support")}>
           <Ionicons name="chatbubble-outline" size={24} color="#1B9AAA" />
           <View style={styles.menuItemContent}>
-            <Text style={styles.menuItemText}>Destek Ekibiyle İletişim</Text>
-            <Text style={styles.menuItemDescription}>Sorun bildir veya öneri gönder</Text>
+            <Text style={styles.menuItemText}>Contact Support Team</Text>
+            <Text style={styles.menuItemDescription}>Report an issue or send a suggestion</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
         <TouchableOpacity
-        style={styles.logoutButton}
-        onPress={() => {
-          logout()
-          router.replace("/auth/login")
-        }}
-      >
-        <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
-      </TouchableOpacity>
+          style={styles.logoutButton}
+          onPress={() => {
+            logout()
+            router.replace("/auth/login")
+          }}
+        >
+          <Text style={styles.logoutButtonText}>Sign Out</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -324,4 +279,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

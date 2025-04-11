@@ -1,59 +1,43 @@
 // app/business/contact-support.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Alert,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function ContactSupportScreen() {
-  const { user } = useAuth();
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [category, setCategory] = useState("general");
+  const { user } = useAuth()
+  const [subject, setSubject] = useState("")
+  const [message, setMessage] = useState("")
+  const [category, setCategory] = useState("general")
 
   const handleSubmit = () => {
     if (!subject.trim() || !message.trim()) {
-      Alert.alert("Hata", "Lütfen konu ve mesaj alanlarını doldurun.");
-      return;
+      Alert.alert("Hata", "Lütfen konu ve mesaj alanlarını doldurun.")
+      return
     }
 
     // Burada destek mesajı gönderme işlemi yapılacak
-    Alert.alert(
-      "Başarılı",
-      "Destek talebiniz başarıyla gönderildi. En kısa sürede size dönüş yapacağız.",
-      [{ text: "Tamam", onPress: () => router.back() }]
-    );
-  };
+    Alert.alert("Başarılı", "Destek talebiniz başarıyla gönderildi. En kısa sürede size dönüş yapacağız.", [
+      { text: "Tamam", onPress: () => router.back() },
+    ])
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -62,101 +46,64 @@ export default function ContactSupportScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Destek Ekibiyle İletişim</Text>
+        <Text style={styles.headerTitle}>Contact Support Team</Text>
       </View>
 
       <ScrollView style={styles.content}>
         <Text style={styles.description}>
-          Sorunlarınız veya önerileriniz için destek ekibimizle iletişime geçebilirsiniz. En kısa sürede size dönüş yapacağız.
+          Contact our support team for your issues or suggestions. We will get back to you as soon as possible.
         </Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Kategori</Text>
+          <Text style={styles.label}>Category</Text>
           <View style={styles.categoryContainer}>
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                category === "general" && styles.activeCategoryButton,
-              ]}
+              style={[styles.categoryButton, category === "general" && styles.activeCategoryButton]}
               onPress={() => setCategory("general")}
             >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  category === "general" && styles.activeCategoryButtonText,
-                ]}
-              >
-                Genel
+              <Text style={[styles.categoryButtonText, category === "general" && styles.activeCategoryButtonText]}>
+                General
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                category === "technical" && styles.activeCategoryButton,
-              ]}
+              style={[styles.categoryButton, category === "technical" && styles.activeCategoryButton]}
               onPress={() => setCategory("technical")}
             >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  category === "technical" && styles.activeCategoryButtonText,
-                ]}
-              >
-                Teknik
+              <Text style={[styles.categoryButtonText, category === "technical" && styles.activeCategoryButtonText]}>
+                Technical
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                category === "billing" && styles.activeCategoryButton,
-              ]}
+              style={[styles.categoryButton, category === "billing" && styles.activeCategoryButton]}
               onPress={() => setCategory("billing")}
             >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  category === "billing" && styles.activeCategoryButtonText,
-                ]}
-              >
-                Ödeme
+              <Text style={[styles.categoryButtonText, category === "billing" && styles.activeCategoryButtonText]}>
+                Payment
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                category === "other" && styles.activeCategoryButton,
-              ]}
+              style={[styles.categoryButton, category === "other" && styles.activeCategoryButton]}
               onPress={() => setCategory("other")}
             >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  category === "other" && styles.activeCategoryButtonText,
-                ]}
-              >
-                Diğer
+              <Text style={[styles.categoryButtonText, category === "other" && styles.activeCategoryButtonText]}>
+                Other
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Konu</Text>
-          <TextInput
-            style={styles.input}
-            value={subject}
-            onChangeText={setSubject}
-            placeholder="Konu başlığı girin"
-          />
+          <Text style={styles.label}>Subject</Text>
+          <TextInput style={styles.input} value={subject} onChangeText={setSubject} placeholder="Enter subject" />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Mesaj</Text>
+          <Text style={styles.label}>Message</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={message}
             onChangeText={setMessage}
-            placeholder="Mesajınızı detaylı bir şekilde yazın"
+            placeholder="Write your message in detail"
             multiline
             numberOfLines={6}
             textAlignVertical="top"
@@ -164,7 +111,7 @@ export default function ContactSupportScreen() {
         </View>
 
         <View style={styles.contactInfoContainer}>
-          <Text style={styles.contactInfoTitle}>Diğer İletişim Kanalları</Text>
+          <Text style={styles.contactInfoTitle}>Other Contact Channels</Text>
           <View style={styles.contactInfoItem}>
             <Ionicons name="mail-outline" size={20} color="#1B9AAA" />
             <Text style={styles.contactInfoText}>support@zivo.com</Text>
@@ -175,18 +122,16 @@ export default function ContactSupportScreen() {
           </View>
           <View style={styles.contactInfoItem}>
             <Ionicons name="time-outline" size={20} color="#1B9AAA" />
-            <Text style={styles.contactInfoText}>
-              Pazartesi - Cuma: 09:00 - 18:00
-            </Text>
+            <Text style={styles.contactInfoText}>Monday - Friday: 09:00 - 18:00</Text>
           </View>
         </View>
       </ScrollView>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Gönder</Text>
+        <Text style={styles.submitButtonText}>Send</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -314,4 +259,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

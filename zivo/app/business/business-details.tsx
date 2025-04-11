@@ -18,11 +18,11 @@ export default function BusinessDetailsScreen() {
   const [logo, setLogo] = useState<string | undefined>(user?.business?.logo || undefined)
 
   const businessTypes = [
-    { id: "salon", name: "Güzellik Salonu" },
-    { id: "barber", name: "Berber" },
-    { id: "spa", name: "Spa & Masaj" },
-    { id: "nail", name: "Tırnak Bakımı" },
-    { id: "other", name: "Diğer" },
+    { id: "salon", name: "Beauty Salon" },
+    { id: "barber", name: "Barber" },
+    { id: "spa", name: "Spa & Massage" },
+    { id: "nail", name: "Nail Care" },
+    { id: "other", name: "Other" },
   ]
 
   const handleSave = () => {
@@ -59,9 +59,9 @@ export default function BusinessDetailsScreen() {
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
         <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     )
@@ -73,7 +73,7 @@ export default function BusinessDetailsScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>İşletme Detayları</Text>
+        <Text style={styles.headerTitle}>Business Details</Text>
       </View>
 
       <ScrollView style={styles.content}>
@@ -89,12 +89,12 @@ export default function BusinessDetailsScreen() {
             </View>
           )}
           <TouchableOpacity style={styles.uploadButton} onPress={handleUploadLogo}>
-            <Text style={styles.uploadButtonText}>Logo Yükle</Text>
+            <Text style={styles.uploadButtonText}>Upload Logo</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>İşletme Adı</Text>
+          <Text style={styles.inputLabel}>Business Name</Text>
           <TextInput
             style={styles.input}
             value={businessName}
@@ -104,7 +104,7 @@ export default function BusinessDetailsScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>İşletme Türü</Text>
+          <Text style={styles.inputLabel}>Business Type</Text>
           <View style={styles.businessTypeContainer}>
             {businessTypes.map((type) => (
               <TouchableOpacity
@@ -121,7 +121,7 @@ export default function BusinessDetailsScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>İşletme Açıklaması</Text>
+          <Text style={styles.inputLabel}>Business Description</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={description}
@@ -135,7 +135,7 @@ export default function BusinessDetailsScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Kaydet</Text>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </View>
   )

@@ -1,33 +1,25 @@
 // app/business/staff.tsx
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Modal,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
-import type { Staff, Service } from "../../types";
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
+import type { Staff, Service } from "../../types"
 
 export default function BusinessStaffScreen() {
-  const { user } = useAuth();
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth()
+  const [staff, setStaff] = useState<Staff[]>([])
+  const [services, setServices] = useState<Service[]>([])
+  const [modalVisible, setModalVisible] = useState(false)
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Form state
-  const [staffName, setStaffName] = useState("");
-  const [staffPosition, setStaffPosition] = useState("");
-  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [staffName, setStaffName] = useState("")
+  const [staffPosition, setStaffPosition] = useState("")
+  const [selectedServices, setSelectedServices] = useState<number[]>([])
 
   useEffect(() => {
     // Burada gerçek bir API çağrısı yapılacak
@@ -35,143 +27,132 @@ export default function BusinessStaffScreen() {
     const mockStaff: Staff[] = [
       {
         id: 1,
-        name: "Mehmet Usta",
-        position: "Usta Berber",
+        name: "Murat Efe Çetin",
+        position: "Barber",
         services: [1, 3],
       },
       {
         id: 2,
-        name: "Zeynep Hanım",
-        position: "Saç Stilisti",
+        name: "Taha Zeytun",
+        position: "Hair Stylist",
         services: [1, 2],
       },
       {
         id: 3,
         name: "Ayşe Hanım",
-        position: "Manikür Uzmanı",
+        position: "Colorist",
         services: [4],
       },
-    ];
+    ]
 
     const mockServices: Service[] = [
       {
         id: 1,
-        name: "Saç Kesimi",
+        name: "Haircut",
         price: 100,
         duration: 30,
-        category: "Saç",
+        category: "Hair",
       },
       {
         id: 2,
-        name: "Saç Boyama",
+        name: "Hair Coloring",
         price: 200,
         duration: 60,
-        category: "Saç",
+        category: "Hair",
       },
       {
         id: 3,
-        name: "Sakal Tıraşı",
+        name: "Beard Trim",
         price: 50,
         duration: 20,
-        category: "Sakal",
+        category: "Beard",
       },
       {
         id: 4,
-        name: "Manikür",
+        name: "Manicure",
         price: 80,
         duration: 45,
-        category: "Tırnak",
+        category: "Nails",
       },
-    ];
+    ]
 
-    setStaff(mockStaff);
-    setServices(mockServices);
-  }, []);
+    setStaff(mockStaff)
+    setServices(mockServices)
+  }, [])
 
   const handleAddStaff = () => {
-    if (!staffName || !staffPosition || selectedServices.length === 0) return;
+    if (!staffName || !staffPosition || selectedServices.length === 0) return
 
     const newStaff: Staff = {
       id: staff.length + 1,
       name: staffName,
       position: staffPosition,
       services: selectedServices,
-    };
+    }
 
     if (editingStaff) {
       // Güncelleme
-      setStaff(
-        staff.map((s) =>
-          s.id === editingStaff.id ? { ...newStaff, id: s.id } : s
-        )
-      );
+      setStaff(staff.map((s) => (s.id === editingStaff.id ? { ...newStaff, id: s.id } : s)))
     } else {
       // Yeni ekleme
-      setStaff([...staff, newStaff]);
+      setStaff([...staff, newStaff])
     }
 
-    resetForm();
-    setModalVisible(false);
-  };
+    resetForm()
+    setModalVisible(false)
+  }
 
   const handleEditStaff = (staffMember: Staff) => {
-    setEditingStaff(staffMember);
-    setStaffName(staffMember.name);
-    setStaffPosition(staffMember.position);
-    setSelectedServices(staffMember.services);
-    setModalVisible(true);
-  };
+    setEditingStaff(staffMember)
+    setStaffName(staffMember.name)
+    setStaffPosition(staffMember.position)
+    setSelectedServices(staffMember.services)
+    setModalVisible(true)
+  }
 
   const handleDeleteStaff = (id: number) => {
-    setStaff(staff.filter((s) => s.id !== id));
-  };
+    setStaff(staff.filter((s) => s.id !== id))
+  }
 
   const resetForm = () => {
-    setEditingStaff(null);
-    setStaffName("");
-    setStaffPosition("");
-    setSelectedServices([]);
-  };
+    setEditingStaff(null)
+    setStaffName("")
+    setStaffPosition("")
+    setSelectedServices([])
+  }
 
   const toggleService = (serviceId: number) => {
     if (selectedServices.includes(serviceId)) {
-      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
+      setSelectedServices(selectedServices.filter((id) => id !== serviceId))
     } else {
-      setSelectedServices([...selectedServices, serviceId]);
+      setSelectedServices([...selectedServices, serviceId])
     }
-  };
+  }
 
   const getServiceNames = (serviceIds: number[]) => {
     return serviceIds
       .map((id) => services.find((service) => service.id === id)?.name)
       .filter(Boolean)
-      .join(", ");
-  };
+      .join(", ")
+  }
 
-  const filteredStaff = staff.filter((s) =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStaff = staff.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Personel</Text>
+        <Text style={styles.headerTitle}>Staff</Text>
       </View>
 
       <View style={styles.searchContainer}>
@@ -179,7 +160,8 @@ export default function BusinessStaffScreen() {
           <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Personel ara..."
+            placeholderTextColor={"#8888"}
+            placeholder="Search staff..."
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -190,28 +172,18 @@ export default function BusinessStaffScreen() {
         {filteredStaff.map((staffMember) => (
           <View key={staffMember.id} style={styles.staffCard}>
             <View style={styles.staffAvatar}>
-              <Text style={styles.avatarText}>
-                {staffMember.name.charAt(0).toUpperCase()}
-              </Text>
+              <Text style={styles.avatarText}>{staffMember.name.charAt(0).toUpperCase()}</Text>
             </View>
             <View style={styles.staffInfo}>
               <Text style={styles.staffName}>{staffMember.name}</Text>
               <Text style={styles.staffPosition}>{staffMember.position}</Text>
-              <Text style={styles.staffServices}>
-                {getServiceNames(staffMember.services)}
-              </Text>
+              <Text style={styles.staffServices}>{getServiceNames(staffMember.services)}</Text>
             </View>
             <View style={styles.staffActions}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditStaff(staffMember)}
-              >
+              <TouchableOpacity style={styles.editButton} onPress={() => handleEditStaff(staffMember)}>
                 <Ionicons name="create-outline" size={20} color="#1B9AAA" />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteStaff(staffMember.id)}
-              >
+              <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteStaff(staffMember.id)}>
                 <Ionicons name="trash-outline" size={20} color="#F44336" />
               </TouchableOpacity>
             </View>
@@ -220,7 +192,7 @@ export default function BusinessStaffScreen() {
 
         {filteredStaff.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Personel bulunamadı</Text>
+            <Text style={styles.emptyStateText}>No staff found</Text>
           </View>
         )}
       </ScrollView>
@@ -228,8 +200,8 @@ export default function BusinessStaffScreen() {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
-          resetForm();
-          setModalVisible(true);
+          resetForm()
+          setModalVisible(true)
         }}
       >
         <Ionicons name="add" size={24} color="#fff" />
@@ -244,9 +216,7 @@ export default function BusinessStaffScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editingStaff ? "Personeli Düzenle" : "Yeni Personel Ekle"}
-              </Text>
+              <Text style={styles.modalTitle}>{editingStaff ? "Edit Staff" : "Add New Staff"}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
@@ -254,7 +224,7 @@ export default function BusinessStaffScreen() {
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Personel Adı *</Text>
+                <Text style={styles.label}>Staff Name *</Text>
                 <TextInput
                   style={styles.input}
                   value={staffName}
@@ -264,7 +234,7 @@ export default function BusinessStaffScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Pozisyon *</Text>
+                <Text style={styles.label}>Position *</Text>
                 <TextInput
                   style={styles.input}
                   value={staffPosition}
@@ -274,7 +244,7 @@ export default function BusinessStaffScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Sunduğu Hizmetler *</Text>
+                <Text style={styles.label}>Services Offered *</Text>
                 {services.map((service) => (
                   <TouchableOpacity
                     key={service.id}
@@ -284,13 +254,8 @@ export default function BusinessStaffScreen() {
                     ]}
                     onPress={() => toggleService(service.id)}
                   >
-                    <View style={[
-                      styles.checkbox,
-                      selectedServices.includes(service.id) && styles.checkboxSelected,
-                    ]}>
-                      {selectedServices.includes(service.id) && (
-                        <Ionicons name="checkmark" size={16} color="#fff" />
-                      )}
+                    <View style={[styles.checkbox, selectedServices.includes(service.id) && styles.checkboxSelected]}>
+                      {selectedServices.includes(service.id) && <Ionicons name="checkmark" size={16} color="#fff" />}
                     </View>
                     <Text style={styles.serviceCheckboxText}>{service.name}</Text>
                   </TouchableOpacity>
@@ -299,26 +264,18 @@ export default function BusinessStaffScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>İptal</Text>
+              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton]}
-                onPress={handleAddStaff}
-              >
-                <Text style={styles.saveButtonText}>
-                  {editingStaff ? "Güncelle" : "Ekle"}
-                </Text>
+              <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleAddStaff}>
+                <Text style={styles.saveButtonText}>{editingStaff ? "Update" : "Add"}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -555,4 +512,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

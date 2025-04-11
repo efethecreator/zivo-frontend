@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,7 +34,13 @@ export default function RegisterScreen() {
 
     // Simulate API call
     setTimeout(() => {
-      const userData: Partial<User> = { email, name, phone, password, role: "customer" };
+      const userData: Partial<User> = {
+        email,
+        name,
+        phone,
+        password,
+        role: "customer",
+      };
       register(userData);
       setIsLoading(false);
       router.replace("/(tabs)");
@@ -41,98 +48,110 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
 
-        <Text style={styles.title}>Sign up to ZIVO</Text>
-        <Text style={styles.subtitle}>Complete the form</Text>
-        <Text style={styles.description}>
-          in case the business needs to contact you
-        </Text>
+          <Text style={styles.title}>Sign up to ZIVO</Text>
+          <Text style={styles.subtitle}>Complete the form</Text>
+          <Text style={styles.description}>
+            in case the business needs to contact you
+          </Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>First and last name</Text>
-          <TextInput style={styles.input} value={name} onChangeText={setName} />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Phone number</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Set password</Text>
-          <View style={styles.passwordContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>E-mail</Text>
             <TextInput
-              style={styles.passwordInput}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
           </View>
-        </View>
 
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Creating account..." : "Create an account"}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>First and last name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
 
-        {/* Hizmetveren seçeneği */}
-        <TouchableOpacity
-          style={styles.businessOption}
-          onPress={() => router.push("/auth/business-register")}
-        >
-          <Text style={styles.businessOptionText}>Hizmetveren misiniz?</Text>
-          <Text style={styles.businessOptionSubtext}>
-            İşletmeniz için hesap oluşturun
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Phone number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Set password</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#666"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, styles.primaryButton]}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>
+              {isLoading ? "Creating account..." : "Create an account"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Hizmetveren seçeneği */}
+          <TouchableOpacity
+            style={styles.businessOption}
+            onPress={() => router.push("/auth/business-register")}
+          >
+            <Text style={styles.businessOptionText}>
+              Are you a service provider?
+            </Text>
+            <Text style={styles.businessOptionSubtext}>
+              Create an account for your business{" "}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -205,7 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  // Yeni eklenen stiller
   businessOption: {
     alignItems: "center",
     marginTop: 10,

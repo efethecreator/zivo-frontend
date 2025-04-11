@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native"
 import { mockAppointments } from "../../mocks/appointments"
 import type { Appointment } from "../../types"
+import { StatusBar } from "expo-status-bar"; // StatusBar ekleniyor
 
 export default function AppointmentsScreen() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -87,6 +88,7 @@ export default function AppointmentsScreen() {
   )
 
   return (
+    
     <View style={styles.container}>
       <Text style={styles.title}>Appointments</Text>
 

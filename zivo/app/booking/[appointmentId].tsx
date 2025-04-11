@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  SafeAreaView, // <-- Eklendi
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,7 +56,7 @@ export default function BookingScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [staff, setStaff] = useState({
     name: "Mudie",
-    image: require("../../assets/images/barber1.jpg"), // local path kullan
+    image: require("../../assets/images/barber1.jpg"),
   });
 
   const calendarDays = generateCalendarDays();
@@ -90,32 +91,38 @@ export default function BookingScreen() {
   const getEndTime = (startTime: string, duration: number) => {
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const totalMinutes = startHour * 60 + startMinute + duration;
-  
+
     const endHour = Math.floor(totalMinutes / 60)
       .toString()
       .padStart(2, "0");
     const endMinute = (totalMinutes % 60).toString().padStart(2, "0");
-  
+
     return `${endHour}:${endMinute}`;
   };
-  
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.safeArea}> 
+      {/* Tüm ekran SafeAreaView içinde */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Book an Appointment</Text>
       </View>
-  
-      {/* Main Content */}
-      <ScrollView showsVerticalScrollIndicator={false}>
+
+      {/* 
+        ScrollView’a alt boşluk eklemek için contentContainerStyle
+        kullanıyoruz. Bu sayede alt bar veya alt çentiğe denk geldiğinde
+        içerik kesilmiyor.
+      */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           <Text style={styles.monthTitle}>April 2025</Text>
-  
+
           <View style={styles.daysOfWeekContainer}>
             {daysOfWeek.map((day, index) => (
               <Text key={index} style={styles.dayOfWeekText}>
@@ -123,7 +130,7 @@ export default function BookingScreen() {
               </Text>
             ))}
           </View>
-  
+
           <View style={styles.calendarGrid}>
             {calendarDays.map((day, index) => (
               <TouchableOpacity
@@ -131,8 +138,7 @@ export default function BookingScreen() {
                 style={[
                   styles.calendarDay,
                   day.isCurrentMonth ? {} : styles.otherMonthDay,
-                  selectedDate.day === day.day &&
-                  selectedDate.month === day.month
+                  selectedDate.day === day.day && selectedDate.month === day.month
                     ? styles.selectedDay
                     : {},
                 ]}
@@ -143,8 +149,7 @@ export default function BookingScreen() {
                   style={[
                     styles.calendarDayText,
                     day.isCurrentMonth ? {} : styles.otherMonthDayText,
-                    selectedDate.day === day.day &&
-                    selectedDate.month === day.month
+                    selectedDate.day === day.day && selectedDate.month === day.month
                       ? styles.selectedDayText
                       : {},
                   ]}
@@ -155,7 +160,7 @@ export default function BookingScreen() {
             ))}
           </View>
         </View>
-  
+
         {/* Time Slots */}
         <View style={styles.timeSlotsContainer}>
           {timeSlots.map((time, index) => (
@@ -178,7 +183,7 @@ export default function BookingScreen() {
             </TouchableOpacity>
           ))}
         </View>
-  
+
         {/* Service Details */}
         <View style={styles.serviceDetailsContainer}>
           <View style={styles.serviceItem}>
@@ -187,7 +192,7 @@ export default function BookingScreen() {
               {`${selectedTime} - ${getEndTime(selectedTime, service.duration)}`}
             </Text>
           </View>
-  
+
           <View style={styles.staffContainer}>
             <Text style={styles.staffLabel}>Staff:</Text>
             <View style={styles.staffInfo}>
@@ -195,37 +200,38 @@ export default function BookingScreen() {
               <Text style={styles.staffName}>{staff.name}</Text>
             </View>
           </View>
-  
+
           <TouchableOpacity style={styles.addServiceButton}>
             <Ionicons name="add" size={20} color="#1B9AAA" />
             <Text style={styles.addServiceText}>Add another service</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
-  
+
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceText}>€ {service.price.toFixed(2)}</Text>
           <Text style={styles.priceSubtext}>{service.duration}d</Text>
         </View>
-  
+
         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-  
+
       {/* Privacy Info */}
       <Text style={styles.privacyText}>
         Your personal data will be processed by the partner with whom you are
         booking an appointment. You can find more information{" "}
         <Text style={styles.privacyLink}>here</Text>.
       </Text>
-    </View>
+    </SafeAreaView>
   );
-};  
+}
+
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#fff",
   },
@@ -325,7 +331,8 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#f9f9f9",
     borderRadius: 8,
-    margin: 15,
+    marginHorizontal: 15,
+    marginBottom: 15,
   },
   serviceItem: {
     flexDirection: "row",
@@ -381,6 +388,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
+    // İsterseniz bu kısımda "justifyContent: 'space-between'" kullanarak daha dengeli yerleştirebilirsiniz.
   },
   priceContainer: {
     flex: 1,

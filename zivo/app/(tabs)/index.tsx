@@ -70,7 +70,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.container}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput style={styles.searchInput} placeholder="Search services or businesses" />
+          <TextInput style={styles.searchInput} placeholderTextColor="#8888" placeholder="Search services or businesses" />
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
@@ -124,7 +124,7 @@ export default function HomeScreen() {
         </ScrollView>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>NO UPCOMING APPOINTMENTS</Text>
+          <Text style={styles.sectionTitle}>MY APPOINTMENTS</Text>
         </View>
 
         <TouchableOpacity style={styles.appointmentsButton} onPress={() => navigateTo("/(tabs)/appointments")}>
@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 45,
     fontSize: 16,
+    
   },
   categoriesContainer: {
     paddingHorizontal: 10,

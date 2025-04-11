@@ -1,46 +1,37 @@
 // app/business/customers.tsx
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Modal,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 interface Customer {
-  id: number;
-  name: string;
-  phone: string;
-  email?: string;
-  lastVisit?: string;
-  totalVisits: number;
-  totalSpent: number;
+  id: number
+  name: string
+  phone: string
+  email?: string
+  lastVisit?: string
+  totalVisits: number
+  totalSpent: number
 }
 
 export default function CustomersScreen() {
-  const { user } = useAuth();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const { user } = useAuth()
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [modalVisible, setModalVisible] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
 
   // Form state
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerName, setCustomerName] = useState("")
+  const [customerPhone, setCustomerPhone] = useState("")
+  const [customerEmail, setCustomerEmail] = useState("")
 
   useEffect(() => {
     // Burada gerçek bir API çağrısı yapılacak
@@ -48,18 +39,18 @@ export default function CustomersScreen() {
     const mockCustomers: Customer[] = [
       {
         id: 101,
-        name: "Ahmet Yılmaz",
+        name: "Murat Efe Çetin",
         phone: "555-123-4567",
-        email: "ahmet@example.com",
+        email: "murat@example.com",
         lastVisit: "2023-04-15",
         totalVisits: 5,
         totalSpent: 450,
       },
       {
         id: 102,
-        name: "Ayşe Demir",
+        name: "Taha Zeytun",
         phone: "555-987-6543",
-        email: "ayse@example.com",
+        email: "taha@example.com",
         lastVisit: "2023-04-10",
         totalVisits: 3,
         totalSpent: 320,
@@ -89,13 +80,13 @@ export default function CustomersScreen() {
         totalVisits: 1,
         totalSpent: 100,
       },
-    ];
+    ]
 
-    setCustomers(mockCustomers);
-  }, []);
+    setCustomers(mockCustomers)
+  }, [])
 
   const handleAddCustomer = () => {
-    if (!customerName || !customerPhone) return;
+    if (!customerName || !customerPhone) return
 
     const newCustomer: Customer = {
       id: editingCustomer ? editingCustomer.id : customers.length + 101,
@@ -104,62 +95,53 @@ export default function CustomersScreen() {
       email: customerEmail || undefined,
       totalVisits: editingCustomer ? editingCustomer.totalVisits : 0,
       totalSpent: editingCustomer ? editingCustomer.totalSpent : 0,
-    };
+    }
 
     if (editingCustomer) {
       // Güncelleme
-      setCustomers(
-        customers.map((customer) =>
-          customer.id === editingCustomer.id ? newCustomer : customer
-        )
-      );
+      setCustomers(customers.map((customer) => (customer.id === editingCustomer.id ? newCustomer : customer)))
     } else {
       // Yeni ekleme
-      setCustomers([...customers, newCustomer]);
+      setCustomers([...customers, newCustomer])
     }
 
-    resetForm();
-    setModalVisible(false);
-  };
+    resetForm()
+    setModalVisible(false)
+  }
 
   const handleEditCustomer = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setCustomerName(customer.name);
-    setCustomerPhone(customer.phone);
-    setCustomerEmail(customer.email || "");
-    setModalVisible(true);
-  };
+    setEditingCustomer(customer)
+    setCustomerName(customer.name)
+    setCustomerPhone(customer.phone)
+    setCustomerEmail(customer.email || "")
+    setModalVisible(true)
+  }
 
   const handleDeleteCustomer = (id: number) => {
-    setCustomers(customers.filter((customer) => customer.id !== id));
-  };
+    setCustomers(customers.filter((customer) => customer.id !== id))
+  }
 
   const resetForm = () => {
-    setEditingCustomer(null);
-    setCustomerName("");
-    setCustomerPhone("");
-    setCustomerEmail("");
-  };
+    setEditingCustomer(null)
+    setCustomerName("")
+    setCustomerPhone("")
+    setCustomerEmail("")
+  }
 
-  const filteredCustomers = customers.filter((customer) =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.phone.includes(searchQuery)
-  );
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) || customer.phone.includes(searchQuery),
+  )
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -168,7 +150,7 @@ export default function CustomersScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Müşteriler</Text>
+        <Text style={styles.headerTitle}>Customers</Text>
       </View>
 
       <View style={styles.searchContainer}>
@@ -176,7 +158,8 @@ export default function CustomersScreen() {
           <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Müşteri ara..."
+            placeholderTextColor={"#8888"}
+            placeholder="Search customer..."
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -191,9 +174,7 @@ export default function CustomersScreen() {
             onPress={() => router.push(`/customers/${customer.id}`)}
           >
             <View style={styles.customerAvatar}>
-              <Text style={styles.avatarText}>
-                {customer.name.charAt(0).toUpperCase()}
-              </Text>
+              <Text style={styles.avatarText}>{customer.name.charAt(0).toUpperCase()}</Text>
             </View>
             <View style={styles.customerInfo}>
               <Text style={styles.customerName}>{customer.name}</Text>
@@ -207,19 +188,19 @@ export default function CustomersScreen() {
             <View style={styles.customerStats}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{customer.totalVisits}</Text>
-                <Text style={styles.statLabel}>Ziyaret</Text>
+                <Text style={styles.statLabel}>Visits</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{customer.totalSpent} ₺</Text>
-                <Text style={styles.statLabel}>Harcama</Text>
+                <Text style={styles.statLabel}>Spent</Text>
               </View>
             </View>
             <View style={styles.customerActions}>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={(e) => {
-                  e.stopPropagation();
-                  handleEditCustomer(customer);
+                  e.stopPropagation()
+                  handleEditCustomer(customer)
                 }}
               >
                 <Ionicons name="create-outline" size={20} color="#1B9AAA" />
@@ -227,8 +208,8 @@ export default function CustomersScreen() {
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={(e) => {
-                  e.stopPropagation();
-                  handleDeleteCustomer(customer.id);
+                  e.stopPropagation()
+                  handleDeleteCustomer(customer.id)
                 }}
               >
                 <Ionicons name="trash-outline" size={20} color="#F44336" />
@@ -239,7 +220,7 @@ export default function CustomersScreen() {
 
         {filteredCustomers.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Müşteri bulunamadı</Text>
+            <Text style={styles.emptyStateText}>No customer found</Text>
           </View>
         )}
       </ScrollView>
@@ -247,8 +228,8 @@ export default function CustomersScreen() {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
-          resetForm();
-          setModalVisible(true);
+          resetForm()
+          setModalVisible(true)
         }}
       >
         <Ionicons name="add" size={24} color="#fff" />
@@ -263,9 +244,7 @@ export default function CustomersScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editingCustomer ? "Müşteriyi Düzenle" : "Yeni Müşteri Ekle"}
-              </Text>
+              <Text style={styles.modalTitle}>{editingCustomer ? "Edit Customer" : "Add New Customer"}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
@@ -273,7 +252,7 @@ export default function CustomersScreen() {
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Müşteri Adı *</Text>
+                <Text style={styles.label}>Customer Name *</Text>
                 <TextInput
                   style={styles.input}
                   value={customerName}
@@ -283,7 +262,7 @@ export default function CustomersScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Telefon *</Text>
+                <Text style={styles.label}>Phone *</Text>
                 <TextInput
                   style={styles.input}
                   value={customerPhone}
@@ -294,7 +273,7 @@ export default function CustomersScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>E-posta (İsteğe bağlı)</Text>
+                <Text style={styles.label}>Email (Optional)</Text>
                 <TextInput
                   style={styles.input}
                   value={customerEmail}
@@ -306,27 +285,22 @@ export default function CustomersScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>İptal</Text>
+              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.saveButton, (!customerName || !customerPhone) && styles.disabledButton]}
                 onPress={handleAddCustomer}
                 disabled={!customerName || !customerPhone}
               >
-                <Text style={styles.saveButtonText}>
-                  {editingCustomer ? "Güncelle" : "Ekle"}
-                </Text>
+                <Text style={styles.saveButtonText}>{editingCustomer ? "Update" : "Add"}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -561,4 +535,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

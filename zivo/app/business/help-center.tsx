@@ -1,77 +1,70 @@
 // app/business/help-center.tsx
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
 
 export const unstable_settings = {
   unstable_ignoreRoute: true,
-};
-
+}
 
 export default function HelpCenterScreen() {
-  const { user } = useAuth();
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const { user } = useAuth()
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
 
   const faqs = [
     {
       id: 1,
-      question: "Randevu sistemini nasıl kullanabilirim?",
-      answer: "Randevu sistemini kullanmak için öncelikle 'Randevular' sekmesine gidin. Ardından sağ alt köşedeki '+' butonuna tıklayarak yeni bir randevu oluşturabilirsiniz. Müşteri bilgilerini, hizmet türünü, personeli ve randevu saatini seçerek randevuyu oluşturabilirsiniz."
+      question: "How can I use the appointment system?",
+      answer:
+        "To use the appointment system, first go to the 'Appointments' tab. Then you can create a new appointment by clicking the '+' button in the bottom right corner. You can create the appointment by selecting customer information, service type, staff, and appointment time.",
     },
     {
       id: 2,
-      question: "Hizmet fiyatlarını nasıl güncelleyebilirim?",
-      answer: "Hizmet fiyatlarını güncellemek için 'Hizmetler' sekmesine gidin. Güncellemek istediğiniz hizmetin yanındaki düzenleme ikonuna tıklayın. Açılan formda fiyat bilgisini güncelleyip 'Güncelle' butonuna tıklayın."
+      question: "How can I update service prices?",
+      answer:
+        "To update service prices, go to the 'Services' tab. Click on the edit icon next to the service you want to update. Update the price information in the form that opens and click the 'Update' button.",
     },
     {
       id: 3,
-      question: "Personel çalışma saatlerini nasıl ayarlayabilirim?",
-      answer: "Personel çalışma saatlerini ayarlamak için 'Personel' sekmesine gidin. İlgili personeli seçip düzenleme sayfasına girin. Burada çalışma saatlerini günlere göre ayarlayabilirsiniz."
+      question: "How can I set staff working hours?",
+      answer:
+        "To set staff working hours, go to the 'Staff' tab. Select the relevant staff member and enter the editing page. Here you can adjust working hours by day.",
     },
     {
       id: 4,
-      question: "Müşteri bilgilerini nasıl görebilirim?",
-      answer: "Müşteri bilgilerini görmek için 'Müşteriler' sayfasına gidin. Burada tüm müşterilerinizin listesini görebilir, arama yapabilir ve detaylı bilgilerine ulaşabilirsiniz."
+      question: "How can I view customer information?",
+      answer:
+        "To view customer information, go to the 'Customers' page. Here you can see a list of all your customers, search, and access detailed information.",
     },
     {
       id: 5,
-      question: "Ödeme ayarlarını nasıl yapabilirim?",
-      answer: "Ödeme ayarlarını yapmak için 'Profil' sekmesinden 'Ödeme Ayarları' sayfasına gidin. Burada ödeme yöntemlerinizi ekleyebilir, düzenleyebilir ve fatura bilgilerinizi güncelleyebilirsiniz."
+      question: "How can I configure payment settings?",
+      answer:
+        "To configure payment settings, go to the 'Payment Settings' page from the 'Profile' tab. Here you can add and edit your payment methods and update your billing information.",
     },
-  ];
+  ]
 
   const toggleFaq = (id: number) => {
     if (expandedFaq === id) {
-      setExpandedFaq(null);
+      setExpandedFaq(null)
     } else {
-      setExpandedFaq(id);
+      setExpandedFaq(id)
     }
-  };
+  }
 
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.replace("/auth/login")}
-        >
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
-    );
+    )
   }
 
   return (
@@ -80,33 +73,26 @@ export default function HelpCenterScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Yardım Merkezi</Text>
+        <Text style={styles.headerTitle}>Help Center</Text>
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.searchContainer}>
           <TouchableOpacity style={styles.searchButton}>
             <Ionicons name="search" size={20} color="#666" />
-            <Text style={styles.searchButtonText}>Yardım konusu ara...</Text>
+            <Text style={styles.searchButtonText}>Search help topic...</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Sık Sorulan Sorular</Text>
+          <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
         </View>
 
         {faqs.map((faq) => (
           <View key={faq.id} style={styles.faqItem}>
-            <TouchableOpacity
-              style={styles.faqQuestion}
-              onPress={() => toggleFaq(faq.id)}
-            >
+            <TouchableOpacity style={styles.faqQuestion} onPress={() => toggleFaq(faq.id)}>
               <Text style={styles.faqQuestionText}>{faq.question}</Text>
-              <Ionicons
-                name={expandedFaq === faq.id ? "chevron-up" : "chevron-down"}
-                size={20}
-                color="#666"
-              />
+              <Ionicons name={expandedFaq === faq.id ? "chevron-up" : "chevron-down"} size={20} color="#666" />
             </TouchableOpacity>
             {expandedFaq === faq.id && (
               <View style={styles.faqAnswer}>
@@ -117,7 +103,7 @@ export default function HelpCenterScreen() {
         ))}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Yardım Kategorileri</Text>
+          <Text style={styles.sectionTitle}>Help Categories</Text>
         </View>
 
         <TouchableOpacity style={styles.categoryItem}>
@@ -125,16 +111,14 @@ export default function HelpCenterScreen() {
             <Ionicons name="calendar-outline" size={24} color="#1B9AAA" />
           </View>
           <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Randevular</Text>
-            <Text style={styles.categoryDescription}>
-              Randevu oluşturma, düzenleme ve iptal etme
-            </Text>
+            <Text style={styles.categoryTitle}>Appointments</Text>
+            <Text style={styles.categoryDescription}>Creating, editing, and canceling appointments</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.categoryItem}>
-          <View  />
+          <View />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.categoryItem}>
@@ -142,10 +126,8 @@ export default function HelpCenterScreen() {
             <Ionicons name="list-outline" size={24} color="#1B9AAA" />
           </View>
           <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Hizmetler</Text>
-            <Text style={styles.categoryDescription}>
-              Hizmet ekleme, düzenleme ve fiyatlandırma
-            </Text>
+            <Text style={styles.categoryTitle}>Services</Text>
+            <Text style={styles.categoryDescription}>Adding, editing, and pricing services</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
@@ -155,10 +137,8 @@ export default function HelpCenterScreen() {
             <Ionicons name="people-outline" size={24} color="#1B9AAA" />
           </View>
           <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Personel</Text>
-            <Text style={styles.categoryDescription}>
-              Personel yönetimi ve çalışma saatleri
-            </Text>
+            <Text style={styles.categoryTitle}>Staff</Text>
+            <Text style={styles.categoryDescription}>Staff management and working hours</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
@@ -168,23 +148,18 @@ export default function HelpCenterScreen() {
             <Ionicons name="card-outline" size={24} color="#1B9AAA" />
           </View>
           <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Ödemeler</Text>
-            <Text style={styles.categoryDescription}>
-              Ödeme yöntemleri ve fatura bilgileri
-            </Text>
+            <Text style={styles.categoryTitle}>Payments</Text>
+            <Text style={styles.categoryDescription}>Payment methods and billing information</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.contactSupportButton}
-          onPress={() => router.push("/business/contact-support")}
-        >
-          <Text style={styles.contactSupportButtonText}>Destek Ekibiyle İletişime Geç</Text>
+        <TouchableOpacity style={styles.contactSupportButton} onPress={() => router.push("/business/contact-support")}>
+          <Text style={styles.contactSupportButtonText}>Contact Support Team</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -324,4 +299,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})

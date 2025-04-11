@@ -67,13 +67,14 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>Explore</Text>
+        <Text style={{ color: "#fff", fontSize: 35, fontWeight: "bold" }}>Explore</Text>
       </View>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
+          placeholderTextColor="#8888"
           placeholder="Search for service or business name"
           value={searchQuery}
           onChangeText={setSearchQuery}

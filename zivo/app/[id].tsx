@@ -155,7 +155,7 @@ export default function BusinessDetailScreen() {
           <>
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-              <TextInput style={styles.searchInput} placeholder="Search for service" />
+              <TextInput style={styles.searchInput} placeholderTextColor={"#8888"} placeholder="Search for service" />
             </View>
 
             <View style={styles.servicesContainer}>

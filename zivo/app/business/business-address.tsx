@@ -58,9 +58,9 @@ export default function BusinessAddressScreen() {
   if (!user || user.role !== "business") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Bu sayfayı görüntülemek için hizmet veren hesabı gereklidir.</Text>
+        <Text style={styles.errorText}>A service provider account is required to view this page.</Text>
         <TouchableOpacity style={styles.button} onPress={() => router.replace("/auth/login")}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+          <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     )
@@ -72,15 +72,15 @@ export default function BusinessAddressScreen() {
         <TouchableOpacity onPress={() => router.replace("/business/profile")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Adres ve İletişim</Text>
+        <Text style={styles.headerTitle}>Address and Contact</Text>
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Adres Bilgileri</Text>
+          <Text style={styles.sectionTitle}>Address Information</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Cadde/Sokak ve Bina No</Text>
+            <Text style={styles.inputLabel}>Street and Building No</Text>
             <TextInput
               style={styles.input}
               value={street}
@@ -90,17 +90,17 @@ export default function BusinessAddressScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>İlçe</Text>
+            <Text style={styles.inputLabel}>District</Text>
             <TextInput style={styles.input} value={district} onChangeText={setDistrict} placeholder="İlçe girin" />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Şehir</Text>
+            <Text style={styles.inputLabel}>City</Text>
             <TextInput style={styles.input} value={city} onChangeText={setCity} placeholder="Şehir girin" />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Posta Kodu</Text>
+            <Text style={styles.inputLabel}>Postal Code</Text>
             <TextInput
               style={styles.input}
               value={postCode}
@@ -112,10 +112,10 @@ export default function BusinessAddressScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
+          <Text style={styles.sectionTitle}>Contact Information</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Telefon</Text>
+            <Text style={styles.inputLabel}>Phone</Text>
             <TextInput
               style={styles.input}
               value={phone}
@@ -126,7 +126,7 @@ export default function BusinessAddressScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>E-posta</Text>
+            <Text style={styles.inputLabel}>Email</Text>
             <TextInput
               style={styles.input}
               value={email}
@@ -137,7 +137,7 @@ export default function BusinessAddressScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Web Sitesi (İsteğe bağlı)</Text>
+            <Text style={styles.inputLabel}>Website (Optional)</Text>
             <TextInput
               style={styles.input}
               value={website}
@@ -150,7 +150,7 @@ export default function BusinessAddressScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Kaydet</Text>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </View>
   )

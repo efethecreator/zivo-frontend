@@ -45,28 +45,28 @@ export default function BusinessLayout() {
       <Tabs.Screen
         name="appointments"
         options={{
-          title: "Randevular",
+          title: "Appointments",
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="services"
         options={{
-          title: "Hizmetler",
+          title: "Services",
           tabBarIcon: ({ color, size }) => <Ionicons name="list-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="staff"
         options={{
-          title: "Personel",
+          title: "Staff",
           tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: "Profile",
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />

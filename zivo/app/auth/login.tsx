@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +8,12 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
+import { StatusBar } from "expo-status-bar";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -22,9 +22,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim()) return;
-
     setIsLoading(true);
-
     setTimeout(() => {
       login({ email });
       setIsLoading(false);
@@ -33,80 +31,85 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Get started</Text>
-        <TouchableOpacity style={styles.languageSelector}>
-          <Image
-            source={require("../../assets/images/favicon.png")}
-            style={styles.flag}
-          />
-          <Text style={styles.languageText}>Nederland</Text>
-          <Ionicons name="chevron-down" size={20} color="#000" />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.subtitle}>
-        Create an account or log in to book and manage your appointments.
-      </Text>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email address"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, styles.primaryButton]}
-        onPress={handleLogin}
-        disabled={isLoading}
+    <SafeAreaView style={styles.safeArea}>
+      {/* Durum çubuğu ayarı: beyaz arka plan üzerine siyah ikonlar */}
+      <StatusBar style="dark" backgroundColor="#fff" />
+      
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
       >
-        <Text style={styles.buttonText}>
-          {isLoading ? "Loading..." : "Continue"}
+        <View style={styles.header}>
+          <Text style={styles.title}>Get started</Text>
+          <TouchableOpacity style={styles.languageSelector}>
+            {/* Dil seçici içeriği */}
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.subtitle}>
+          Create an account or log in to book and manage your appointments.
         </Text>
-      </TouchableOpacity>
 
-      {/* 🚀 REGISTER BUTTON */}
-      <TouchableOpacity onPress={() => router.push("/auth/register")}>
-        <Text style={styles.registerText}>Don't have an account? Register</Text>
-      </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholderTextColor={"#8888"}
+            placeholder="Email address"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.dividerLine} />
-      </View>
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Loading..." : "Continue"}
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.socialButton]}>
-        <Ionicons name="logo-apple" size={20} color="#000" />
-        <Text style={styles.socialButtonText}>Continue with Apple</Text>
-      </TouchableOpacity>
+        {/* Register Link */}
+        <TouchableOpacity onPress={() => router.push("/auth/register")}>
+          <Text style={styles.registerText}>Don't have an account? Register</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.socialButton]}>
-        <Image
-          source={require("../../assets/images/favicon.png")}
-          style={styles.socialIcon}
-        />
-        <Text style={styles.socialButtonText}>Continue with Google</Text>
-      </TouchableOpacity>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
-      <TouchableOpacity style={[styles.button, styles.socialButton]}>
-        <Ionicons name="logo-facebook" size={20} color="#1877F2" />
-        <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+        <TouchableOpacity style={[styles.button, styles.socialButton]}>
+          <Ionicons name="logo-apple" size={20} color="#000" />
+          <Text style={styles.socialButtonText}>Continue with Apple</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, styles.socialButton]}>
+          <Image
+            source={require("../../assets/images/logo-google.jpg")}
+            style={styles.socialIcon}
+          />
+          <Text style={styles.socialButtonText}>Continue with Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, styles.socialButton]}>
+          <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+          <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -125,14 +128,6 @@ const styles = StyleSheet.create({
   languageSelector: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  flag: {
-    width: 20,
-    height: 20,
-    marginRight: 5,
-  },
-  languageText: {
-    fontSize: 16,
   },
   subtitle: {
     fontSize: 16,
