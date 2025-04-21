@@ -1,56 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from "react-native"
+import { useState } from "react"
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { mockBusinesses } from "../mocks/businesses"
-import { mockServices } from "../mocks/services"
+import { useQuery } from "@tanstack/react-query"
+import { getBusinessById } from "../services/business.service"
+import { getBusinessServices } from "../services/service.service"
 import type { Business, Service } from "../types"
+import { StatusBar } from "expo-status-bar"
 
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams()
-  const [business, setBusiness] = useState<Business | null>(null)
-  const [services, setServices] = useState<Service[]>([])
   const [activeTab, setActiveTab] = useState("SERVICES")
-  const [isLoading, setIsLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundBusiness = mockBusinesses.find((b) => b.id.toString() === id)
-      if (foundBusiness) {
-        // Convert to match Business type
-        const businessWithRequiredProps: Business = {
-          ...foundBusiness,
-          type: "salon", // Default value
-          workingHours: {}, // Default empty object
-          // Ensure address exists
-          address: foundBusiness.address || "",
-          // Ensure other required properties exist
-          rating: foundBusiness.rating || 0,
-          reviews: foundBusiness.reviews || 0,
-          images: foundBusiness.images || [],
-        }
-        setBusiness(businessWithRequiredProps)
-      }
+  const { data: business, isLoading: isBusinessLoading } = useQuery({
+    queryKey: ['business', id],
+    queryFn: () => getBusinessById(id as string),
+  })
 
-      const businessServices = mockServices.filter((s) => s.businessId.toString() === id)
-      setServices(businessServices)
-
-      setIsLoading(false)
-    }, 1000)
-  }, [id])
+  const { data: services, isLoading: isServicesLoading } = useQuery({
+    queryKey: ['services', id],
+    queryFn: () => getBusinessServices(id as string),
+  })
 
   const handleBookService = (serviceId: number) => {
     router.push(`/booking/${serviceId}` as any)
   }
 
+  const isLoading = isBusinessLoading || isServicesLoading
+
   if (isLoading || !business) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading business details...</Text>
+        <ActivityIndicator size="large" color="#2596be" />
       </View>
     )
   }
@@ -65,53 +50,39 @@ export default function BusinessDetailScreen() {
     return ""
   }
 
+  // Helper function to safely render price
+  const renderPrice = (price: string | number) => {
+    if (typeof price === 'number') {
+      return price.toFixed(2)
+    }
+    return price
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Görsel + Floating Back + Rating */}
-      <View style={{ position: "relative" }}>
-        {business.images && business.images[0] && (
+    <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#fff" />
+      
+      {/* Header Image */}
+      <View style={styles.imageWrapper}>
+        {business.images?.[0] && (
           <Image
-            source={business.images[0]}
-            style={{
-              width: "100%",
-              height: 300,
-              resizeMode: "cover",
-            }}
+            source={{ uri: business.images[0] }}
+            style={styles.headerImage}
           />
         )}
 
         {/* Back Button */}
         <TouchableOpacity
-          style={{
-            position: "absolute",
-            top: 50,
-            left: 20,
-            backgroundColor: "rgba(0,0,0,0.4)",
-            padding: 10,
-            borderRadius: 20,
-            zIndex: 10,
-          }}
+          style={styles.backButton}
           onPress={() => router.back()}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
 
         {/* Rating Badge */}
-        <View
-          style={{
-            position: "absolute",
-            top: 50,
-            right: 20,
-            backgroundColor: "rgba(0,0,0,0.7)",
-            borderRadius: 4,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            alignItems: "center",
-            zIndex: 10,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>{(business.rating || 0).toFixed(1)}</Text>
-          <Text style={{ color: "#fff", fontSize: 10 }}>{business.reviews || 0} reviews</Text>
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingText}>{(business.rating || 0).toFixed(1)}</Text>
+          <Text style={styles.reviewsText}>{business.reviews || 0} reviews</Text>
         </View>
       </View>
 
@@ -120,10 +91,13 @@ export default function BusinessDetailScreen() {
         <View style={styles.businessNameContainer}>
           <Text style={styles.businessName}>{business.name}</Text>
           <View style={styles.businessActions}>
-            <TouchableOpacity style={styles.shareButton}>
+            <TouchableOpacity style={styles.actionButton}>
               <Ionicons name="share-outline" size={24} color="#666" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.favoriteButton} onPress={() => setIsFavorite(!isFavorite)}>
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => setIsFavorite(!isFavorite)}
+            >
               <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={24}
@@ -133,7 +107,7 @@ export default function BusinessDetailScreen() {
           </View>
         </View>
         <Text style={styles.businessAddress}>{renderAddress()}</Text>
-        <Text style={styles.businessType}>Entrepreneur</Text>
+        <Text style={styles.businessType}>{business.type}</Text>
       </View>
 
       {/* Tabs */}
@@ -150,12 +124,22 @@ export default function BusinessDetailScreen() {
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView 
+        style={styles.contentContainer} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {activeTab === "SERVICES" && (
           <>
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-              <TextInput style={styles.searchInput} placeholderTextColor={"#8888"} placeholder="Search for service" />
+              <TextInput 
+                style={styles.searchInput} 
+                placeholderTextColor="#8888" 
+                placeholder="Search for service"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
             </View>
 
             <View style={styles.servicesContainer}>
@@ -164,35 +148,18 @@ export default function BusinessDetailScreen() {
                 <Ionicons name="chevron-up" size={24} color="#666" />
               </View>
 
-              {services.map((service) => (
+              {services?.map((service) => (
                 <View key={service.id} style={styles.serviceItem}>
                   <View style={styles.serviceInfo}>
                     <Text style={styles.serviceName}>{service.name}</Text>
-                    <Text style={styles.serviceDuration}>{service.duration}d</Text>
+                    <Text style={styles.serviceDuration}>{service.duration} min</Text>
                   </View>
                   <View style={styles.servicePriceContainer}>
-                    <Text style={styles.servicePrice}>€ {service.price.toFixed(2)}</Text>
-                    <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
-                      <Text style={styles.bookButtonText}>Book</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Other Services</Text>
-                <Ionicons name="chevron-up" size={24} color="#666" />
-              </View>
-
-              {services.map((service) => (
-                <View key={`other-${service.id}`} style={styles.serviceItem}>
-                  <View style={styles.serviceInfo}>
-                    <Text style={styles.serviceName}>{service.name}</Text>
-                    <Text style={styles.serviceDuration}>{service.duration}d</Text>
-                  </View>
-                  <View style={styles.servicePriceContainer}>
-                    <Text style={styles.servicePrice}>€ {service.price.toFixed(2)}</Text>
-                    <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
+                    <Text style={styles.servicePrice}>€ {renderPrice(service.price)}</Text>
+                    <TouchableOpacity 
+                      style={styles.bookButton} 
+                      onPress={() => handleBookService(service.id)}
+                    >
                       <Text style={styles.bookButtonText}>Book</Text>
                     </TouchableOpacity>
                   </View>
@@ -228,86 +195,80 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    marginTop: 30,
-  },
-  imageWrapper: {
-    position: "relative",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    padding: 15,
+  imageWrapper: {
+    position: "relative",
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageContainer: {
-    height: 1,
-  },
-  businessImage: {
+  headerImage: {
     width: "100%",
     height: 300,
+    resizeMode: "cover",
+  },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 10,
+    borderRadius: 20,
+    zIndex: 10,
   },
   ratingBadge: {
     position: "absolute",
-    top: 15,
-    right: 15,
+    top: 50,
+    right: 20,
     backgroundColor: "rgba(0,0,0,0.7)",
     borderRadius: 4,
-    padding: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignItems: "center",
+    zIndex: 10,
   },
   ratingText: {
     color: "#fff",
     fontWeight: "bold",
-    textAlign: "center",
   },
   reviewsText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 10,
   },
   businessInfo: {
-    padding: 15,
-    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   businessNameContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   businessName: {
     fontSize: 24,
     fontWeight: "bold",
-    flex: 1,
   },
   businessActions: {
     flexDirection: "row",
+    gap: 10,
   },
-  shareButton: {
-    marginRight: 15,
+  actionButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
   },
-  favoriteButton: {},
   businessAddress: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#666",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   businessType: {
     fontSize: 14,
-    color: "#666",
+    color: "#2596be",
   },
   tabsContainer: {
     flexDirection: "row",
@@ -321,15 +282,18 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: "#000",
+    borderBottomColor: "#2596be",
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#666",
   },
   activeTabText: {
-    color: "#000",
-    fontWeight: "600",
+    color: "#2596be",
+    fontWeight: "500",
+  },
+  contentContainer: {
+    flex: 1,
   },
   searchContainer: {
     flexDirection: "row",
@@ -358,20 +322,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
   serviceItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   serviceInfo: {
     flex: 1,
   },
   serviceName: {
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   serviceDuration: {
     fontSize: 14,
@@ -382,24 +348,24 @@ const styles = StyleSheet.create({
   },
   servicePrice: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontWeight: "500",
+    marginBottom: 8,
   },
   bookButton: {
-    backgroundColor: "#1B9AAA",
+    backgroundColor: "#2596be",
+    paddingHorizontal: 15,
     paddingVertical: 8,
-    paddingHorizontal: 20,
     borderRadius: 4,
   },
   bookButtonText: {
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "500",
   },
   tabContent: {
-    padding: 20,
-    alignItems: "center",
+    flex: 1,
     justifyContent: "center",
-    height: 200,
+    alignItems: "center",
+    padding: 20,
   },
   comingSoonText: {
     fontSize: 16,

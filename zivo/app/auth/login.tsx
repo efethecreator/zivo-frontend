@@ -9,25 +9,33 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
+import { useLoginMutation } from "../../services/auth.service";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+  const loginMutation = useLoginMutation();
 
   const handleLogin = async () => {
-    if (!email.trim()) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      login({ email });
-      setIsLoading(false);
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    try {
+      await login({ email, password });
       router.replace("/(tabs)");
-    }, 1000);
+    } catch (error) {
+      Alert.alert("Error", "Failed to login. Please check your credentials.");
+    }
   };
 
   return (
@@ -40,21 +48,23 @@ export default function LoginScreen() {
         style={styles.container}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Get started</Text>
-          <TouchableOpacity style={styles.languageSelector}>
-            {/* Dil seçici içeriği */}
-          </TouchableOpacity>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>
+            Sign in to continue to your account
+          </Text>
         </View>
 
-        <Text style={styles.subtitle}>
-          Create an account or log in to book and manage your appointments.
-        </Text>
-
         <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email Address</Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={"#8888"}
-            placeholder="Email address"
+            placeholder="Enter your email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -62,19 +72,42 @@ export default function LoginScreen() {
           />
         </View>
 
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholderTextColor={"#8888"}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.forgotPassword}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={handleLogin}
-          disabled={isLoading}
+          disabled={loginMutation.isPending}
         >
           <Text style={styles.buttonText}>
-            {isLoading ? "Loading..." : "Continue"}
+            {loginMutation.isPending ? "Loading..." : "Sign In"}
           </Text>
-        </TouchableOpacity>
-
-        {/* Register Link */}
-        <TouchableOpacity onPress={() => router.push("/auth/register")}>
-          <Text style={styles.registerText}>Don't have an account? Register</Text>
         </TouchableOpacity>
 
         <View style={styles.divider}>
@@ -83,23 +116,29 @@ export default function LoginScreen() {
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity style={[styles.button, styles.socialButton]}>
-          <Ionicons name="logo-apple" size={20} color="#000" />
-          <Text style={styles.socialButtonText}>Continue with Apple</Text>
-        </TouchableOpacity>
+        <View style={styles.socialButtons}>
+          <TouchableOpacity style={[styles.button, styles.socialButton]}>
+            <Ionicons name="logo-apple" size={24} color="#000" />
+            <Text style={styles.socialButtonText}>Continue with Apple</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.socialButton]}>
-          <Image
-            source={require("../../assets/images/logo-google.jpg")}
-            style={styles.socialIcon}
-          />
-          <Text style={styles.socialButtonText}>Continue with Google</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.socialButton]}>
+            <Ionicons name="logo-google" size={24} color="#DB4437" />
+            <Text style={styles.socialButtonText}>Continue with Google</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.socialButton]}>
-          <Ionicons name="logo-facebook" size={20} color="#1877F2" />
-          <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.socialButton]}>
+            <Ionicons name="logo-facebook" size={24} color="#4267B2" />
+            <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account?</Text>
+          <TouchableOpacity onPress={() => router.push("/auth/register")}>
+            <Text style={styles.footerLink}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -116,26 +155,31 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 40,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-  },
-  languageSelector: {
-    flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
     color: "#666",
-    marginBottom: 20,
+    textAlign: "center",
   },
   inputContainer: {
-    marginBottom: 15,
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: "#1B9AAA",
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
@@ -144,11 +188,34 @@ const styles = StyleSheet.create({
     padding: 15,
     fontSize: 16,
   },
+  passwordContainer: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 10,
+  },
+  forgotPassword: {
+    alignSelf: "flex-end",
+    marginBottom: 20,
+  },
+  forgotPasswordText: {
+    color: "#1B9AAA",
+    fontSize: 14,
+  },
   button: {
     borderRadius: 8,
     padding: 16,
     alignItems: "center",
-    marginTop: 10,
+    marginBottom: 10,
   },
   primaryButton: {
     backgroundColor: "#1B9AAA",
@@ -172,29 +239,34 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     color: "#666",
   },
+  socialButtons: {
+    gap: 10,
+  },
   socialButton: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 14,
-    borderRadius: 8,
-    marginBottom: 10,
+    gap: 10,
   },
   socialButtonText: {
-    marginLeft: 10,
+    color: "#000",
     fontSize: 16,
+    fontWeight: "600",
   },
-  socialIcon: {
-    width: 20,
-    height: 20,
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+    gap: 5,
   },
-  registerText: {
+  footerText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  footerLink: {
     color: "#1B9AAA",
     fontSize: 14,
-    textAlign: "center",
-    marginTop: 10,
     fontWeight: "600",
   },
 });

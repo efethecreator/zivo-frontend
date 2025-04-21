@@ -1,41 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native"
-import { mockAppointments } from "../../mocks/appointments"
-import type { Appointment } from "../../types"
-import { StatusBar } from "expo-status-bar"; // StatusBar ekleniyor
+import { router } from "expo-router"
+import { useQuery } from "@tanstack/react-query"
+import { getMyAppointments } from "../../services/appointment.service"
+import { StatusBar } from "expo-status-bar"
+import { Ionicons } from "@expo/vector-icons"
 
 export default function AppointmentsScreen() {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      // Convert mock data to match Appointment type
-      const typedAppointments: Appointment[] = mockAppointments.map((appt) => ({
-        id: appt.id,
-        businessId: appt.businessId,
-        businessName: appt.businessName,
-        serviceName: appt.serviceName,
-        staffName: appt.staff,
-        staff: appt.staff,
-        date: appt.date,
-        time: appt.time,
-        // Eksik alanlar için varsayılan değerler
-        customerId: 0,
-        customerName: "",
-        customerPhone: "",
-        serviceId: 0,
-        staffId: 0,
-        duration: 30,
-        status: "confirmed",
-      }))
-      setAppointments(typedAppointments)
-      setIsLoading(false)
-    }, 1000)
-  }, [])
+  const { data: appointments, isLoading } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: getMyAppointments,
+  })
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -44,18 +21,21 @@ export default function AppointmentsScreen() {
       <Text style={styles.emptyText}>
         Discover and book beauty & wellness professionals near you. Your scheduled appointments will show up here.
       </Text>
-      <TouchableOpacity style={styles.emptyButton}>
+      <TouchableOpacity 
+        style={styles.emptyButton}
+        onPress={() => router.push('/(tabs)/explore')}
+      >
         <Text style={styles.emptyButtonText}>Let's Go</Text>
       </TouchableOpacity>
     </View>
   )
 
-  const renderAppointmentItem = ({ item }: { item: Appointment }) => (
+  const renderAppointmentItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.appointmentCard} onPress={() => {}}>
       <View style={styles.appointmentHeader}>
         <Text style={styles.businessName}>{item.businessName}</Text>
         <Text style={styles.appointmentDate}>
-          {new Date(item.date).toLocaleDateString("en-US", {
+          {new Date(item.appointmentTime).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -65,13 +45,18 @@ export default function AppointmentsScreen() {
 
       <View style={styles.appointmentDetails}>
         <View style={styles.serviceInfo}>
-          <Text style={styles.serviceName}>{item.serviceName}</Text>
-          <Text style={styles.serviceTime}>{item.time}</Text>
+          <Text style={styles.serviceName}>{item.services[0]?.name || 'Service'}</Text>
+          <Text style={styles.serviceTime}>
+            {new Date(item.appointmentTime).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
         </View>
 
         <View style={styles.staffInfo}>
           <Text style={styles.staffLabel}>Staff:</Text>
-          <Text style={styles.staffName}>{item.staff || item.staffName}</Text>
+          <Text style={styles.staffName}>{item.workerName || 'Not assigned'}</Text>
         </View>
       </View>
 
@@ -88,15 +73,15 @@ export default function AppointmentsScreen() {
   )
 
   return (
-    
     <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#fff" />
       <Text style={styles.title}>Appointments</Text>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <Text>Loading appointments...</Text>
         </View>
-      ) : appointments.length === 0 ? (
+      ) : !appointments?.length ? (
         renderEmptyState()
       ) : (
         <FlatList

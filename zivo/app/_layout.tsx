@@ -1,41 +1,24 @@
-"use client"
+import { Slot } from "expo-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "../global.css";
+import { AuthProvider } from "../context/AuthContext";
 
-import { useState, useEffect } from "react"
-import { Slot } from "expo-router"
-import { AuthProvider } from "../context/AuthContext"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { View, StyleSheet } from "react-native"
-import { AnimatedSplash } from "../components/AnimatedSplash"
-import { SafeAreaProvider } from "react-native-safe-area-context"
-import { StatusBar } from "expo-status-bar"  // StatusBar import edildi
-
-const queryClient = new QueryClient()
+// React Query Client ayarı
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
 export default function RootLayout() {
-  const [isReady, setIsReady] = useState(false)
-
-  useEffect(() => {
-    // Gerekli kaynak yüklemeleri burada yapılabilir
-  }, [])
-
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <AuthProvider>
-          <View style={styles.container}>
-            {/* Global StatusBar ayarı */}
-            <StatusBar style="dark" backgroundColor="#fff" />
-            {!isReady && <AnimatedSplash onFinish={() => setIsReady(true)} />}
-            <Slot />
-          </View>
-        </AuthProvider>
-      </SafeAreaProvider>
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-})

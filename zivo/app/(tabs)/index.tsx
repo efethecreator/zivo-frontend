@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput,
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../../context/AuthContext"
-import { mockBusinesses } from "../../mocks/businesses"
+import { useQuery } from "@tanstack/react-query"
+import { getAllBusinesses } from "../../services/business.service"
+import { getMyAppointments } from "../../services/appointment.service"
 import type { Business } from "../../types"
 
 const categories = [
@@ -35,7 +37,17 @@ const categories = [
 ]
 
 export default function HomeScreen() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth()
+
+  const { data: businesses, isLoading: isBusinessesLoading } = useQuery({
+    queryKey: ['businesses'],
+    queryFn: getAllBusinesses,
+  })
+
+  const { data: appointments, isLoading: isAppointmentsLoading } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: getMyAppointments,
+  })
 
   // Helper function to safely render address
   const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
@@ -47,7 +59,7 @@ export default function HomeScreen() {
     return ""
   }
 
-  if (isLoading || !user) {
+  if (isAuthLoading || isBusinessesLoading || isAppointmentsLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading...</Text>
@@ -91,36 +103,23 @@ export default function HomeScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.favoritesContainer}>
-          {mockBusinesses.slice(0, 3).map((business) => {
-            // Convert to match Business type
-            const typedBusiness: Business = {
-              ...business,
-              type: "salon", // Default value
-              workingHours: {}, // Default empty object
-              // Ensure other required properties exist
-              rating: business.rating || 0,
-              reviews: business.reviews || 0,
-              images: business.images || [],
-            }
-
-            return (
-              <TouchableOpacity
-                key={typedBusiness.id}
-                style={styles.favoriteItem}
-                onPress={() => navigateTo(`/${typedBusiness.id}`)}
-              >
-                {typedBusiness.images?.[0] && (
-                  <Image source={typedBusiness.images[0]} style={styles.favoriteImage} resizeMode="cover" />
-                )}
-                <View style={styles.favoriteRating}>
-                  <Text style={styles.favoriteRatingText}>{(typedBusiness.rating || 0).toFixed(1)}</Text>
-                  <Text style={styles.favoriteReviewsText}>{typedBusiness.reviews || 0} reviews</Text>
-                </View>
-                <Text style={styles.favoriteName}>{typedBusiness.name}</Text>
-                <Text style={styles.favoriteAddress}>{renderAddress(typedBusiness.address)}</Text>
-              </TouchableOpacity>
-            )
-          })}
+          {businesses?.slice(0, 3).map((business) => (
+            <TouchableOpacity
+              key={business.id}
+              style={styles.favoriteItem}
+              onPress={() => navigateTo(`/${business.id}`)}
+            >
+              {business.profileImageUrl && (
+                <Image source={{ uri: business.profileImageUrl }} style={styles.favoriteImage} resizeMode="cover" />
+              )}
+              <View style={styles.favoriteRating}>
+                <Text style={styles.favoriteRatingText}>{business.rating?.toFixed(1) || '0.0'}</Text>
+                <Text style={styles.favoriteReviewsText}>{business.reviews || 0} reviews</Text>
+              </View>
+              <Text style={styles.favoriteName}>{business.name}</Text>
+              <Text style={styles.favoriteAddress}>{renderAddress(business.address)}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
         <View style={styles.sectionHeader}>
@@ -128,7 +127,9 @@ export default function HomeScreen() {
         </View>
 
         <TouchableOpacity style={styles.appointmentsButton} onPress={() => navigateTo("/(tabs)/appointments")}>
-          <Text style={styles.appointmentsButtonText}>Go to my appointments</Text>
+          <Text style={styles.appointmentsButtonText}>
+            {appointments?.length ? `You have ${appointments.length} appointments` : 'No appointments yet'}
+          </Text>
           <Ionicons name="arrow-forward" size={20} color="#000" />
         </TouchableOpacity>
       </ScrollView>
@@ -175,7 +176,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 45,
     fontSize: 16,
-    
   },
   categoriesContainer: {
     paddingHorizontal: 10,
@@ -249,12 +249,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    margin: 15,
     padding: 15,
     backgroundColor: "#f5f5f5",
+    marginHorizontal: 15,
+    marginBottom: 20,
     borderRadius: 8,
   },
   appointmentsButtonText: {
     fontSize: 16,
+    fontWeight: "500",
   },
 })

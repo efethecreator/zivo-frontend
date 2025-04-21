@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client"
+
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +8,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  SafeAreaView, // <-- Eklendi
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { mockServices } from "../../mocks/services";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getServiceById } from "../../services/service.service";
+import { createAppointment } from "../../services/appointment.service";
 import { Service } from "../../types";
+import { useAuth } from "../../context/AuthContext";
 
 type CalendarDay = {
   day: number;
@@ -45,7 +52,7 @@ const timeSlots = ["19:30", "20:00", "20:30"];
 
 export default function BookingScreen() {
   const { appointmentId } = useLocalSearchParams();
-  const [service, setService] = useState<Service | null>(null);
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<CalendarDay>({
     day: 11,
     month: 4,
@@ -53,37 +60,80 @@ export default function BookingScreen() {
     isCurrentMonth: true,
   });
   const [selectedTime, setSelectedTime] = useState("19:30");
-  const [isLoading, setIsLoading] = useState(true);
   const [staff, setStaff] = useState({
     name: "Mudie",
     image: require("../../assets/images/barber1.jpg"),
   });
 
+  const { data: service, isLoading } = useQuery({
+    queryKey: ['service', appointmentId],
+    queryFn: () => getServiceById(appointmentId as string),
+  });
+
+  const createAppointmentMutation = useMutation({
+    mutationFn: createAppointment,
+    onSuccess: () => {
+      Alert.alert("Success", "Appointment created successfully", [
+        { text: "OK", onPress: () => router.back() }
+      ]);
+    },
+    onError: (error) => {
+      Alert.alert("Error", "Failed to create appointment");
+      console.error("Appointment creation error:", error);
+    },
+  });
+
   const calendarDays = generateCalendarDays();
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundService = mockServices.find(
-        (s) => s.id.toString() === appointmentId
-      );
-      if (foundService) {
-        setService(foundService);
-      }
-      setIsLoading(false);
-    }, 1000);
-  }, [appointmentId]);
+  const handleContinue = async () => {
+    if (!service || !user) return;
 
-  const handleContinue = () => {
-    // In a real app, this would create the appointment
-    // For demo, just go back to the business page
-    router.back();
+    try {
+      // Format the appointment time
+      const appointmentTime = new Date(
+        selectedDate.year,
+        selectedDate.month - 1,
+        selectedDate.day,
+        parseInt(selectedTime.split(":")[0]),
+        parseInt(selectedTime.split(":")[1])
+      ).toISOString();
+
+      // Ensure price is a number
+      const servicePrice = typeof service.price === 'string' 
+        ? parseFloat(service.price) 
+        : service.price;
+
+      // Create appointment data
+      const appointmentData = {
+        businessId: service.businessId,
+        workerId: "00d8a113-e0d2-4eff-825c-f68dd09c0ef0", // This should come from staff selection
+        appointmentTime,
+        totalPrice: servicePrice,
+        services: [
+          {
+            serviceId: service.id,
+            price: servicePrice,
+            duration: service.duration,
+          },
+        ],
+      };
+
+      console.log("Creating appointment with data:", appointmentData);
+
+      await createAppointmentMutation.mutateAsync(appointmentData);
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      Alert.alert(
+        "Error", 
+        "Failed to create appointment. Please check the console for details."
+      );
+    }
   };
 
   if (isLoading || !service) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading booking details...</Text>
+        <ActivityIndicator size="large" color="#2596be" />
       </View>
     );
   }
@@ -100,9 +150,16 @@ export default function BookingScreen() {
     return `${endHour}:${endMinute}`;
   };
 
+  // Helper function to safely render price
+  const renderPrice = (price: string | number) => {
+    if (typeof price === 'number') {
+      return price.toFixed(2)
+    }
+    return price
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea}> 
-      {/* Tüm ekran SafeAreaView içinde */}
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
@@ -110,14 +167,9 @@ export default function BookingScreen() {
         <Text style={styles.headerTitle}>Book an Appointment</Text>
       </View>
 
-      {/* 
-        ScrollView’a alt boşluk eklemek için contentContainerStyle
-        kullanıyoruz. Bu sayede alt bar veya alt çentiğe denk geldiğinde
-        içerik kesilmiyor.
-      */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={styles.scrollContent}
       >
         {/* Calendar */}
         <View style={styles.calendarContainer}>
@@ -202,7 +254,7 @@ export default function BookingScreen() {
           </View>
 
           <TouchableOpacity style={styles.addServiceButton}>
-            <Ionicons name="add" size={20} color="#1B9AAA" />
+            <Ionicons name="add" size={20} color="#2596be" />
             <Text style={styles.addServiceText}>Add another service</Text>
           </TouchableOpacity>
         </View>
@@ -211,12 +263,20 @@ export default function BookingScreen() {
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>€ {service.price.toFixed(2)}</Text>
-          <Text style={styles.priceSubtext}>{service.duration}d</Text>
+          <Text style={styles.priceText}>€ {renderPrice(service.price)}</Text>
+          <Text style={styles.priceSubtext}>{service.duration} min</Text>
         </View>
 
-        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-          <Text style={styles.continueButtonText}>Continue</Text>
+        <TouchableOpacity 
+          style={styles.continueButton} 
+          onPress={handleContinue}
+          disabled={createAppointmentMutation.isPending}
+        >
+          {createAppointmentMutation.isPending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.continueButtonText}>Continue</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -248,166 +308,166 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f0f0f0",
   },
   backButton: {
-    marginRight: 15,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 15,
+  },
+  scrollContent: {
+    paddingBottom: 120,
   },
   calendarContainer: {
     padding: 15,
+    backgroundColor: "#fff",
   },
   monthTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
     marginBottom: 15,
   },
   daysOfWeekContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
   dayOfWeekText: {
-    width: 40,
+    flex: 1,
     textAlign: "center",
-    fontSize: 14,
     color: "#666",
+    fontSize: 14,
   },
   calendarGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
   },
   calendarDay: {
-    width: 40,
-    height: 40,
+    width: "14.28%",
+    aspectRatio: 1,
     justifyContent: "center",
     alignItems: "center",
-    margin: 5,
   },
   calendarDayText: {
     fontSize: 16,
+    color: "#000",
   },
   otherMonthDay: {
-    opacity: 0.5,
+    opacity: 0.3,
   },
   otherMonthDayText: {
-    color: "#ccc",
+    color: "#666",
   },
   selectedDay: {
-    backgroundColor: "#1B9AAA",
+    backgroundColor: "#2596be",
     borderRadius: 20,
   },
   selectedDayText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   timeSlotsContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     padding: 15,
+    gap: 10,
   },
   timeSlot: {
-    flex: 1,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 25,
-    marginHorizontal: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "#f5f5f5",
   },
   timeSlotText: {
     fontSize: 16,
+    color: "#666",
   },
   selectedTimeSlot: {
-    backgroundColor: "#1B9AAA",
-    borderColor: "#1B9AAA",
+    backgroundColor: "#2596be",
   },
   selectedTimeSlotText: {
     color: "#fff",
-    fontWeight: "bold",
   },
   serviceDetailsContainer: {
     padding: 15,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
-    marginHorizontal: 15,
-    marginBottom: 15,
+    backgroundColor: "#fff",
   },
   serviceItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    marginBottom: 20,
   },
   serviceName: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 5,
   },
   serviceTime: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#666",
   },
   staffContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
+    marginBottom: 20,
   },
   staffLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#666",
-    marginRight: 10,
+    marginBottom: 10,
   },
   staffInfo: {
     flexDirection: "row",
     alignItems: "center",
   },
   staffImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
   },
   staffName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "500",
   },
   addServiceButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 15,
+    padding: 15,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
   },
   addServiceText: {
-    color: "#1B9AAA",
-    marginLeft: 5,
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#2596be",
   },
   bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
+    alignItems: "center",
     padding: 15,
+    backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
-    // İsterseniz bu kısımda "justifyContent: 'space-between'" kullanarak daha dengeli yerleştirebilirsiniz.
   },
   priceContainer: {
     flex: 1,
   },
   priceText: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
   },
   priceSubtext: {
     fontSize: 14,
     color: "#666",
   },
   continueButton: {
-    backgroundColor: "#1B9AAA",
-    paddingVertical: 15,
+    backgroundColor: "#2596be",
     paddingHorizontal: 30,
+    paddingVertical: 15,
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
   },
   continueButtonText: {
     color: "#fff",
@@ -415,13 +475,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   privacyText: {
+    position: "absolute",
+    bottom: 80,
+    left: 15,
+    right: 15,
     fontSize: 12,
     color: "#666",
     textAlign: "center",
-    padding: 15,
   },
   privacyLink: {
-    color: "#1B9AAA",
+    color: "#2596be",
     textDecorationLine: "underline",
   },
 });

@@ -15,8 +15,10 @@ export type Business = {
   name: string;
   rating: number;
   reviews: number;
-  address: string;
-  images: ImageSourcePropType[];
+  address: string | { street: string; city: string; postalCode: string };
+  images: string[];
+  type: string;
+  workingHours?: Record<string, { open: string; close: string }>;
 };
 
 export type Service = {
@@ -25,6 +27,8 @@ export type Service = {
   name: string;
   price: number;
   duration: number;
+  description?: string;
+  category?: string;
 };
 
 export type Appointment = {
@@ -35,4 +39,5 @@ export type Appointment = {
   date: string;
   time: string;
   staff: string;
+  status?: "pending" | "confirmed" | "completed" | "cancelled";
 };

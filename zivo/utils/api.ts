@@ -2,10 +2,10 @@ import axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 // Backend URL - değiştirilmesi gerekiyor
-const BACKEND_URL = "http://localhost:4000/api" // TODO: Gerçek backend URL'nizi buraya ekleyin
+const BACKEND_URL = "http://localhost:4000/api/v1" // TODO: Gerçek backend URL'nizi buraya ekleyin
 
 // Create an axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     "Content-Type": "application/json",

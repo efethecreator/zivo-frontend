@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, ScrollView } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { mockBusinesses } from "../../mocks/businesses"
+import { useQuery } from "@tanstack/react-query"
+import { getAllBusinesses } from "../../services/business.service"
 import type { Business } from "../../types"
 
 const categories = [
@@ -19,28 +20,11 @@ const categories = [
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [businesses, setBusinesses] = useState<Business[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      // Convert mock data to match Business type
-      const typedBusinesses: Business[] = mockBusinesses.map((business) => ({
-        ...business,
-        type: "salon", // Default value
-        workingHours: {}, // Default empty object
-        // Ensure address is properly handled
-        address: business.address || "",
-        // Ensure other required properties exist
-        rating: business.rating || 0,
-        reviews: business.reviews || 0,
-        images: business.images || [],
-      }))
-      setBusinesses(typedBusinesses)
-      setIsLoading(false)
-    }, 1000)
-  }, [])
+  const { data: businesses, isLoading } = useQuery({
+    queryKey: ['businesses'],
+    queryFn: getAllBusinesses,
+  })
 
   // Helper function to safely render address
   const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
@@ -54,9 +38,9 @@ export default function ExploreScreen() {
 
   const renderBusinessItem = ({ item }: { item: Business }) => (
     <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id?.toString()}` as any)}>
-      {item.images?.[0] && <Image source={item.images[0]} style={styles.businessImage} resizeMode="cover" />}
+      {item.profileImageUrl && <Image source={{ uri: item.profileImageUrl }} style={styles.businessImage} resizeMode="cover" />}
       <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText}>{(item.rating || 0).toFixed(1)}</Text>
+        <Text style={styles.ratingText}>{item.rating?.toFixed(1) || '0.0'}</Text>
         <Text style={styles.reviewsText}>{item.reviews || 0} reviews</Text>
       </View>
       <Text style={styles.businessName}>{item.name}</Text>
@@ -119,7 +103,7 @@ export default function ExploreScreen() {
       </View>
 
       <View style={styles.resultsContainer}>
-        <Text style={styles.resultsText}>Results ({businesses.length})</Text>
+        <Text style={styles.resultsText}>Results ({businesses?.length || 0})</Text>
         <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.infoText}>What affects the search results?</Text>
           <Ionicons name="information-circle-outline" size={16} color="#666" style={{ marginLeft: 4 }} />
@@ -211,8 +195,8 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     paddingHorizontal: 10,
     marginBottom: 15,
-    height: 60, // Bunu ekle
-    zIndex: 2, // Üstte kalmasını sağla
+    height: 60,
+    zIndex: 2,
   },
   categoryButton: {
     paddingHorizontal: 15,
@@ -235,9 +219,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 15,
     marginBottom: 15,
-    zIndex: 1, // kategori barının altında kalmasını sağlar
+    zIndex: 1,
   },
-
   filtersButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -248,13 +231,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   filtersText: {
+    fontSize: 14,
     marginLeft: 5,
   },
   sortButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingVertical: 8,
     paddingHorizontal: 15,
     backgroundColor: "#f5f5f5",
@@ -262,17 +244,18 @@ const styles = StyleSheet.create({
   },
   sortText: {
     fontSize: 14,
+    marginRight: 5,
   },
   resultsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 15,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   resultsText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "500",
   },
   infoText: {
     fontSize: 14,
@@ -291,10 +274,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   businessImage: {
     width: "100%",
@@ -317,17 +303,18 @@ const styles = StyleSheet.create({
   },
   reviewsText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 10,
   },
   businessName: {
     fontSize: 18,
     fontWeight: "bold",
-    padding: 10,
+    marginTop: 10,
+    marginHorizontal: 10,
   },
   businessAddress: {
     fontSize: 14,
     color: "#666",
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
   },
 })

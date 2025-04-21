@@ -6,21 +6,30 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../services/user.service";
+import { StatusBar } from "expo-status-bar";
 
 export default function ProfileScreen() {
-  const { user, logout, isLoading } = useAuth();
+  const { user: authUser, logout, isLoading: isAuthLoading } = useAuth();
+
+  const { data: user, isLoading: isUserLoading } = useQuery({
+    queryKey: ['user'],
+    queryFn: getMe,
+  });
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isAuthLoading && !authUser) {
       router.replace("/auth/login");
     }
-  }, [user, isLoading]);
+  }, [authUser, isAuthLoading]);
 
-  if (isLoading || !user) {
+  if (isAuthLoading || isUserLoading || !authUser || !user) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color="#2596be" />
@@ -39,19 +48,28 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#fff" />
+      
       {/* Sabit Kısım */}
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>
-            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-          </Text>
+          {user.profile?.photoUrl ? (
+            <Image
+              source={{ uri: user.profile.photoUrl }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <Text style={styles.avatarText}>
+              {user.fullName.charAt(0).toUpperCase()}
+            </Text>
+          )}
           <TouchableOpacity style={styles.cameraButton}>
             <Ionicons name="camera" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.userName}>{user.name}</Text>
-        <Text style={styles.userPhone}>{user.phone}</Text>
+        <Text style={styles.userName}>{user.fullName}</Text>
+        <Text style={styles.userPhone}>{user.profile?.phone || user.phone || 'No phone number'}</Text>
       </View>
 
       {/* Kaydırılabilir Kısım */}
@@ -61,7 +79,6 @@ export default function ProfileScreen() {
       >
         <View style={styles.menuSection}>
           {[
-            { label: "Family & Friends", path: "/family-friends" },
             { label: "Account Details", path: "/account-details" },
             { label: "Address", path: "/address" },
             { label: "Reviews", path: "/reviews" },
@@ -70,7 +87,6 @@ export default function ProfileScreen() {
             { label: "Settings", path: "/settings" },
             { label: "Feedback and support", path: "/support" },
             { label: "About ZIVO", path: "/about" },
-            { label: "Custom Forms", path: "/custom-forms" },
           ].map((item, index) => (
             <TouchableOpacity
               key={index}
@@ -97,8 +113,15 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#fff" 
+  },
+  loader: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
   profileHeader: {
     alignItems: "center",
     padding: 70,
@@ -118,6 +141,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     position: "relative",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   avatarText: {
     fontSize: 36,

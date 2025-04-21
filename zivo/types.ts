@@ -1,92 +1,64 @@
 // Define types for the application
 import type { ImageSourcePropType } from "react-native"
 
-export type User = {
-  id?: number
-  name?: string
-  email: string
-  phone?: string
-  password?: string
-  role?: "customer" | "business" | "store_owner" | "admin"
-  address?: {
-    street?: string
-    apartment?: string
-    city?: string
-    postCode?: string
-  }
-  business?: Business
+export interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  phone: string;
+  userType: 'customer' | 'business' | 'store_owner' | 'admin';
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type Business = {
-  id: number
-  name: string
-  // Make address a union type to support both string and object formats
-  address:
-    | string
-    | {
-        street: string
-        city: string
-        postalCode: string
-      }
-  type?: string
-  workingHours?: Record<string, any>
-  // Add these properties from mock data
-  rating?: number
-  reviews?: number
-  images?: ImageSourcePropType[]
-  // Additional properties used in business screens
-  description?: string
-  logo?: string
-  phone?: string
-  email?: string
-  website?: string
-  services?: Service[]
-  staff?: Staff[]
+export interface Business {
+  id: string;
+  name: string;
+  type: string;
+  address: string | {
+    street: string;
+    city: string;
+    postalCode: string;
+  };
+  images?: string[];
+  rating?: number;
+  reviews?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type Service = {
-  id: number
-  businessId?: number
-  name: string
-  description?: string
-  price: number
-  duration: number
-  category?: string
+export interface Service {
+  id: string;
+  name: string;
+  description?: string;
+  price: number | string;
+  duration: number;
+  businessId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type Appointment = {
-  id: number
-  businessId?: number
-  businessName?: string
-  customerId?: number
-  customerName?: string
-  customerPhone?: string
-  serviceId?: number
-  serviceName: string
-  staffId?: number
-  staffName?: string
-  staff?: string
-  date: string
-  time: string
-  duration?: number
-  status?: "pending" | "confirmed" | "cancelled" | "completed"
+export interface Appointment {
+  id: string;
+  businessId: string;
+  workerId: string;
+  customerId: string;
+  appointmentTime: string;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  services: {
+    serviceId: string;
+    price: number;
+    duration: number;
+  }[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type Staff = {
-  id: number
-  name: string
-  position: string
-  services: number[] // Sunduğu hizmetlerin ID'leri
-  workingHours?: {
-    [key: string]: {
-      isWorking: boolean
-      start: string
-      end: string
-    }
-  }
-  businessId?: number
-  phone?: string
-  email?: string
-  image?: string
-  description?: string
+export interface Worker {
+  id: string;
+  name: string;
+  businessId: string;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -1,15 +1,21 @@
 "use client"
 
-import type React from "react"
-import { createContext, useState, useContext, useEffect } from "react"
+import React, { createContext, useState, useContext, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import type { User } from "../types"
+import type { User } from "../services/user.service"
+import { login, register, logout } from "../services/auth.service"
+import { router } from "expo-router"
 
 type AuthContextType = {
   user: User | null
-  login: (userData: Partial<User>) => void
-  register: (userData: Partial<User>) => void
-  logout: () => void
+  login: (userData: { email: string; password: string }) => Promise<void>
+  register: (userData: {
+    fullName: string;
+    email: string;
+    password: string;
+    userType: 'customer' | 'business' | 'store_owner' | 'admin';
+  }) => Promise<void>
+  logout: () => Promise<void>
   isLoading: boolean
   updateUser: (userData: Partial<User>) => void
 }
@@ -25,7 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadUser = async () => {
       try {
         const userJson = await AsyncStorage.getItem("@zivo_user")
-        if (userJson) {
+        const token = await AsyncStorage.getItem("@zivo_token")
+        if (userJson && token) {
           setUser(JSON.parse(userJson))
         }
       } catch (error) {
@@ -38,65 +45,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUser()
   }, [])
 
-  const login = async (userData: Partial<User>) => {
+  const handleLogin = async (userData: { email: string; password: string }) => {
     try {
-      // In a real app, this would make an API call
-      // For demo, we'll just set the user directly
-      const mockUser: User = {
-        id: 1,
-        name: "Murat Efe Çetin",
-        email: userData.email || "user@example.com",
-        phone: "06 25406344",
-        role: "customer",
-      }
+      const response = await login(userData.email, userData.password)
+      const { token, user } = response
 
-      setUser(mockUser)
-      await AsyncStorage.setItem("@zivo_user", JSON.stringify(mockUser))
-      await AsyncStorage.setItem("@zivo_token", "mock-jwt-token")
+      // Store token first
+      await AsyncStorage.setItem("@zivo_token", token)
+      // Then store user and update state
+      await AsyncStorage.setItem("@zivo_user", JSON.stringify(user))
+      setUser(user)
     } catch (error) {
       console.error("Login failed", error)
+      throw error
     }
   }
 
-  const register = async (userData: Partial<User>) => {
+  const handleRegister = async (userData: {
+    fullName: string;
+    email: string;
+    password: string;
+    userType: 'customer' | 'business' | 'store_owner' | 'admin';
+  }) => {
     try {
-      // In a real app, this would make an API call
-      // For demo, we'll just set the user directly
-      const mockUser: User = {
-        id: 1,
-        name: userData.name || "New User",
-        email: userData.email || "user@example.com",
-        phone: userData.phone || "",
-        password: userData.password,
-        role: userData.role || "customer", // Kullanıcıdan gelen rolü kullan
-        business: userData.business, // Business bilgilerini de ekleyelim
-      }
-
-      console.log("Registering user with role:", mockUser.role) // Debug için
-
-      setUser(mockUser)
-      await AsyncStorage.setItem("@zivo_user", JSON.stringify(mockUser))
-      await AsyncStorage.setItem("@zivo_token", "mock-jwt-token")
+      await register(userData)
+      // Başarılı kayıt sonrası login sayfasına yönlendir
+      router.replace("/auth/login")
     } catch (error) {
       console.error("Registration failed", error)
+      throw error
     }
   }
-  const logout = async () => {
+
+  const handleLogout = async () => {
     try {
+      await logout()
       await AsyncStorage.removeItem("@zivo_user")
       await AsyncStorage.removeItem("@zivo_token")
       setUser(null)
+      router.replace("/auth/login")
     } catch (error) {
       console.error("Logout failed", error)
+      throw error
     }
   }
 
-  // updateUser fonksiyonunu ekleyin
   const updateUser = async (userData: Partial<User>) => {
     try {
       if (!user) return
 
-      // Mevcut kullanıcı bilgilerini güncelle
+      // Update user data
       const updatedUser: User = {
         ...user,
         ...userData,
@@ -105,12 +103,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser)
       await AsyncStorage.setItem("@zivo_user", JSON.stringify(updatedUser))
     } catch (error) {
-      console.error("Update user failed", error)
+      console.error("Failed to update user", error)
+      throw error
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login: handleLogin,
+        register: handleRegister,
+        logout: handleLogout,
+        isLoading,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
