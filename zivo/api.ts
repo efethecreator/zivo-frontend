@@ -2,6 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "./constants";
 import { router } from "expo-router";
+import { Platform } from "react-native";
 
 // Create axios instance with default config
 const api = axios.create({
@@ -9,6 +10,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Request interceptor
@@ -23,6 +25,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error("Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -41,7 +44,10 @@ api.interceptors.response.use(
         method: error.config?.method,
         data: error.config?.data,
         headers: error.config?.headers,
-      }
+      },
+      message: error.message,
+      code: error.code,
+      platform: Platform.OS,
     });
 
     if (error.response?.status === 401) {

@@ -1,13 +1,5 @@
-import api from './api';
-
-export interface Worker {
-  id: string;
-  businessId: string;
-  userId: string;
-  workerTypeId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { api } from "../utils/api";
+import type { Worker } from "../types";
 
 export interface WorkerType {
   id: string;
@@ -25,10 +17,13 @@ export const createWorker = async (data: {
   return response.data;
 };
 
-export const getBusinessWorkers = async (
-  businessId: string
-): Promise<Worker[]> => {
+export const getBusinessWorkers = async (businessId: string): Promise<Worker[]> => {
   const response = await api.get(`/business-workers/${businessId}`);
+  return response.data;
+};
+
+export const getWorkerById = async (id: string): Promise<Worker> => {
+  const response = await api.get(`/workers/${id}`);
   return response.data;
 };
 

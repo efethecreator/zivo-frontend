@@ -16,9 +16,11 @@ import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getServiceById } from "../../services/service.service";
+import { getBusinessWorkers } from "../../services/worker.service";
 import { createAppointment } from "../../services/appointment.service";
-import { Service } from "../../types";
+import { Service, Worker } from "../../types";
 import { useAuth } from "../../context/AuthContext";
+import { AxiosError } from 'axios';
 
 type CalendarDay = {
   day: number;
@@ -48,7 +50,7 @@ const generateCalendarDays = (): CalendarDay[] => {
   return days;
 };
 
-const timeSlots = ["19:30", "20:00", "20:30"];
+const timeSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"];
 
 export default function BookingScreen() {
   const { appointmentId } = useLocalSearchParams();
@@ -59,15 +61,19 @@ export default function BookingScreen() {
     year: 2025,
     isCurrentMonth: true,
   });
-  const [selectedTime, setSelectedTime] = useState("19:30");
-  const [staff, setStaff] = useState({
-    name: "Mudie",
-    image: require("../../assets/images/barber1.jpg"),
-  });
+  const [selectedTime, setSelectedTime] = useState("09:00");
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
 
-  const { data: service, isLoading } = useQuery({
+  const { data: service, isLoading: isServiceLoading } = useQuery({
     queryKey: ['service', appointmentId],
     queryFn: () => getServiceById(appointmentId as string),
+  });
+
+  const { data: workers, isLoading: isWorkersLoading } = useQuery({
+    queryKey: ['workers', service?.businessId],
+    queryFn: () => getBusinessWorkers(service?.businessId as string),
+    enabled: !!service?.businessId,
   });
 
   const createAppointmentMutation = useMutation({
@@ -85,11 +91,27 @@ export default function BookingScreen() {
 
   const calendarDays = generateCalendarDays();
 
+  const handleServiceSelect = (service: Service) => {
+    setSelectedServices(prev => {
+      const isAlreadySelected = prev.some(s => s.id === service.id);
+      if (isAlreadySelected) {
+        return prev.filter(s => s.id !== service.id);
+      }
+      return [...prev, service];
+    });
+  };
+
+  const calculateTotalPrice = () => {
+    return selectedServices.reduce((total, service) => {
+      const price = typeof service.price === 'string' ? parseFloat(service.price) : service.price;
+      return total + price;
+    }, 0);
+  };
+
   const handleContinue = async () => {
-    if (!service || !user) return;
+    if (!service || !user || selectedServices.length === 0 || !selectedWorker) return;
 
     try {
-      // Format the appointment time
       const appointmentTime = new Date(
         selectedDate.year,
         selectedDate.month - 1,
@@ -98,31 +120,26 @@ export default function BookingScreen() {
         parseInt(selectedTime.split(":")[1])
       ).toISOString();
 
-      // Ensure price is a number
-      const servicePrice = typeof service.price === 'string' 
-        ? parseFloat(service.price) 
-        : service.price;
-
-      // Create appointment data
       const appointmentData = {
         businessId: service.businessId,
-        workerId: "00d8a113-e0d2-4eff-825c-f68dd09c0ef0", // This should come from staff selection
+        workerId: selectedWorker.id,
         appointmentTime,
-        totalPrice: servicePrice,
-        services: [
-          {
-            serviceId: service.id,
-            price: servicePrice,
-            duration: service.duration,
-          },
-        ],
+        totalPrice: calculateTotalPrice(),
+        services: selectedServices.map(service => ({
+          serviceId: service.id,
+          price: typeof service.price === 'string' ? parseFloat(service.price) : service.price,
+          duration: 30,
+        })),
       };
 
-      console.log("Creating appointment with data:", appointmentData);
+      console.log("Creating appointment with data:", JSON.stringify(appointmentData, null, 2));
 
       await createAppointmentMutation.mutateAsync(appointmentData);
     } catch (error) {
       console.error("Error creating appointment:", error);
+      if (error instanceof AxiosError && error.response) {
+        console.error("Error response:", error.response.data);
+      }
       Alert.alert(
         "Error", 
         "Failed to create appointment. Please check the console for details."
@@ -130,7 +147,7 @@ export default function BookingScreen() {
     }
   };
 
-  if (isLoading || !service) {
+  if (isServiceLoading || isWorkersLoading || !service) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2596be" />
@@ -149,14 +166,6 @@ export default function BookingScreen() {
 
     return `${endHour}:${endMinute}`;
   };
-
-  // Helper function to safely render price
-  const renderPrice = (price: string | number) => {
-    if (typeof price === 'number') {
-      return price.toFixed(2)
-    }
-    return price
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -236,26 +245,43 @@ export default function BookingScreen() {
           ))}
         </View>
 
-        {/* Service Details */}
-        <View style={styles.serviceDetailsContainer}>
-          <View style={styles.serviceItem}>
-            <Text style={styles.serviceName}>{service.name}</Text>
-            <Text style={styles.serviceTime}>
-              {`${selectedTime} - ${getEndTime(selectedTime, service.duration)}`}
-            </Text>
-          </View>
+        {/* Worker Selection */}
+        <View style={styles.workerSelectionContainer}>
+          <Text style={styles.sectionTitle}>Select Worker</Text>
+          {workers?.map((worker) => (
+            <TouchableOpacity
+              key={worker.id}
+              style={[
+                styles.workerItem,
+                selectedWorker?.id === worker.id && styles.selectedWorker,
+              ]}
+              onPress={() => setSelectedWorker(worker)}
+            >
+              <View style={styles.workerImagePlaceholder}>
+                <Ionicons name="person" size={24} color="#666" />
+              </View>
+              <View style={styles.workerInfo}>
+                <Text style={styles.workerName}>{`${worker.firstName} ${worker.lastName}`}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          <View style={styles.staffContainer}>
-            <Text style={styles.staffLabel}>Staff:</Text>
-            <View style={styles.staffInfo}>
-              <Image source={staff.image} style={styles.staffImage} />
-              <Text style={styles.staffName}>{staff.name}</Text>
+        {/* Service Selection */}
+        <View style={styles.serviceSelectionContainer}>
+          <Text style={styles.sectionTitle}>Select Services</Text>
+          <TouchableOpacity
+            style={[
+              styles.serviceItem,
+              selectedServices.some(s => s.id === service.id) && styles.selectedService
+            ]}
+            onPress={() => handleServiceSelect(service)}
+          >
+            <View style={styles.serviceInfo}>
+              <Text style={styles.serviceName}>{service.name}</Text>
+              <Text style={styles.serviceDuration}>{service.duration} min</Text>
             </View>
-          </View>
-
-          <TouchableOpacity style={styles.addServiceButton}>
-            <Ionicons name="add" size={20} color="#2596be" />
-            <Text style={styles.addServiceText}>Add another service</Text>
+            <Text style={styles.servicePrice}>€{service.price}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -263,14 +289,19 @@ export default function BookingScreen() {
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>€ {renderPrice(service.price)}</Text>
-          <Text style={styles.priceSubtext}>{service.duration} min</Text>
+          <Text style={styles.priceText}>€{calculateTotalPrice().toFixed(2)}</Text>
+          <Text style={styles.priceSubtext}>
+            {selectedServices.reduce((total, service) => total + service.duration, 0)} min
+          </Text>
         </View>
 
         <TouchableOpacity 
-          style={styles.continueButton} 
+          style={[
+            styles.continueButton,
+            (selectedServices.length === 0 || !selectedWorker) && styles.disabledButton
+          ]} 
           onPress={handleContinue}
-          disabled={createAppointmentMutation.isPending}
+          disabled={createAppointmentMutation.isPending || selectedServices.length === 0 || !selectedWorker}
         >
           {createAppointmentMutation.isPending ? (
             <ActivityIndicator color="#fff" />
@@ -279,13 +310,6 @@ export default function BookingScreen() {
           )}
         </TouchableOpacity>
       </View>
-
-      {/* Privacy Info */}
-      <Text style={styles.privacyText}>
-        Your personal data will be processed by the partner with whom you are
-        booking an appointment. You can find more information{" "}
-        <Text style={styles.privacyLink}>here</Text>.
-      </Text>
     </SafeAreaView>
   );
 }
@@ -390,54 +414,76 @@ const styles = StyleSheet.create({
   selectedTimeSlotText: {
     color: "#fff",
   },
-  serviceDetailsContainer: {
+  workerSelectionContainer: {
     padding: 15,
-    backgroundColor: "#fff",
   },
-  serviceItem: {
-    marginBottom: 20,
-  },
-  serviceName: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 5,
+    marginBottom: 15,
   },
-  serviceTime: {
-    fontSize: 16,
-    color: "#666",
-  },
-  staffContainer: {
-    marginBottom: 20,
-  },
-  staffLabel: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 10,
-  },
-  staffInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  staffImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  staffName: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  addServiceButton: {
+  workerItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 15,
     backgroundColor: "#f5f5f5",
     borderRadius: 8,
+    marginBottom: 10,
   },
-  addServiceText: {
-    marginLeft: 10,
+  selectedWorker: {
+    backgroundColor: "#e6f2f7",
+    borderColor: "#2596be",
+    borderWidth: 1,
+  },
+  workerImagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  workerInfo: {
+    flex: 1,
+  },
+  workerName: {
     fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 5,
+  },
+  serviceSelectionContainer: {
+    padding: 15,
+  },
+  serviceItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  selectedService: {
+    backgroundColor: "#e6f2f7",
+    borderColor: "#2596be",
+    borderWidth: 1,
+  },
+  serviceInfo: {
+    flex: 1,
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 5,
+  },
+  serviceDuration: {
+    fontSize: 14,
+    color: "#666",
+  },
+  servicePrice: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#2596be",
   },
   bottomBar: {
@@ -469,22 +515,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
   },
+  disabledButton: {
+    backgroundColor: "#ccc",
+  },
   continueButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-  privacyText: {
-    position: "absolute",
-    bottom: 80,
-    left: 15,
-    right: 15,
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
-  },
-  privacyLink: {
-    color: "#2596be",
-    textDecorationLine: "underline",
   },
 });

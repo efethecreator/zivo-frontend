@@ -41,3 +41,14 @@ export type Appointment = {
   staff: string;
   status?: "pending" | "confirmed" | "completed" | "cancelled";
 };
+
+export interface Worker {
+  id: string;
+  firstName: string;
+  lastName: string;
+  businessId: string;
+  workerTypeId: string;
+  isDeleted: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
+}
