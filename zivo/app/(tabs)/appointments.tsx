@@ -4,73 +4,97 @@ import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native"
 import { router } from "expo-router"
 import { useQuery } from "@tanstack/react-query"
-import { getMyAppointments } from "../../services/appointment.service"
+import { getAppointments } from "../../services/appointment.service"
 import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
 
 export default function AppointmentsScreen() {
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['appointments'],
-    queryFn: getMyAppointments,
+    queryFn: getAppointments,
   })
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Image source={require("../../assets/images/images.jpeg")} style={styles.emptyIcon} />
-      <Text style={styles.emptyTitle}>Scheduled Appointments</Text>
+      <Text style={styles.emptyTitle}>No Appointments Yet</Text>
       <Text style={styles.emptyText}>
-        Discover and book beauty & wellness professionals near you. Your scheduled appointments will show up here.
+        You haven't made any appointments yet. Start exploring and book your first appointment!
       </Text>
       <TouchableOpacity 
         style={styles.emptyButton}
         onPress={() => router.push('/(tabs)/explore')}
       >
-        <Text style={styles.emptyButtonText}>Let's Go</Text>
+        <Text style={styles.emptyButtonText}>Explore Services</Text>
       </TouchableOpacity>
     </View>
   )
 
-  const renderAppointmentItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.appointmentCard} onPress={() => {}}>
-      <View style={styles.appointmentHeader}>
-        <Text style={styles.businessName}>{item.businessName}</Text>
-        <Text style={styles.appointmentDate}>
-          {new Date(item.appointmentTime).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </Text>
-      </View>
+  const renderAppointmentItem = ({ item }: { item: any }) => {
+    const firstService = item.appointmentServices?.[0]?.service;
+    const serviceName = firstService?.name || 'Service not specified';
+    const totalDuration = item.appointmentServices?.reduce((acc: number, curr: any) => 
+      acc + (curr.durationAtBooking || 0), 0) || 0;
+    
+    const appointmentTime = item.appointmentTime 
+      ? new Date(item.appointmentTime)
+      : new Date();
 
-      <View style={styles.appointmentDetails}>
-        <View style={styles.serviceInfo}>
-          <Text style={styles.serviceName}>{item.services[0]?.name || 'Service'}</Text>
-          <Text style={styles.serviceTime}>
-            {new Date(item.appointmentTime).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
+    return (
+      <TouchableOpacity style={styles.appointmentCard} onPress={() => {}}>
+        <View style={styles.appointmentHeader}>
+          <Text style={styles.businessName}>{item.business?.name || 'Business'}</Text>
+          <View style={styles.statusContainer}>
+            <View style={[
+              styles.statusBadge,
+              { backgroundColor: item.status === 'confirmed' ? '#4CAF50' : '#FFC107' }
+            ]}>
+              <Text style={styles.statusText}>{item.status}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.staffInfo}>
-          <Text style={styles.staffLabel}>Staff:</Text>
-          <Text style={styles.staffName}>{item.workerName || 'Not assigned'}</Text>
+        <View style={styles.appointmentDetails}>
+          <View style={styles.serviceInfo}>
+            <Text style={styles.serviceName}>{serviceName}</Text>
+            <Text style={styles.serviceTime}>
+              {appointmentTime.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
+
+          <View style={styles.durationInfo}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            <Text style={styles.durationText}>{totalDuration} minutes</Text>
+          </View>
+
+          <View style={styles.staffInfo}>
+            <Text style={styles.staffLabel}>Staff:</Text>
+            <Text style={styles.staffName}>
+              {item.worker?.firstName} {item.worker?.lastName}
+            </Text>
+          </View>
+
+          <View style={styles.priceInfo}>
+            <Text style={styles.priceLabel}>Total Price:</Text>
+            <Text style={styles.priceValue}>${item.totalPrice}</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.appointmentActions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Reschedule</Text>
-        </TouchableOpacity>
+        <View style={styles.appointmentActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Reschedule</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.actionButton, styles.cancelButton]}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  )
+          <TouchableOpacity style={[styles.actionButton, styles.cancelButton]}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -87,7 +111,7 @@ export default function AppointmentsScreen() {
         <FlatList
           data={appointments}
           renderItem={renderAppointmentItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           contentContainerStyle={styles.appointmentsList}
         />
       )}
@@ -163,15 +187,27 @@ const styles = StyleSheet.create({
   appointmentHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
   businessName: {
     fontSize: 18,
     fontWeight: "bold",
   },
-  appointmentDate: {
-    fontSize: 14,
-    color: "#666",
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "capitalize",
   },
   appointmentDetails: {
     marginBottom: 15,
@@ -183,12 +219,25 @@ const styles = StyleSheet.create({
   },
   serviceName: {
     fontSize: 16,
+    fontWeight: "500",
   },
   serviceTime: {
     fontSize: 16,
+    color: "#666",
+  },
+  durationInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  durationText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 5,
   },
   staffInfo: {
     flexDirection: "row",
+    marginBottom: 5,
   },
   staffLabel: {
     fontSize: 14,
@@ -197,6 +246,24 @@ const styles = StyleSheet.create({
   },
   staffName: {
     fontSize: 14,
+    fontWeight: "500",
+  },
+  priceInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  priceValue: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1B9AAA",
   },
   appointmentActions: {
     flexDirection: "row",

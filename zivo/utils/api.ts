@@ -1,5 +1,7 @@
 import axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { router } from "expo-router";
+import { Platform } from "react-native";
 
 // Backend URL - değiştirilmesi gerekiyor
 const BACKEND_URL = "http://localhost:4000/api/v1" // TODO: Gerçek backend URL'nizi buraya ekleyin
@@ -15,7 +17,7 @@ export const api = axios.create({
 // Add request interceptor for auth token
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("auth_token")
+    const token = await AsyncStorage.getItem("@zivo_token")
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -27,17 +29,32 @@ api.interceptors.request.use(
 // Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Handle common errors here (e.g., 401 unauthorized, etc.)
+  async (error) => {
+    // Log detailed error information
+    console.error("API Error Details:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        headers: error.config?.headers,
+      },
+      message: error.message,
+      code: error.code,
+      platform: Platform.OS,
+    });
+
     if (error.response?.status === 401) {
-      // Handle unauthorized error (e.g., redirect to login)
-      AsyncStorage.removeItem("auth_token")
-      // Navigation işlemi burada yapılamaz, çünkü bu bir utility dosyası
-      // Bu durumu yakalayan bir global state veya event emitter kullanılabilir
+      console.log("Unauthorized access detected");
+      await AsyncStorage.removeItem("@zivo_token");
+      await AsyncStorage.removeItem("@zivo_user");
+      router.replace("/auth/login");
     }
-    return Promise.reject(error)
-  },
-)
+    return Promise.reject(error);
+  }
+);
 
 // Auth related API calls
 export const authApi = {

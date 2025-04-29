@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,26 +6,62 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { updateMyProfile } from "../services/user.service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function AddressScreen() {
   const { user, updateUser } = useAuth();
+  const queryClient = useQueryClient();
+  
   const [street, setStreet] = useState("");
   const [apartment, setApartment] = useState("");
   const [city, setCity] = useState("");
   const [postCode, setPostCode] = useState("");
 
-  const handleSave = () => {
-    if (user) {
-      updateUser({
-        ...user,
-        address: { street, apartment, city, postCode },
-      });
-      router.push("/(tabs)/profile");
+  useEffect(() => {
+    if (user?.profile?.location) {
+      const addressParts = user.profile.location.split(',');
+      if (addressParts.length >= 3) {
+        setStreet(addressParts[0].trim());
+        setCity(addressParts[addressParts.length - 2].trim());
+        setPostCode(addressParts[addressParts.length - 1].trim());
+        
+        // Apartment number is optional, so check if it exists
+        if (addressParts.length === 4) {
+          setApartment(addressParts[1].trim());
+        }
+      }
     }
+  }, [user]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser);
+      queryClient.invalidateQueries(['user']);
+      Alert.alert("Success", "Address updated successfully");
+      router.push("/(tabs)/profile");
+    },
+    onError: (error) => {
+      Alert.alert("Error", "Failed to update address. Please try again.");
+    }
+  });
+
+  const handleSave = () => {
+    if (!user) return;
+
+    const location = `${street}, ${apartment ? apartment + ', ' : ''}${city}, ${postCode}`;
+    
+    const profileData = {
+      location,
+    };
+
+    updateProfileMutation.mutate(profileData);
   };
 
   return (
@@ -39,45 +75,55 @@ export default function AddressScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Street</Text>
           <TextInput
             style={styles.input}
             value={street}
             onChangeText={setStreet}
-            placeholder="Street"
+            placeholder="Enter street name"
           />
         </View>
 
         <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Apartment or Suite Number (optional)</Text>
           <TextInput
             style={styles.input}
             value={apartment}
             onChangeText={setApartment}
-            placeholder="Apartment or Suite Number (optional)"
+            placeholder="Enter apartment or suite number"
           />
         </View>
 
         <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>City</Text>
           <TextInput
             style={styles.input}
             value={city}
             onChangeText={setCity}
-            placeholder="City"
+            placeholder="Enter city"
           />
         </View>
 
         <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Post Code</Text>
           <TextInput
             style={styles.input}
             value={postCode}
             onChangeText={setPostCode}
-            placeholder="Post code"
+            placeholder="Enter post code"
             keyboardType="number-pad"
           />
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Save</Text>
+      <TouchableOpacity 
+        style={styles.saveButton} 
+        onPress={handleSave}
+        disabled={updateProfileMutation.isPending}
+      >
+        <Text style={styles.saveButtonText}>
+          {updateProfileMutation.isPending ? "Saving..." : "Save"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -101,9 +147,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
-    flex: 1,
-    marginRight: 40,
   },
   content: {
     flex: 1,
@@ -111,6 +154,11 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
   },
   input: {
     borderWidth: 1,
@@ -120,7 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: "#1B9AAA",
+    backgroundColor: "#2596be",
     padding: 15,
     margin: 20,
     borderRadius: 8,

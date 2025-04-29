@@ -5,7 +5,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, S
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useQuery } from "@tanstack/react-query"
-import { getAllBusinesses } from "../../services/business.service"
+import { getAllBusinesses, getBusinessReviews } from "../../services/business.service"
 import type { Business } from "../../types"
 
 const categories = [
@@ -26,6 +26,24 @@ export default function ExploreScreen() {
     queryFn: getAllBusinesses,
   })
 
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews'],
+    queryFn: () => Promise.all(
+      businesses?.map(business => getBusinessReviews(business.id)) || []
+    ),
+    enabled: !!businesses,
+  })
+
+  const getBusinessRating = (businessId: string) => {
+    if (!reviews) return { rating: 0, count: 0 }
+    
+    const businessReviews = reviews.flat().filter(review => review.businessId === businessId)
+    if (!businessReviews.length) return { rating: 0, count: 0 }
+    
+    const rating = businessReviews.reduce((acc, review) => acc + review.rating, 0) / businessReviews.length
+    return { rating, count: businessReviews.length }
+  }
+
   // Helper function to safely render address
   const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
     if (typeof address === "string") {
@@ -36,17 +54,20 @@ export default function ExploreScreen() {
     return ""
   }
 
-  const renderBusinessItem = ({ item }: { item: Business }) => (
-    <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id?.toString()}` as any)}>
-      {item.profileImageUrl && <Image source={{ uri: item.profileImageUrl }} style={styles.businessImage} resizeMode="cover" />}
-      <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText}>{item.rating?.toFixed(1) || '0.0'}</Text>
-        <Text style={styles.reviewsText}>{item.reviews || 0} reviews</Text>
-      </View>
-      <Text style={styles.businessName}>{item.name}</Text>
-      <Text style={styles.businessAddress}>{renderAddress(item.address)}</Text>
-    </TouchableOpacity>
-  )
+  const renderBusinessItem = ({ item }: { item: Business }) => {
+    const { rating, count } = getBusinessRating(item.id)
+    return (
+      <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id?.toString()}` as any)}>
+        {item.profileImageUrl && <Image source={{ uri: item.profileImageUrl }} style={styles.businessImage} resizeMode="cover" />}
+        <View style={styles.ratingContainer}>
+          <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+          <Text style={styles.reviewsText}>{count} reviews</Text>
+        </View>
+        <Text style={styles.businessName}>{item.name}</Text>
+        <Text style={styles.businessAddress}>{renderAddress(item.address)}</Text>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <View style={styles.container}>

@@ -168,7 +168,7 @@ export default function BookingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea}> 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
@@ -265,7 +265,7 @@ export default function BookingScreen() {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+          </View>
 
         {/* Service Selection */}
         <View style={styles.serviceSelectionContainer}>
@@ -306,7 +306,7 @@ export default function BookingScreen() {
           {createAppointmentMutation.isPending ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>Continue</Text>
           )}
         </TouchableOpacity>
       </View>

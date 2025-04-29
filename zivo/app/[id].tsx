@@ -1,20 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getBusinessById } from "../services/business.service"
 import { getBusinessServices } from "../services/service.service"
+import { getBusinessReviews } from "../services/review.service"
+import { addToFavorites, removeFromFavorites, getFavorites } from "../services/favorite.service"
+import { getBusinessPortfolio } from "../services/portfolio.service"
 import type { Business, Service } from "../types"
 import { StatusBar } from "expo-status-bar"
 
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState("SERVICES")
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [canReview, setCanReview] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const queryClient = useQueryClient()
 
   const { data: business, isLoading: isBusinessLoading } = useQuery({
     queryKey: ['business', id],
@@ -26,11 +30,39 @@ export default function BusinessDetailScreen() {
     queryFn: () => getBusinessServices(id as string),
   })
 
+  const { data: reviews, isLoading: isLoadingReviews } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: () => getBusinessReviews(id),
+  })
+
+  const { data: portfolio, isLoading: isLoadingPortfolio } = useQuery({
+    queryKey: ['portfolio', id],
+    queryFn: () => getBusinessPortfolio(id),
+  })
+
+  const { data: favorites } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: getFavorites,
+  })
+
+  const isFavorite = favorites?.some(fav => fav.id === id)
+
+  const favoriteMutation = useMutation({
+    mutationFn: isFavorite ? removeFromFavorites : addToFavorites,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] })
+    },
+  })
+
+  // Calculate average rating and review count
+  const averageRating = reviews?.reduce((acc, review) => acc + review.rating, 0) / (reviews?.length || 1)
+  const reviewCount = reviews?.length || 0
+
   const handleBookService = (serviceId: number) => {
     router.push(`/booking/${serviceId}` as any)
   }
 
-  const isLoading = isBusinessLoading || isServicesLoading
+  const isLoading = isBusinessLoading || isServicesLoading || isLoadingReviews || isLoadingPortfolio
 
   if (isLoading || !business) {
     return (
@@ -58,6 +90,71 @@ export default function BusinessDetailScreen() {
     return price
   }
 
+  const renderReviews = () => (
+    <View style={styles.tabContent}>
+      {isLoadingReviews ? (
+        <ActivityIndicator size="large" color="#2596be" />
+      ) : (
+        <>
+          {canReview && (
+            <TouchableOpacity
+              style={styles.addReviewButton}
+              onPress={() => router.push(`/create-review/${id}` as any)}
+            >
+              <Text style={styles.addReviewButtonText}>Add Review</Text>
+            </TouchableOpacity>
+          )}
+          {reviews?.map((review) => (
+            <View key={review.id} style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <View style={styles.reviewUserInfo}>
+                  <View style={styles.userIcon}>
+                    <Ionicons name="person-circle-outline" size={40} color="#2596be" />
+                  </View>
+                  <View style={styles.reviewRatingContainer}>
+                    {[...Array(5)].map((_, index) => (
+                      <Ionicons
+                        key={index}
+                        name={index < review.rating ? "star" : "star-outline"}
+                        size={16}
+                        color="#2596be"
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.reviewDate}>
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
+              <Text style={styles.reviewComment}>{review.comment}</Text>
+            </View>
+          ))}
+        </>
+      )}
+    </View>
+  )
+
+  const renderPortfolio = () => (
+    <View style={styles.tabContent}>
+      {isLoadingPortfolio ? (
+        <ActivityIndicator size="large" color="#2596be" />
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {portfolio?.map((item) => (
+            <View key={item.id} style={styles.portfolioItem}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.portfolioImage}
+                resizeMode="cover"
+              />
+              <Text style={styles.portfolioTitle}>{item.title}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  )
+
   return (
     <View style={styles.container}>
       <StatusBar style="dark" backgroundColor="#fff" />
@@ -80,10 +177,13 @@ export default function BusinessDetailScreen() {
         </TouchableOpacity>
 
         {/* Rating Badge */}
-        <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>{(business.rating || 0).toFixed(1)}</Text>
-          <Text style={styles.reviewsText}>{business.reviews || 0} reviews</Text>
-        </View>
+        <TouchableOpacity 
+          style={styles.ratingBadge}
+          onPress={() => setActiveTab("REVIEWS")}
+        >
+          <Text style={styles.ratingText}>{averageRating.toFixed(1)}</Text>
+          <Text style={styles.reviewsText}>{reviewCount} reviews</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Business Info */}
@@ -96,7 +196,7 @@ export default function BusinessDetailScreen() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton} 
-              onPress={() => setIsFavorite(!isFavorite)}
+              onPress={() => favoriteMutation.mutate(id)}
             >
               <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
@@ -169,21 +269,36 @@ export default function BusinessDetailScreen() {
           </>
         )}
 
-        {activeTab === "REVIEWS" && (
-          <View style={styles.tabContent}>
-            <Text style={styles.comingSoonText}>Reviews coming soon</Text>
-          </View>
-        )}
+        {activeTab === "REVIEWS" && renderReviews()}
 
-        {activeTab === "PORTFOLIO" && (
-          <View style={styles.tabContent}>
-            <Text style={styles.comingSoonText}>Portfolio coming soon</Text>
-          </View>
-        )}
+        {activeTab === "PORTFOLIO" && renderPortfolio()}
 
         {activeTab === "DETAILS" && (
           <View style={styles.tabContent}>
-            <Text style={styles.comingSoonText}>Details coming soon</Text>
+            <View style={styles.detailsContainer}>
+              <View style={styles.detailSection}>
+                <Text style={styles.detailSectionTitle}>About</Text>
+                <Text style={styles.detailDescription}>{business.description}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailSectionTitle}>Contact Information</Text>
+                <View style={styles.detailRow}>
+                  <Ionicons name="location-outline" size={20} color="#666" />
+                  <Text style={styles.detailText}>{business.address}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Ionicons name="call-outline" size={20} color="#666" />
+                  <Text style={styles.detailText}>{business.phone}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Ionicons name="map-outline" size={20} color="#666" />
+                  <Text style={styles.detailText}>
+                    {business.latitude}, {business.longitude}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -203,19 +318,23 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     position: "relative",
+    height: 300,
   },
   headerImage: {
     width: "100%",
-    height: 300,
+    height: "100%",
     resizeMode: "cover",
   },
   backButton: {
     position: "absolute",
     top: 50,
     left: 20,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 10,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 10,
   },
   ratingBadge: {
@@ -370,5 +489,110 @@ const styles = StyleSheet.create({
   comingSoonText: {
     fontSize: 16,
     color: "#666",
+  },
+  addReviewButton: {
+    backgroundColor: "#2596be",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  addReviewButtonText: {
+    color: "#fff",
+    fontWeight: "500",
+  },
+  reviewCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    marginHorizontal: 15,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+  },
+  reviewUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userIcon: {
+    marginRight: 15,
+  },
+  reviewRatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reviewDate: {
+    fontSize: 13,
+    color: '#666',
+    marginLeft: 10,
+  },
+  reviewComment: {
+    fontSize: 15,
+    color: '#333',
+    lineHeight: 22,
+  },
+  portfolioItem: {
+    marginRight: 10,
+  },
+  portfolioImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 4,
+    resizeMode: "cover",
+  },
+  portfolioTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 4,
+  },
+  favoriteButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    zIndex: 10,
+  },
+  detailsContainer: {
+    padding: 20,
+  },
+  detailSection: {
+    marginBottom: 30,
+  },
+  detailSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
+  },
+  detailDescription: {
+    fontSize: 15,
+    color: '#666',
+    lineHeight: 22,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  detailText: {
+    fontSize: 15,
+    color: '#666',
+    marginLeft: 10,
   },
 })

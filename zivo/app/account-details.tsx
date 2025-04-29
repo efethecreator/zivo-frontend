@@ -6,24 +6,51 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { updateMyProfile } from "../services/user.service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function AccountDetailsScreen() {
   const { user, updateUser } = useAuth();
-  const [name, setName] = useState(user?.name || "");
-  const [birthDate, setBirthDate] = useState("");
+  const queryClient = useQueryClient();
+  
+  const [fullName, setFullName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
-  const [serviceType, setServiceType] = useState("men");
+  const [phone, setPhone] = useState(user?.profile?.phone || "");
+  const [location, setLocation] = useState(user?.profile?.location || "");
+  const [gender, setGender] = useState(user?.profile?.gender || "");
+  const [biography, setBiography] = useState(user?.profile?.biography || "");
+  const [photoUrl, setPhotoUrl] = useState(user?.profile?.photoUrl || "");
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser);
+      queryClient.invalidateQueries(['user']);
+      Alert.alert("Success", "Profile updated successfully");
+      router.push("/(tabs)/profile");
+    },
+    onError: (error) => {
+      Alert.alert("Error", "Failed to update profile. Please try again.");
+    }
+  });
 
   const handleSave = () => {
-    if (user) {
-      updateUser({ ...user, name, email, phone });
-      router.push("/(tabs)/profile");
-    }
+    if (!user) return;
+
+    const profileData = {
+      phone,
+      location,
+      gender,
+      biography,
+      photoUrl,
+    };
+
+    updateProfileMutation.mutate(profileData);
   };
 
   return (
@@ -36,78 +63,102 @@ export default function AccountDetailsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Personal details</Text>
+        <Text style={styles.sectionTitle}>Personal Information</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>First and last name</Text>
+          <Text style={styles.inputLabel}>Full Name</Text>
           <TextInput
             style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter your name"
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter your full name"
+            editable={false}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Birth date</Text>
-          <TouchableOpacity style={styles.datePickerButton}>
-            <Text style={styles.datePickerText}>
-              {birthDate || "Select date"}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color="#000" />
-          </TouchableOpacity>
+          <Text style={styles.inputLabel}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            editable={false}
+          />
         </View>
 
-        <View style={styles.detailRow}>
-          <View>
-            <Text style={styles.detailLabel}>Email</Text>
-            <Text style={styles.detailValue}>{email}</Text>
-          </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Phone Number</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
         </View>
 
-        <View style={styles.detailRow}>
-          <View>
-            <Text style={styles.detailLabel}>Phone number</Text>
-            <Text style={styles.detailValue}>{phone}</Text>
-          </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Location</Text>
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Enter your location"
+          />
         </View>
 
-        <Text style={styles.sectionTitle}>Services type</Text>
-
-        <View style={styles.serviceTypeContainer}>
+        <Text style={styles.sectionTitle}>Gender</Text>
+        <View style={styles.genderContainer}>
           <TouchableOpacity
             style={[
-              styles.serviceTypeButton,
-              serviceType === "women" && styles.serviceTypeButtonActive,
+              styles.genderButton,
+              gender === "Male" && styles.genderButtonActive,
             ]}
-            onPress={() => setServiceType("women")}
+            onPress={() => setGender("Male")}
           >
-            <Text style={styles.serviceTypeText}>Women</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.serviceTypeButton,
-              serviceType === "men" && styles.serviceTypeButtonActive,
-            ]}
-            onPress={() => setServiceType("men")}
-          >
-            <Text style={styles.serviceTypeText}>Men</Text>
+            <Text style={styles.genderText}>Male</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.serviceTypeButton,
-              serviceType === "everyone" && styles.serviceTypeButtonActive,
+              styles.genderButton,
+              gender === "Female" && styles.genderButtonActive,
             ]}
-            onPress={() => setServiceType("everyone")}
+            onPress={() => setGender("Female")}
           >
-            <Text style={styles.serviceTypeText}>Everyone</Text>
+            <Text style={styles.genderText}>Female</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.genderButton,
+              gender === "Other" && styles.genderButtonActive,
+            ]}
+            onPress={() => setGender("Other")}
+          >
+            <Text style={styles.genderText}>Other</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Biography</Text>
+          <TextInput
+            style={[styles.input, styles.biographyInput]}
+            value={biography}
+            onChangeText={setBiography}
+            placeholder="Tell us about yourself"
+            multiline
+            numberOfLines={4}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Profile Photo URL</Text>
+          <TextInput
+            style={styles.input}
+            value={photoUrl}
+            onChangeText={setPhotoUrl}
+            placeholder="Enter your profile photo URL"
+          />
         </View>
 
         <TouchableOpacity 
@@ -119,8 +170,14 @@ export default function AccountDetailsScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Save</Text>
+      <TouchableOpacity 
+        style={styles.saveButton} 
+        onPress={handleSave}
+        disabled={updateProfileMutation.isPending}
+      >
+        <Text style={styles.saveButtonText}>
+          {updateProfileMutation.isPending ? "Saving..." : "Save"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -170,66 +227,29 @@ const styles = StyleSheet.create({
     padding: 15,
     fontSize: 16,
   },
-  datePickerButton: {
+  biographyInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  genderContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 15,
+    marginBottom: 20,
   },
-  datePickerText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 5,
-  },
-  detailValue: {
-    fontSize: 16,
-    color: "#000",
-  },
-  editButton: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-  },
-  editButtonText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  serviceTypeContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 15,
-    borderRadius: 8,
-    overflow: "hidden",
-    backgroundColor: "#f0f0f0",
-  },
-  serviceTypeButton: {
+  genderButton: {
     flex: 1,
     paddingVertical: 15,
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f5f5f5",
+    marginHorizontal: 5,
+    borderRadius: 8,
   },
-  serviceTypeButtonActive: {
-    backgroundColor: "#fff",
+  genderButtonActive: {
+    backgroundColor: "#2596be",
   },
-  serviceTypeText: {
+  genderText: {
     fontSize: 16,
+    color: "#333",
   },
   deleteAccountButton: {
     flexDirection: "row",
@@ -245,7 +265,7 @@ const styles = StyleSheet.create({
     color: "#E53935",
   },
   saveButton: {
-    backgroundColor: "#1B9AAA",
+    backgroundColor: "#2596be",
     padding: 15,
     margin: 20,
     borderRadius: 8,
