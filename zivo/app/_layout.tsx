@@ -2,6 +2,7 @@ import { Slot } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "../global.css";
 import { AuthProvider } from "../context/AuthContext";
+import Toast from "react-native-toast-message";
 
 // React Query Client ayarı
 const queryClient = new QueryClient({
@@ -18,6 +19,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Slot />
+        <Toast />
       </AuthProvider>
     </QueryClientProvider>
   );

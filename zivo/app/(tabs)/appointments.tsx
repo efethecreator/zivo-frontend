@@ -3,16 +3,56 @@
 import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native"
 import { router } from "expo-router"
-import { useQuery } from "@tanstack/react-query"
-import { getAppointments } from "../../services/appointment.service"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getAppointments, cancelAppointment } from "../../services/appointment.service"
 import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
+import Toast from "react-native-toast-message"
 
 export default function AppointmentsScreen() {
+  const queryClient = useQueryClient();
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['appointments'],
     queryFn: getAppointments,
   })
+
+  const cancelMutation = useMutation({
+    mutationFn: cancelAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Appointment Cancelled',
+        text2: 'Your appointment has been cancelled successfully'
+      });
+    },
+    onError: (error) => {
+      console.error('Error canceling appointment:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to cancel appointment. Please try again.'
+      });
+    }
+  });
+
+  const handleCancelAppointment = (id: string) => {
+    console.log('Cancel button clicked for appointment:', id);
+    Toast.show({
+      type: 'info',
+      text1: 'Cancel Appointment',
+      text2: 'Are you sure you want to cancel this appointment?',
+      position: 'top',
+      visibilityTime: 4000,
+      autoHide: true,
+      topOffset: 30,
+      bottomOffset: 40,
+      onPress: () => {
+        console.log('Toast pressed, cancelling appointment:', id);
+        cancelMutation.mutate(id);
+      }
+    });
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -31,6 +71,7 @@ export default function AppointmentsScreen() {
   )
 
   const renderAppointmentItem = ({ item }: { item: any }) => {
+    console.log('Rendering appointment item:', item);
     const firstService = item.appointmentServices?.[0]?.service;
     const serviceName = firstService?.name || 'Service not specified';
     const totalDuration = item.appointmentServices?.reduce((acc: number, curr: any) => 
@@ -84,11 +125,21 @@ export default function AppointmentsScreen() {
         </View>
 
         <View style={styles.appointmentActions}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => console.log('Reschedule pressed')}
+          >
             <Text style={styles.actionButtonText}>Reschedule</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.actionButton, styles.cancelButton]}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.cancelButton]}
+            onPress={() => {
+              console.log('Cancel button pressed');
+              handleCancelAppointment(item.id);
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
         </View>

@@ -38,16 +38,16 @@ export default function ReviewsScreen() {
         </View>
       ) : reviews?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Image
-            source={{
-              uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reviews.jpg-f5udk4A5cDGCOMIsqf2YVmaFw3uXCm.jpeg",
-            }}
-            style={styles.illustration}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>Your reviews</Text>
-          <Text style={styles.description}>Share experiences after your appointments!</Text>
-          <Text style={styles.subDescription}>All of your reviews will show up here.</Text>
+        <Image
+          source={{
+            uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reviews.jpg-f5udk4A5cDGCOMIsqf2YVmaFw3uXCm.jpeg",
+          }}
+          style={styles.illustration}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Your reviews</Text>
+        <Text style={styles.description}>Share experiences after your appointments!</Text>
+        <Text style={styles.subDescription}>All of your reviews will show up here.</Text>
         </View>
       ) : (
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -69,7 +69,7 @@ export default function ReviewsScreen() {
               <Text style={styles.reviewComment}>{review.comment}</Text>
             </View>
           ))}
-        </ScrollView>
+      </ScrollView>
       )}
     </View>
   )

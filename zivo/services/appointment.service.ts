@@ -29,7 +29,12 @@ export const getAppointmentById = async (id: string): Promise<Appointment> => {
 };
 
 export const cancelAppointment = async (id: string): Promise<void> => {
-  await api.delete(`/appointments/${id}`);
+  try {
+    await api.delete(`/appointments/${id}`);
+  } catch (error) {
+    console.error('Error in cancelAppointment:', error);
+    throw error;
+  }
 };
 
 export const getBusinessAppointments = async (
@@ -53,4 +58,4 @@ export const updateAppointmentWorker = async (
 ): Promise<Appointment> => {
   const response = await api.put(`/appointments/${id}/assign`, { workerId });
   return response.data;
-}; 
+};
