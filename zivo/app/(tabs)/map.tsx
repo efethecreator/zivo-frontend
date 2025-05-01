@@ -176,7 +176,7 @@ export default function MapScreen() {
             <TouchableOpacity
               key={business.id}
               style={styles.businessItem}
-              onPress={() => router.push(`/(business)/${business.id}`)}
+              onPress={() => router.push(`/${business.id}`)}
             >
               <View style={styles.businessInfo}>
                 <Text style={styles.businessName}>{business.name}</Text>

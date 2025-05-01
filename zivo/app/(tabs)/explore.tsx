@@ -71,6 +71,10 @@ export default function ExploreScreen() {
     setSortBy(sortOption)
   }
 
+  const handleNearYouPress = () => {
+    router.push('/(tabs)/map')
+  }
+
   const renderBusinessItem = ({ item }: { item: Business }) => {
     const { rating, count } = getBusinessRating(item.id)
     return (
@@ -104,7 +108,7 @@ export default function ExploreScreen() {
       </View>
 
       <View style={styles.filterContainer}>
-        <TouchableOpacity style={styles.locationButton}>
+        <TouchableOpacity style={styles.locationButton} onPress={handleNearYouPress}>
           <Text style={styles.locationText}>Near You</Text>
         </TouchableOpacity>
 
