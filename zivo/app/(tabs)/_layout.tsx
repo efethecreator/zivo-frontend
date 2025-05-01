@@ -37,11 +37,20 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
+          name="map"
+          options={{
+            title: "Map",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="map" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="appointments"
           options={{
             title: "Appointments",
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
+              <Ionicons name="calendar" size={size} color={color} />
             ),
           }}
         />
@@ -50,7 +59,7 @@ export default function TabsLayout() {
           options={{
             title: "Profile",
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
+              <Ionicons name="person" size={size} color={color} />
             ),
           }}
         />

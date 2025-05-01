@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, ScrollView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, ScrollView, ActivityIndicator } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useQuery } from "@tanstack/react-query"
-import { getAllBusinesses, getBusinessReviews } from "../../services/business.service"
-import type { Business } from "../../types"
+import { getAllBusinesses, getBusinessReviews, searchBusinesses, Business, SearchParams } from "../../services/business.service"
+import type { Business as BusinessType } from "../../types"
 
 const categories = [
   { id: "all", name: "All" },
@@ -19,11 +19,16 @@ const categories = [
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedType, setSelectedType] = useState<string>("")
+  const [sortBy, setSortBy] = useState<SearchParams['sortBy']>("name")
 
   const { data: businesses, isLoading } = useQuery({
-    queryKey: ['businesses'],
-    queryFn: getAllBusinesses,
+    queryKey: ['businesses', searchQuery, selectedType, sortBy],
+    queryFn: () => searchBusinesses({
+      search: searchQuery,
+      type: selectedType,
+      sortBy
+    }),
   })
 
   const { data: reviews } = useQuery({
@@ -54,6 +59,18 @@ export default function ExploreScreen() {
     return ""
   }
 
+  const handleSearch = (text: string) => {
+    setSearchQuery(text)
+  }
+
+  const handleTypeFilter = (typeId: string) => {
+    setSelectedType(typeId === selectedType ? "" : typeId)
+  }
+
+  const handleSort = (sortOption: SearchParams['sortBy']) => {
+    setSortBy(sortOption)
+  }
+
   const renderBusinessItem = ({ item }: { item: Business }) => {
     const { rating, count } = getBusinessRating(item.id)
     return (
@@ -82,7 +99,7 @@ export default function ExploreScreen() {
           placeholderTextColor="#8888"
           placeholder="Search for service or business name"
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearch}
         />
       </View>
 
@@ -98,28 +115,39 @@ export default function ExploreScreen() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[styles.categoryButton, selectedCategory === category.id && styles.selectedCategory]}
-            onPress={() => setSelectedCategory(category.id)}
-          >
-            <Text style={[styles.categoryText, selectedCategory === category.id && styles.selectedCategoryText]}>
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity
+          style={[styles.categoryButton, selectedType === "" && styles.selectedCategory]}
+          onPress={() => handleTypeFilter("")}
+        >
+          <Text style={[styles.categoryText, selectedType === "" && styles.selectedCategoryText]}>All</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.categoryButton, selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" && styles.selectedCategory]}
+          onPress={() => handleTypeFilter("c009a262-75b9-4c94-9137-e1195c897b64")}
+        >
+          <Text style={[styles.categoryText, selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" && styles.selectedCategoryText]}>Hair Salon</Text>
+        </TouchableOpacity>
       </ScrollView>
 
-      <View style={styles.filterActionsContainer}>
-        <TouchableOpacity style={styles.filtersButton}>
-          <Ionicons name="options-outline" size={20} color="#000" />
-          <Text style={styles.filtersText}>Filters</Text>
+      <View style={styles.sortContainer}>
+        <Text style={styles.sortTitle}>Sort by:</Text>
+        <TouchableOpacity
+          style={[styles.sortButton, sortBy === "name" && styles.sortButtonActive]}
+          onPress={() => handleSort("name")}
+        >
+          <Text style={[styles.sortText, sortBy === "name" && styles.sortTextActive]}>Name</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.sortButton}>
-          <Text style={styles.sortText}>Sort by: Recommended</Text>
-          <Ionicons name="chevron-down" size={20} color="#000" />
+        <TouchableOpacity
+          style={[styles.sortButton, sortBy === "distance" && styles.sortButtonActive]}
+          onPress={() => handleSort("distance")}
+        >
+          <Text style={[styles.sortText, sortBy === "distance" && styles.sortTextActive]}>Distance</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sortButton, sortBy === "rating" && styles.sortButtonActive]}
+          onPress={() => handleSort("rating")}
+        >
+          <Text style={[styles.sortText, sortBy === "rating" && styles.sortTextActive]}>Rating</Text>
         </TouchableOpacity>
       </View>
 
@@ -133,7 +161,7 @@ export default function ExploreScreen() {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <Text>Loading businesses...</Text>
+          <ActivityIndicator size="large" color="#1B9AAA" />
         </View>
       ) : (
         <FlatList
@@ -236,36 +264,32 @@ const styles = StyleSheet.create({
     color: "#000",
     fontWeight: "500",
   },
-  filterActionsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    zIndex: 1,
-  },
-  filtersButton: {
+  sortContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
-    marginRight: 10,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  filtersText: {
-    fontSize: 14,
-    marginLeft: 5,
+  sortTitle: {
+    marginRight: 8,
+    color: "#666",
   },
   sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "#f0f0f0",
+    marginRight: 8,
+  },
+  sortButtonActive: {
+    backgroundColor: "#1B9AAA",
   },
   sortText: {
-    fontSize: 14,
-    marginRight: 5,
+    color: "#666",
+  },
+  sortTextActive: {
+    color: "#fff",
   },
   resultsContainer: {
     flexDirection: "row",

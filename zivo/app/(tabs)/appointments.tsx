@@ -82,8 +82,8 @@ export default function AppointmentsScreen() {
       : new Date();
 
     return (
-      <TouchableOpacity style={styles.appointmentCard} onPress={() => {}}>
-        <View style={styles.appointmentHeader}>
+    <TouchableOpacity style={styles.appointmentCard} onPress={() => {}}>
+      <View style={styles.appointmentHeader}>
           <Text style={styles.businessName}>{item.business?.name || 'Business'}</Text>
           <View style={styles.statusContainer}>
             <View style={[
@@ -102,17 +102,17 @@ export default function AppointmentsScreen() {
               {appointmentTime.toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
-              })}
-            </Text>
-          </View>
+          })}
+        </Text>
+      </View>
 
           <View style={styles.durationInfo}>
             <Ionicons name="time-outline" size={16} color="#666" />
             <Text style={styles.durationText}>{totalDuration} minutes</Text>
-          </View>
+        </View>
 
-          <View style={styles.staffInfo}>
-            <Text style={styles.staffLabel}>Staff:</Text>
+        <View style={styles.staffInfo}>
+          <Text style={styles.staffLabel}>Staff:</Text>
             <Text style={styles.staffName}>
               {item.worker?.firstName} {item.worker?.lastName}
             </Text>
@@ -121,16 +121,16 @@ export default function AppointmentsScreen() {
           <View style={styles.priceInfo}>
             <Text style={styles.priceLabel}>Total Price:</Text>
             <Text style={styles.priceValue}>${item.totalPrice}</Text>
-          </View>
         </View>
+      </View>
 
-        <View style={styles.appointmentActions}>
+      <View style={styles.appointmentActions}>
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={() => console.log('Reschedule pressed')}
           >
-            <Text style={styles.actionButtonText}>Reschedule</Text>
-          </TouchableOpacity>
+          <Text style={styles.actionButtonText}>Reschedule</Text>
+        </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.cancelButton]}
@@ -140,10 +140,10 @@ export default function AppointmentsScreen() {
             }}
             activeOpacity={0.7}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
     );
   }
 

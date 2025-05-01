@@ -17,13 +17,3 @@ export const getNearbyBusinesses = async (location: Location) => {
   });
   return response.data;
 };
-
-export const getBusinessesByCity = async (city: string) => {
-  const response = await api.get<Business[]>(`/explore/city/${city}`);
-  return response.data;
-};
-
-export const getBusinessesByRegion = async (region: string) => {
-  const response = await api.get<Business[]>(`/explore/region/${region}`);
-  return response.data;
-}; 

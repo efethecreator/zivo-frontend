@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import axios from 'axios';
 
 export interface Business {
   id: string;
@@ -14,6 +15,13 @@ export interface Business {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  distance?: number;
+}
+
+export interface SearchParams {
+  search?: string;
+  type?: string;
+  sortBy?: 'name' | 'distance' | 'rating';
 }
 
 export const createBusiness = async (data: {
@@ -82,4 +90,36 @@ export const getBusinessCustomers = async (
 ): Promise<any[]> => {
   const response = await api.get(`/appointments/business/${businessId}/customers`);
   return response.data;
+};
+
+export const getNearbyBusinesses = async (lat: number, lng: number, radius: number): Promise<Business[]> => {
+  try {
+    const response = await api.get('/explore/nearby', {
+      params: {
+        lat,
+        lng,
+        radius
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching nearby businesses:', error);
+    throw error;
+  }
+};
+
+export const searchBusinesses = async (params: SearchParams): Promise<Business[]> => {
+  try {
+    const response = await api.get('/explore/search', {
+      params: {
+        search: params.search,
+        type: params.type,
+        sortBy: params.sortBy
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching businesses:', error);
+    throw error;
+  }
 }; 
