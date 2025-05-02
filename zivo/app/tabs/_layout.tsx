@@ -1,5 +1,6 @@
-import { Tabs } from "expo-router"
-import { Home, Search, Calendar, User } from "lucide-react-native"
+// app/tabs/_layout.tsx
+import { Tabs } from "expo-router";
+import { Feather } from "@expo/vector-icons"; // ✅ DÜZGÜN ICON KÜTÜPHANESİ
 
 export default function TabsLayout() {
   return (
@@ -12,31 +13,30 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "My Booksy",
-          tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="home" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="search" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="appointments"
         options={{
           title: "Appointments",
-          tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="calendar" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
         }}
       />
     </Tabs>
-  )
+  );
 }
-

@@ -1,7 +1,8 @@
 "use client"
 
-import React, { createContext, useState, useContext, useEffect } from "react"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import type React from "react"
+import { createContext, useState, useContext, useEffect } from "react"
+import { SecureStoreService } from "../services/secureStore.service"
 import type { User } from "../services/user.service"
 import { login, register, logout } from "../services/auth.service"
 import { router } from "expo-router"
@@ -10,17 +11,18 @@ type AuthContextType = {
   user: User | null
   login: (userData: { email: string; password: string }) => Promise<void>
   register: (userData: {
-    fullName: string;
-    email: string;
-    password: string;
-    userType: 'customer' | 'business' | 'store_owner' | 'admin';
+    fullName: string
+    email: string
+    password: string
+    userType: "customer" | "business" | "store_owner" | "admin"
   }) => Promise<void>
   logout: () => Promise<void>
   isLoading: boolean
   updateUser: (userData: Partial<User>) => void
 }
 
-const AuthContext = createContext<AuthContextType | null>(null)
+// Use null! to tell TypeScript we'll handle the null case
+const AuthContext = createContext<AuthContextType>(null!)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -30,8 +32,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if user is already logged in
     const loadUser = async () => {
       try {
-        const userJson = await AsyncStorage.getItem("@zivo_user")
-        const token = await AsyncStorage.getItem("@zivo_token")
+        const userJson = await SecureStoreService.getItem("zivo_user")
+        const token = await SecureStoreService.getItem("zivo_token")
         if (userJson && token) {
           setUser(JSON.parse(userJson))
         }
@@ -51,9 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { token, user } = response
 
       // Store token first
-      await AsyncStorage.setItem("@zivo_token", token)
+      await SecureStoreService.setItem("zivo_token", token)
       // Then store user and update state
-      await AsyncStorage.setItem("@zivo_user", JSON.stringify(user))
+      await SecureStoreService.setItem("zivo_user", JSON.stringify(user))
       setUser(user)
     } catch (error) {
       console.error("Login failed", error)
@@ -62,10 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const handleRegister = async (userData: {
-    fullName: string;
-    email: string;
-    password: string;
-    userType: 'customer' | 'business' | 'store_owner' | 'admin';
+    fullName: string
+    email: string
+    password: string
+    userType: "customer" | "business" | "store_owner" | "admin"
   }) => {
     try {
       await register(userData)
@@ -80,8 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLogout = async () => {
     try {
       await logout()
-      await AsyncStorage.removeItem("@zivo_user")
-      await AsyncStorage.removeItem("@zivo_token")
+      await SecureStoreService.removeItem("zivo_user")
+      await SecureStoreService.removeItem("zivo_token")
       setUser(null)
       router.replace("/auth/login")
     } catch (error) {
@@ -101,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setUser(updatedUser)
-      await AsyncStorage.setItem("@zivo_user", JSON.stringify(updatedUser))
+      await SecureStoreService.setItem("zivo_user", JSON.stringify(updatedUser))
     } catch (error) {
       console.error("Failed to update user", error)
       throw error

@@ -1,61 +1,80 @@
-import api from '../utils/api';
-import type { Appointment } from "../types";
+import api from "../utils/api"
+import type { Appointment } from "../types"
 
 export interface CreateAppointmentRequest {
-  businessId: string;
-  workerId: string;
-  appointmentTime: string;
-  totalPrice: number;
+  businessId: string
+  workerId: string
+  appointmentTime: string
+  totalPrice: number
   services: {
-    serviceId: string;
-    price: number;
-    duration: number;
-  }[];
+    serviceId: string
+    price: number
+    duration: number
+  }[]
 }
 
 export const createAppointment = async (data: CreateAppointmentRequest): Promise<Appointment> => {
-  const response = await api.post('/appointments', data);
-  return response.data;
-};
+  const response = await api.post("/appointments", data)
+  return response.data
+}
 
-export const getAppointments = async (): Promise<Appointment[]> => {
-  const response = await api.get('/appointments/my');
-  return response.data;
-};
+export const getAppointments = async (): Promise<{ data: Appointment[]; error?: string }> => {
+  try {
+    const response = await api.get("/appointments/my")
+    return { data: response.data }
+  } catch (error: any) {
+    console.error("[Appointments] Failed to get appointments:", error)
+
+    // Handle specific error cases
+    if (error.response?.status === 403) {
+      return {
+        data: [],
+        error: "You don't have permission to view appointments. This feature may require a different account type.",
+      }
+    }
+
+    // Generic error handling
+    return {
+      data: [],
+      error: "Unable to load appointments. Please try again later.",
+    }
+  }
+}
 
 export const getAppointmentById = async (id: string): Promise<Appointment> => {
-  const response = await api.get(`/appointments/${id}`);
-  return response.data;
-};
+  const response = await api.get(`/appointments/${id}`)
+  return response.data
+}
 
 export const cancelAppointment = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/appointments/${id}`);
+    await api.delete(`/appointments/${id}`)
   } catch (error) {
-    console.error('Error in cancelAppointment:', error);
-    throw error;
+    console.error("Error in cancelAppointment:", error)
+    throw error
   }
-};
+}
 
-export const getBusinessAppointments = async (
-  businessId: string
-): Promise<Appointment[]> => {
-  const response = await api.get(`/appointments/business/${businessId}`);
-  return response.data;
-};
+export const getBusinessAppointments = async (businessId: string): Promise<Appointment[]> => {
+  try {
+    const response = await api.get(`/appointments/business/${businessId}`)
+    return response.data
+  } catch (error) {
+    console.error("[Appointments] Failed to get business appointments:", error)
+    // Return empty array instead of throwing to prevent UI errors
+    return []
+  }
+}
 
 export const updateAppointmentStatus = async (
   id: string,
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  status: "pending" | "confirmed" | "cancelled" | "completed",
 ): Promise<Appointment> => {
-  const response = await api.put(`/appointments/${id}/status`, { status });
-  return response.data;
-};
+  const response = await api.put(`/appointments/${id}/status`, { status })
+  return response.data
+}
 
-export const updateAppointmentWorker = async (
-  id: string,
-  workerId: string
-): Promise<Appointment> => {
-  const response = await api.put(`/appointments/${id}/assign`, { workerId });
-  return response.data;
-};
+export const updateAppointmentWorker = async (id: string, workerId: string): Promise<Appointment> => {
+  const response = await api.put(`/appointments/${id}/assign`, { workerId })
+  return response.data
+}

@@ -1,37 +1,58 @@
+// src/utils/api.ts
+// Interceptor: Token ekleme
 import axios from "axios"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { router } from "expo-router";
-import { Platform } from "react-native";
+import { Platform } from "react-native"
+import { router } from "expo-router"
+import { getApiUrl, SecureStoreService } from "../services/secureStore.service"
 
-// Backend URL - değiştirilmesi gerekiyor
-const BACKEND_URL = "http://localhost:4000/api/v1" // TODO: Gerçek backend URL'nizi buraya ekleyin
-
-// Create an axios instance with default config
+// Axios instance
 export const api = axios.create({
-  baseURL: BACKEND_URL,
+  baseURL: getApiUrl(),
   headers: {
     "Content-Type": "application/json",
   },
 })
 
-// Add request interceptor for auth token
+// Request Interceptor: Token ekleme + log
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("@zivo_token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    try {
+      const token = await SecureStoreService.getItem("zivo_token")
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+        console.log("[API] ✅ Token eklendi:", token.slice(0, 10) + "...")
+      } else {
+        console.warn("[API] ⚠️ Token bulunamadı, Authorization header eklenmedi.")
+      }
+
+      const fullUrl = `${config.baseURL ?? ""}${config.url ?? ""}`
+      console.log("[API] 📤 İstek gönderiliyor:", {
+        method: config.method,
+        url: fullUrl,
+        headers: config.headers,
+      })
+
+      return config
+    } catch (err) {
+      console.error("[API] ❌ Token alma hatası:", err)
+      return config
     }
-    return config
   },
   (error) => Promise.reject(error),
 )
 
-// Add response interceptor for error handling
+// Response Interceptor: Hata loglama + yönlendirme
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("[API] ✅ Yanıt alındı:", {
+      url: response.config.url,
+      status: response.status,
+    })
+    return response
+  },
   async (error) => {
-    // Log detailed error information
-    console.error("API Error Details:", {
+    console.error("[API] ❌ API Error Details:", {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
@@ -44,22 +65,36 @@ api.interceptors.response.use(
       message: error.message,
       code: error.code,
       platform: Platform.OS,
-    });
+    })
 
+    // Only redirect to login for 401 errors (unauthorized)
     if (error.response?.status === 401) {
-      console.log("Unauthorized access detected");
-      await AsyncStorage.removeItem("@zivo_token");
-      await AsyncStorage.removeItem("@zivo_user");
-      router.replace("/auth/login");
+      console.warn("[API] ⚠️ 401 Unauthorized - Token siliniyor.")
+      await SecureStoreService.removeItem("zivo_token")
+      await SecureStoreService.removeItem("zivo_user")
+      router.replace("/auth/login")
     }
-    return Promise.reject(error);
-  }
-);
 
-// Auth related API calls
+    return Promise.reject(error)
+  },
+)
+
+// Auth API
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post("/v1/auth/login", { email, password })
+    const response = await api.post("/auth/login", { email, password })
+
+    const { token, user } = response.data
+
+    if (token) {
+      console.log("[AUTH] ✅ Token geldi:", token.slice(0, 10) + "...")
+      await SecureStoreService.setItem("zivo_token", token)
+      await SecureStoreService.setItem("zivo_user", JSON.stringify(user))
+      console.log("[AUTH] ✅ Token ve user SecureStore'a kaydedildi.")
+    } else {
+      console.warn("[AUTH] ⚠️ Token login yanıtında yok.")
+    }
+
     return response.data
   },
   register: async (userData: {
@@ -68,43 +103,46 @@ export const authApi = {
     password: string
     userType: string
   }) => {
-    const response = await api.post("/v1/auth/register", userData)
+    const response = await api.post("/auth/register", userData)
     return response.data
   },
   logout: async () => {
-    const response = await api.post("/v1/auth/logout")
+    const response = await api.post("/auth/logout")
     return response.data
   },
 }
 
-// Kullanıcı profili ile ilgili API çağrıları
+// User API
 export const userApi = {
   getProfile: async () => {
-    const response = await api.get("/v1/user/profile")
+    const response = await api.get("/user/profile")
     return response.data
   },
   updateProfile: async (userData: any) => {
-    const response = await api.put("/v1/user/profile", userData)
+    const response = await api.put("/user/profile", userData)
     return response.data
   },
 }
 
-// Randevu işlemleri ile ilgili API çağrıları
+// Appointment API
 export const appointmentApi = {
   getAppointments: async () => {
-    const response = await api.get("/v1/appointments")
-    return response.data
+    try {
+      const response = await api.get("/appointments/my")
+      return response.data
+    } catch (error) {
+      console.error("[Appointments] Failed to get appointments:", error)
+      return []
+    }
   },
   createAppointment: async (appointmentData: any) => {
-    const response = await api.post("/v1/appointments", appointmentData)
+    const response = await api.post("/appointments", appointmentData)
     return response.data
   },
   cancelAppointment: async (appointmentId: string) => {
-    const response = await api.delete(`/v1/appointments/${appointmentId}`)
+    const response = await api.delete(`/appointments/${appointmentId}`)
     return response.data
   },
 }
 
-// Export the api instance for other API calls
 export default api
-

@@ -17,7 +17,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     // Get token from AsyncStorage
-    const token = await AsyncStorage.getItem("@zivo_token");
+    const token = await AsyncStorage.getItem("zivo_token");
     console.log("Current token:", token); // Debug log
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -52,8 +52,8 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       console.log("Unauthorized access detected");
-      await AsyncStorage.removeItem("@zivo_token");
-      await AsyncStorage.removeItem("@zivo_user");
+      await AsyncStorage.removeItem("zivo_token");
+      await AsyncStorage.removeItem("zivo_user");
       router.replace("/auth/login");
     }
     return Promise.reject(error);
