@@ -1,108 +1,125 @@
-"use client"
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, SafeAreaView, FlatList } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import { useAuth } from "../../context/AuthContext"
-import { useQuery } from "@tanstack/react-query"
-import { getAllBusinesses } from "../../services/business.service"
-import { getAppointments } from "../../services/appointment.service"
-import type { Business } from "../../types"
-import { useState, useMemo } from 'react'
+"use client";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  SafeAreaView,
+  FlatList,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { getAllBusinesses } from "../../services/business.service";
+import { getAppointments } from "../../services/appointment.service";
+import type { Business } from "../../types";
+import { useState, useMemo } from "react";
 
 const categories = [
   {
     id: "massage",
     name: "Massage",
     icon: require("../../assets/images/images.jpeg"),
-    businessTypeId: "c434d876-adf7-41e8-a903-c18af53c8fe6"
+    businessTypeId: "c434d876-adf7-41e8-a903-c18af53c8fe6",
   },
   {
     id: "spa",
     name: "Day SPA",
     icon: require("../../assets/images/spa.jpg"),
-    businessTypeId: "28ec23f3-73c0-47fb-a72c-dc94da77dacf"
+    businessTypeId: "28ec23f3-73c0-47fb-a72c-dc94da77dacf",
   },
   {
     id: "skin",
     name: "Skin care",
     icon: require("../../assets/images/Facial-providence-ri.jpg"),
-    businessTypeId: "ed90a82e-0041-4414-8772-d2aabf15f4cb"
+    businessTypeId: "ed90a82e-0041-4414-8772-d2aabf15f4cb",
   },
   {
     id: "pet",
     name: "Pet services",
     icon: require("../../assets/images/pet-sitters.jpg"),
-    businessTypeId: "58858f87-0060-4869-a83c-c838cd1c1e29"
+    businessTypeId: "58858f87-0060-4869-a83c-c838cd1c1e29",
   },
   {
     id: "hair",
     name: "Hair salons",
     icon: require("../../assets/images/24pt-tif-gould-sprowston-240208-20-1400x800.jpg"),
-    businessTypeId: "26a88520-e2b2-4e2d-87cb-9348026185f7"
+    businessTypeId: "26a88520-e2b2-4e2d-87cb-9348026185f7",
   },
-]
+];
 
 export default function HomeScreen() {
-  const { user, isLoading: isAuthLoading } = useAuth()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [showSearchResults, setShowSearchResults] = useState(false)
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const { data: businesses, isLoading: isBusinessesLoading } = useQuery({
-    queryKey: ['businesses'],
+    queryKey: ["businesses"],
     queryFn: getAllBusinesses,
-  })
+  });
 
   const { data: appointments, isLoading: isAppointmentsLoading } = useQuery({
-    queryKey: ['appointments'],
+    queryKey: ["appointments"],
     queryFn: getAppointments,
-  })
+  });
 
   const filteredBusinesses = useMemo(() => {
-    if (!businesses) return []
-    
-    return businesses.filter(business => {
-      const matchesSearch = business.name.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesType = !selectedType || business.businessTypeId === selectedType
-      return matchesSearch && matchesType
-    })
-  }, [businesses, searchQuery, selectedType])
+    if (!businesses) return [];
+
+    return businesses.filter((business) => {
+      const matchesSearch = business.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesType =
+        !selectedType || business.businessTypeId === selectedType;
+      return matchesSearch && matchesType;
+    });
+  }, [businesses, searchQuery, selectedType]);
 
   const handleSearch = (text: string) => {
-    setSearchQuery(text)
-    setShowSearchResults(text.length > 0)
-  }
+    setSearchQuery(text);
+    setShowSearchResults(text.length > 0);
+  };
 
-  const handleCategoryPress = (category: typeof categories[0]) => {
-    setSelectedType(selectedType === category.businessTypeId ? null : category.businessTypeId)
-    setShowSearchResults(true)
-  }
+  const handleCategoryPress = (category: (typeof categories)[0]) => {
+    setSelectedType(
+      selectedType === category.businessTypeId ? null : category.businessTypeId
+    );
+    setShowSearchResults(true);
+  };
 
   const handleSearchBarPress = () => {
-    router.push('/(tabs)/explore')
-  }
+    router.push("/(tabs)/explore");
+  };
 
   // Helper function to safely render address
-  const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
+  const renderAddress = (
+    address: string | { street: string; city: string; postalCode: string }
+  ) => {
     if (typeof address === "string") {
-      return address
+      return address;
     } else if (address && typeof address === "object") {
-      return `${address.street}, ${address.city}, ${address.postalCode}`
+      return `${address.street}, ${address.city}, ${address.postalCode}`;
     }
-    return ""
-  }
+    return "";
+  };
 
   if (isAuthLoading || isBusinessesLoading || isAppointmentsLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading...</Text>
       </View>
-    )
+    );
   }
 
   const navigateTo = (path: string) => {
-    router.push(path as any)
-  }
+    router.push(path as any);
+  };
 
   const renderBusinessItem = ({ item }: { item: Business }) => (
     <TouchableOpacity
@@ -110,30 +127,39 @@ export default function HomeScreen() {
       onPress={() => navigateTo(`/${item.id}`)}
     >
       <Image
-        source={{ uri: item.profileImageUrl || 'https://placehold.co/400' }}
+        source={{ uri: item.coverImageUrl || "https://placehold.co/400" }}
         style={styles.businessImage}
       />
       <View style={styles.businessInfo}>
         <Text style={styles.businessName}>{item.name}</Text>
-        <Text style={styles.businessAddress}>{renderAddress(item.address)}</Text>
+        <Text style={styles.businessAddress}>
+          {renderAddress(item.address)}
+        </Text>
       </View>
     </TouchableOpacity>
-  )
+  );
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       {/* ✅ Sabit header */}
       <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>zivo</Text>
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+          zivo
+        </Text>
       </View>
 
       {/* 🔽 Scroll edilebilir içerik */}
       <ScrollView style={styles.container}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.searchContainer}
           onPress={handleSearchBarPress}
         >
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <Ionicons
+            name="search"
+            size={20}
+            color="#666"
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Search businesses..."
@@ -143,27 +169,34 @@ export default function HomeScreen() {
           />
         </TouchableOpacity>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+        >
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
               style={[
                 styles.categoryItem,
-                selectedType === category.businessTypeId && styles.categoryItemActive
+                selectedType === category.businessTypeId &&
+                  styles.categoryItemActive,
               ]}
               onPress={() => handleCategoryPress(category)}
             >
-              <Image 
-                source={category.icon} 
+              <Image
+                source={category.icon}
                 style={[
                   styles.categoryIcon,
-                  selectedType === category.businessTypeId && styles.categoryIconActive
-                ]} 
+                  selectedType === category.businessTypeId &&
+                    styles.categoryIconActive,
+                ]}
               />
-              <Text 
+              <Text
                 style={[
                   styles.categoryName,
-                  selectedType === category.businessTypeId && styles.categoryNameActive
+                  selectedType === category.businessTypeId &&
+                    styles.categoryNameActive,
                 ]}
               >
                 {category.name}
@@ -185,22 +218,36 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>VISITED AND FAVORITES</Text>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.favoritesContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.favoritesContainer}
+            >
               {businesses?.slice(0, 3).map((business) => (
                 <TouchableOpacity
                   key={business.id}
                   style={styles.favoriteItem}
                   onPress={() => navigateTo(`/${business.id}`)}
                 >
-                  {business.profileImageUrl && (
-                    <Image source={{ uri: business.profileImageUrl }} style={styles.favoriteImage} resizeMode="cover" />
+                  {business.coverImageUrl && (
+                    <Image
+                      source={{ uri: business.coverImageUrl }}
+                      style={styles.favoriteImage}
+                      resizeMode="cover"
+                    />
                   )}
                   <View style={styles.favoriteRating}>
-                    <Text style={styles.favoriteRatingText}>{business.rating?.toFixed(1) || '0.0'}</Text>
-                    <Text style={styles.favoriteReviewsText}>{business.reviews || 0} reviews</Text>
+                    <Text style={styles.favoriteRatingText}>
+                      {business.rating?.toFixed(1) || "0.0"}
+                    </Text>
+                    <Text style={styles.favoriteReviewsText}>
+                      {business.reviews || 0} reviews
+                    </Text>
                   </View>
                   <Text style={styles.favoriteName}>{business.name}</Text>
-                  <Text style={styles.favoriteAddress}>{renderAddress(business.address)}</Text>
+                  <Text style={styles.favoriteAddress}>
+                    {renderAddress(business.address)}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -209,9 +256,14 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>MY APPOINTMENTS</Text>
             </View>
 
-            <TouchableOpacity style={styles.appointmentsButton} onPress={() => navigateTo("/(tabs)/appointments")}>
+            <TouchableOpacity
+              style={styles.appointmentsButton}
+              onPress={() => navigateTo("/(tabs)/appointments")}
+            >
               <Text style={styles.appointmentsButtonText}>
-                {appointments?.length ? `You have ${appointments.length} appointments` : 'No appointments yet'}
+                {appointments?.length
+                  ? `You have ${appointments.length} appointments`
+                  : "No appointments yet"}
               </Text>
               <Ionicons name="arrow-forward" size={20} color="#000" />
             </TouchableOpacity>
@@ -219,7 +271,7 @@ export default function HomeScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -274,7 +326,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoryItemActive: {
-    backgroundColor: '#1B9AAA',
+    backgroundColor: "#1B9AAA",
   },
   categoryIcon: {
     width: 60,
@@ -284,15 +336,15 @@ const styles = StyleSheet.create({
   },
   categoryIconActive: {
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
   categoryName: {
     fontSize: 12,
     textAlign: "center",
-    color: '#666',
+    color: "#666",
   },
   categoryNameActive: {
-    color: '#fff',
+    color: "#fff",
   },
   sectionHeader: {
     paddingHorizontal: 15,
@@ -363,8 +415,8 @@ const styles = StyleSheet.create({
   businessCard: {
     marginBottom: 16,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -374,7 +426,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   businessImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
@@ -384,11 +436,11 @@ const styles = StyleSheet.create({
   },
   businessName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   businessAddress: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
-})
+});

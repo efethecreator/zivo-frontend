@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
@@ -10,7 +10,6 @@ import { getBusinessServices } from "../services/service.service"
 import { getBusinessReviews } from "../services/review.service"
 import { addToFavorites, removeFromFavorites, getFavorites } from "../services/favorite.service"
 import { getBusinessPortfolio } from "../services/portfolio.service"
-import type { Business, Service } from "../types"
 import { StatusBar } from "expo-status-bar"
 
 export default function BusinessDetailScreen() {
@@ -21,36 +20,36 @@ export default function BusinessDetailScreen() {
   const queryClient = useQueryClient()
 
   const { data: business, isLoading: isBusinessLoading } = useQuery({
-    queryKey: ['business', id],
+    queryKey: ["business", id],
     queryFn: () => getBusinessById(id as string),
   })
 
   const { data: services, isLoading: isServicesLoading } = useQuery({
-    queryKey: ['services', id],
+    queryKey: ["services", id],
     queryFn: () => getBusinessServices(id as string),
   })
 
   const { data: reviews, isLoading: isLoadingReviews } = useQuery({
-    queryKey: ['reviews', id],
+    queryKey: ["reviews", id],
     queryFn: () => getBusinessReviews(id),
   })
 
   const { data: portfolio, isLoading: isLoadingPortfolio } = useQuery({
-    queryKey: ['portfolio', id],
+    queryKey: ["portfolio", id],
     queryFn: () => getBusinessPortfolio(id),
   })
 
   const { data: favorites } = useQuery({
-    queryKey: ['favorites'],
+    queryKey: ["favorites"],
     queryFn: getFavorites,
   })
 
-  const isFavorite = favorites?.some(fav => fav.id === id)
+  const isFavorite = favorites?.some((fav) => fav.id === id)
 
   const favoriteMutation = useMutation({
     mutationFn: isFavorite ? removeFromFavorites : addToFavorites,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      queryClient.invalidateQueries({ queryKey: ["favorites"] })
     },
   })
 
@@ -84,7 +83,7 @@ export default function BusinessDetailScreen() {
 
   // Helper function to safely render price
   const renderPrice = (price: string | number) => {
-    if (typeof price === 'number') {
+    if (typeof price === "number") {
       return price.toFixed(2)
     }
     return price
@@ -97,10 +96,7 @@ export default function BusinessDetailScreen() {
       ) : (
         <>
           {canReview && (
-            <TouchableOpacity
-              style={styles.addReviewButton}
-              onPress={() => router.push(`/create-review/${id}` as any)}
-            >
+            <TouchableOpacity style={styles.addReviewButton} onPress={() => router.push(`/create-review/${id}` as any)}>
               <Text style={styles.addReviewButtonText}>Add Review</Text>
             </TouchableOpacity>
           )}
@@ -122,9 +118,7 @@ export default function BusinessDetailScreen() {
                     ))}
                   </View>
                 </View>
-                <Text style={styles.reviewDate}>
-                  {new Date(review.createdAt).toLocaleDateString()}
-                </Text>
+                <Text style={styles.reviewDate}>{new Date(review.createdAt).toLocaleDateString()}</Text>
               </View>
               <Text style={styles.reviewComment}>{review.comment}</Text>
             </View>
@@ -142,11 +136,7 @@ export default function BusinessDetailScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {portfolio?.map((item) => (
             <View key={item.id} style={styles.portfolioItem}>
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={styles.portfolioImage}
-                resizeMode="cover"
-              />
+              <Image source={{ uri: item.imageUrl }} style={styles.portfolioImage} resizeMode="cover" />
               <Text style={styles.portfolioTitle}>{item.title}</Text>
             </View>
           ))}
@@ -158,29 +148,24 @@ export default function BusinessDetailScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" backgroundColor="#fff" />
-      
+
       {/* Header Image */}
       <View style={styles.imageWrapper}>
-        {business.images?.[0] && (
-          <Image
-            source={{ uri: business.images[0] }}
-            style={styles.headerImage}
-          />
+        {business.coverImageUrl ? (
+          <Image source={{ uri: business.coverImageUrl }} style={styles.headerImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.headerImage, styles.placeholderImage]}>
+            <Ionicons name="image-outline" size={50} color="#ccc" />
+          </View>
         )}
 
         {/* Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
 
         {/* Rating Badge */}
-        <TouchableOpacity 
-          style={styles.ratingBadge}
-          onPress={() => setActiveTab("REVIEWS")}
-        >
+        <TouchableOpacity style={styles.ratingBadge} onPress={() => setActiveTab("REVIEWS")}>
           <Text style={styles.ratingText}>{averageRating.toFixed(1)}</Text>
           <Text style={styles.reviewsText}>{reviewCount} reviews</Text>
         </TouchableOpacity>
@@ -194,10 +179,7 @@ export default function BusinessDetailScreen() {
             <TouchableOpacity style={styles.actionButton}>
               <Ionicons name="share-outline" size={24} color="#666" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton} 
-              onPress={() => favoriteMutation.mutate(id)}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => favoriteMutation.mutate(id)}>
               <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={24}
@@ -224,8 +206,8 @@ export default function BusinessDetailScreen() {
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView 
-        style={styles.contentContainer} 
+      <ScrollView
+        style={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -233,9 +215,9 @@ export default function BusinessDetailScreen() {
           <>
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-              <TextInput 
-                style={styles.searchInput} 
-                placeholderTextColor="#8888" 
+              <TextInput
+                style={styles.searchInput}
+                placeholderTextColor="#8888"
                 placeholder="Search for service"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -256,10 +238,7 @@ export default function BusinessDetailScreen() {
                   </View>
                   <View style={styles.servicePriceContainer}>
                     <Text style={styles.servicePrice}>€ {renderPrice(service.price)}</Text>
-                    <TouchableOpacity 
-                      style={styles.bookButton} 
-                      onPress={() => handleBookService(service.id)}
-                    >
+                    <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
                       <Text style={styles.bookButtonText}>Book</Text>
                     </TouchableOpacity>
                   </View>
@@ -323,7 +302,11 @@ const styles = StyleSheet.create({
   headerImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
+  },
+  placeholderImage: {
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
   },
   backButton: {
     position: "absolute",
@@ -502,12 +485,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   reviewCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 20,
     marginHorizontal: 15,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -517,32 +500,32 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 15,
   },
   reviewUserInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   userIcon: {
     marginRight: 15,
   },
   reviewRatingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   reviewDate: {
     fontSize: 13,
-    color: '#666',
+    color: "#666",
     marginLeft: 10,
   },
   reviewComment: {
     fontSize: 15,
-    color: '#333',
+    color: "#333",
     lineHeight: 22,
   },
   portfolioItem: {
@@ -576,23 +559,23 @@ const styles = StyleSheet.create({
   },
   detailSectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 15,
   },
   detailDescription: {
     fontSize: 15,
-    color: '#666',
+    color: "#666",
     lineHeight: 22,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   detailText: {
     fontSize: 15,
-    color: '#666',
+    color: "#666",
     marginLeft: 10,
   },
 })
