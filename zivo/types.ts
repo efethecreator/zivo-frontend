@@ -62,3 +62,11 @@ export interface Worker {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Favorite {
+  id: string;
+  businessId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+

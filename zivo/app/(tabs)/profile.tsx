@@ -14,9 +14,10 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../../services/user.service";
 import { StatusBar } from "expo-status-bar";
+import { logout } from "../../app/auth/logout"; // yoluna göre düzenle
 
 export default function ProfileScreen() {
-  const { user: authUser, logout, isLoading: isAuthLoading } = useAuth();
+  const { user: authUser, isLoading: isAuthLoading } = useAuth();
 
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: ['user'],
@@ -38,8 +39,7 @@ export default function ProfileScreen() {
   }
 
   const handleLogout = () => {
-    logout();
-    router.replace("/auth/login");
+    logout(); 
   };
 
   const navigateTo = (path: string) => {

@@ -16,8 +16,15 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getAllBusinesses } from "../../services/business.service";
 import { getAppointments } from "../../services/appointment.service";
+import { getFavorites } from "../../services/favorite.service";
 import type { Business } from "../../types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import React from "react";
+
+
+
+
 
 const categories = [
   {
@@ -52,21 +59,52 @@ const categories = [
   },
 ];
 
+
+
 export default function HomeScreen() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
+  useEffect(() => {
+    setSelectedType(null);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  }, []);
+  
+  // Sayfa focus olduğunda (örn. tab'dan dönünce)
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelectedType(null);
+      setSearchQuery("");
+      setShowSearchResults(false);
+    }, [])
+  );
+
+  const { data: favoriteList = [] } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavorites,
+  });
+  
+
   const { data: businesses, isLoading: isBusinessesLoading } = useQuery({
     queryKey: ["businesses"],
     queryFn: getAllBusinesses,
   });
 
-  const { data: appointments, isLoading: isAppointmentsLoading } = useQuery({
+
+
+
+  const { data: appointmentResult, isLoading: isAppointmentsLoading } = useQuery({
     queryKey: ["appointments"],
     queryFn: getAppointments,
   });
+
+  console.log("Appointments 👉", appointmentResult);
+  
+  const appointments = appointmentResult?.data || [];
+  
 
   const filteredBusinesses = useMemo(() => {
     if (!businesses) return [];
@@ -90,7 +128,7 @@ export default function HomeScreen() {
     setSelectedType(
       selectedType === category.businessTypeId ? null : category.businessTypeId
     );
-    setShowSearchResults(true);
+    setShowSearchResults(selectedType !== category.businessTypeId); // ✔️ BU!
   };
 
   const handleSearchBarPress = () => {
@@ -215,42 +253,42 @@ export default function HomeScreen() {
         ) : (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>VISITED AND FAVORITES</Text>
+              <Text style={styles.sectionTitle}>FAVORITES</Text>
             </View>
 
             <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.favoritesContainer}
-            >
-              {businesses?.slice(0, 3).map((business) => (
-                <TouchableOpacity
-                  key={business.id}
-                  style={styles.favoriteItem}
-                  onPress={() => navigateTo(`/${business.id}`)}
-                >
-                  {business.coverImageUrl && (
-                    <Image
-                      source={{ uri: business.coverImageUrl }}
-                      style={styles.favoriteImage}
-                      resizeMode="cover"
-                    />
-                  )}
-                  <View style={styles.favoriteRating}>
-                    <Text style={styles.favoriteRatingText}>
-                      {business.rating?.toFixed(1) || "0.0"}
-                    </Text>
-                    <Text style={styles.favoriteReviewsText}>
-                      {business.reviews || 0} reviews
-                    </Text>
-                  </View>
-                  <Text style={styles.favoriteName}>{business.name}</Text>
-                  <Text style={styles.favoriteAddress}>
-                    {renderAddress(business.address)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  style={styles.favoritesContainer}
+>
+  {favoriteList.map((fav) => (
+    <TouchableOpacity
+      key={fav.business.id}
+      style={styles.favoriteItem}
+      onPress={() => navigateTo(`/${fav.business.id}`)}
+    >
+      {fav.business.coverImageUrl && (
+        <Image
+          source={{ uri: fav.business.coverImageUrl }}
+          style={styles.favoriteImage}
+          resizeMode="cover"
+        />
+      )}
+      <View style={styles.favoriteRating}>
+        <Text style={styles.favoriteRatingText}>
+          {fav.business.rating?.toFixed(1) || "0.0"}
+        </Text>
+        <Text style={styles.favoriteReviewsText}>
+          {fav.business.reviews || 0} reviews
+        </Text>
+      </View>
+      <Text style={styles.favoriteName}>{fav.business.name}</Text>
+      <Text style={styles.favoriteAddress}>
+        {renderAddress(fav.business.address)}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
 
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>MY APPOINTMENTS</Text>
@@ -261,10 +299,16 @@ export default function HomeScreen() {
               onPress={() => navigateTo("/(tabs)/appointments")}
             >
               <Text style={styles.appointmentsButtonText}>
-                {appointments?.length
-                  ? `You have ${appointments.length} appointments`
-                  : "No appointments yet"}
-              </Text>
+              {isAppointmentsLoading ? (
+  "Loading appointments..."
+) : Array.isArray(appointments) && appointments.length > 0 ? (
+  `You have ${appointments.length} appointments`
+) : (
+  "No appointments yet"
+)}
+
+</Text>
+
               <Ionicons name="arrow-forward" size={20} color="#000" />
             </TouchableOpacity>
           </>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
 import { useLocalSearchParams, router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
@@ -11,6 +11,9 @@ import { getBusinessReviews } from "../services/review.service"
 import { addToFavorites, removeFromFavorites, getFavorites } from "../services/favorite.service"
 import { getBusinessPortfolio } from "../services/portfolio.service"
 import { StatusBar } from "expo-status-bar"
+import { Favorite } from "../types"
+
+
 
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams()
@@ -18,6 +21,7 @@ export default function BusinessDetailScreen() {
   const [canReview, setCanReview] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const queryClient = useQueryClient()
+
 
   const { data: business, isLoading: isBusinessLoading } = useQuery({
     queryKey: ["business", id],
@@ -31,27 +35,66 @@ export default function BusinessDetailScreen() {
 
   const { data: reviews, isLoading: isLoadingReviews } = useQuery({
     queryKey: ["reviews", id],
-    queryFn: () => getBusinessReviews(id),
+    queryFn: () => getBusinessReviews(id as string),
   })
 
   const { data: portfolio, isLoading: isLoadingPortfolio } = useQuery({
     queryKey: ["portfolio", id],
-    queryFn: () => getBusinessPortfolio(id),
+    queryFn: () => getBusinessPortfolio(id as string),
   })
 
-  const { data: favorites } = useQuery({
+  const { data: favorites, isLoading: isFavoritesLoading } = useQuery({
     queryKey: ["favorites"],
     queryFn: getFavorites,
-  })
+  });
 
-  const isFavorite = favorites?.some((fav) => fav.id === id)
+  const [localFavoriteState, setLocalFavoriteState] = useState(false);
+
+  useEffect(() => {
+    if (favorites && id) {
+      const isFav = favorites.some((fav) => String(fav.businessId) === String(id));
+      setLocalFavoriteState(isFav);
+      console.log("[Favorites] 🔄 State güncellendi:", isFav);
+    }
+  }, [favorites, id]);
+  
+  
+  
+  
 
   const favoriteMutation = useMutation({
-    mutationFn: isFavorite ? removeFromFavorites : addToFavorites,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] })
+    mutationFn: async (businessId: string) => {
+      if (localFavoriteState) {
+        const matchedFavorite = favorites?.find(
+          (fav) => fav.business.id === businessId // 🔥 tam burada eşleşme oluyor
+        );
+  
+        if (!matchedFavorite) {
+          throw new Error("Favori bulunamadı");
+        }
+  
+        console.log("🗑️ Silinecek favorite ID:", matchedFavorite.id);
+        return await removeFromFavorites(matchedFavorite.id); // ✅ doğru ID ile silinir
+      } else {
+        return await addToFavorites(businessId); // ✅ businessId burada doğrudan kullanılabilir
+      }
     },
-  })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      setLocalFavoriteState(!localFavoriteState);
+      console.log("[Favorites] ✅ Toggled local state:", !localFavoriteState);
+    },
+    onError: (error) => {
+      console.error("[Favorites] ❌ Hata:", error);
+    },
+  });
+  
+  
+  
+  
+  
+  
+  
 
   // Calculate average rating and review count
   const averageRating = reviews?.reduce((acc, review) => acc + review.rating, 0) / (reviews?.length || 1)
@@ -179,13 +222,21 @@ export default function BusinessDetailScreen() {
             <TouchableOpacity style={styles.actionButton}>
               <Ionicons name="share-outline" size={24} color="#666" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => favoriteMutation.mutate(id)}>
-              <Ionicons
-                name={isFavorite ? "heart" : "heart-outline"}
-                size={24}
-                color={isFavorite ? "#ff3b30" : "#666"}
-              />
-            </TouchableOpacity>
+            <TouchableOpacity
+  style={styles.actionButton}
+  onPress={() => favoriteMutation.mutate(id as string)}
+  disabled={isFavoritesLoading}
+>
+  <Ionicons
+    name={localFavoriteState ? "heart" : "heart-outline"}
+    size={24}
+    color={localFavoriteState ? "#ff3b30" : "#666"}
+  />
+</TouchableOpacity>
+
+
+
+
           </View>
         </View>
         <Text style={styles.businessAddress}>{renderAddress()}</Text>

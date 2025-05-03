@@ -20,26 +20,30 @@ export const createAppointment = async (data: CreateAppointmentRequest): Promise
 
 export const getAppointments = async (): Promise<{ data: Appointment[]; error?: string }> => {
   try {
-    const response = await api.get("/appointments/my")
-    return { data: response.data }
-  } catch (error: any) {
-    console.error("[Appointments] Failed to get appointments:", error)
+    const response = await api.get("/appointments/my");
+    const raw = response.data;
 
-    // Handle specific error cases
+    // 🔐 Gelen veri bir dizi değilse, Object.values ile dizileştir
+    const data = Array.isArray(raw) ? raw : Object.values(raw);
+
+    return { data };
+  } catch (error: any) {
+    console.error("[Appointments] Failed to get appointments:", error);
+
     if (error.response?.status === 403) {
       return {
         data: [],
         error: "You don't have permission to view appointments. This feature may require a different account type.",
-      }
+      };
     }
 
-    // Generic error handling
     return {
       data: [],
       error: "Unable to load appointments. Please try again later.",
-    }
+    };
   }
-}
+};
+
 
 export const getAppointmentById = async (id: string): Promise<Appointment> => {
   const response = await api.get(`/appointments/${id}`)

@@ -1,17 +1,19 @@
+//favorite.service.ts
+
 import { api } from '../utils/api';
-import { Business } from './business.service';
+import { Favorite } from '../types';
 
 export const addToFavorites = async (businessId: string) => {
-  const response = await api.post<Business>(`/favorites/${businessId}`);
+  const response = await api.post<Favorite>(`/favorites`, { businessId });
   return response.data;
 };
 
-export const removeFromFavorites = async (businessId: string) => {
-  const response = await api.delete<Business>(`/favorites/${businessId}`);
+export const removeFromFavorites = async (id: string) => {
+  const response = await api.delete<Favorite>(`/favorites/${id}`);
   return response.data;
 };
 
 export const getFavorites = async () => {
-  const response = await api.get<Business[]>('/favorites');
+  const response = await api.get<Favorite[]>('/favorites/my');
   return response.data;
-}; 
+};
