@@ -52,3 +52,30 @@ export interface Worker {
   deletedAt?: string;
   deletedBy?: string;
 }
+
+
+export interface BusinessShift {
+  id: string
+  businessId: string
+  dayOfWeek: number // 0 = Sunday, 1 = Monday, etc.
+  shiftTimeId: string
+  isActive: boolean
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string
+  deletedAt?: string
+  deletedBy?: string
+  shiftTime?: ShiftTime
+}
+
+export interface ShiftTime {
+  id: string
+  startTime: string // Format: "HH:MM"
+  endTime: string // Format: "HH:MM"
+  isActive: boolean
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string
+  deletedAt?: string
+  deletedBy?: string
+}

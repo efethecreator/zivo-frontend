@@ -14,12 +14,13 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../../services/user.service";
 import { StatusBar } from "expo-status-bar";
+import { logout } from "../../app/auth/logout"; // yoluna göre düzenle
 
 export default function ProfileScreen() {
-  const { user: authUser, logout, isLoading: isAuthLoading } = useAuth();
+  const { user: authUser, isLoading: isAuthLoading } = useAuth();
 
   const { data: user, isLoading: isUserLoading } = useQuery({
-    queryKey: ['user'],
+    queryKey: ["user"],
     queryFn: getMe,
   });
 
@@ -39,7 +40,6 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     logout();
-    router.replace("/auth/login");
   };
 
   const navigateTo = (path: string) => {
@@ -49,7 +49,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" backgroundColor="#fff" />
-      
+
       {/* Sabit Kısım */}
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
@@ -69,7 +69,9 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.userName}>{user.fullName}</Text>
-        <Text style={styles.userPhone}>{user.profile?.phone || user.phone || 'No phone number'}</Text>
+        <Text style={styles.userPhone}>
+          {user.profile?.phone || user.phone || "No phone number"}
+        </Text>
       </View>
 
       {/* Kaydırılabilir Kısım */}
@@ -113,14 +115,14 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#fff" 
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  loader: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center" 
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   profileHeader: {
     alignItems: "center",

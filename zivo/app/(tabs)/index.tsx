@@ -16,8 +16,15 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getAllBusinesses } from "../../services/business.service";
 import { getAppointments } from "../../services/appointment.service";
+import { getFavorites } from "../../services/favorite.service";
+import {
+  getReviewsForBusiness,
+  calculateBusinessRating,
+} from "../../services/review.service";
 import type { Business } from "../../types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import React from "react";
 
 const categories = [
   {
@@ -52,21 +59,95 @@ const categories = [
   },
 ];
 
+// sortAppointmentsByDate fonksiyonunu API'nin gerçek veri yapısına göre düzeltelim
+const sortAppointmentsByDate = (appointments: any[]) => {
+  if (!Array.isArray(appointments)) return [];
+
+  return [...appointments].sort((a, b) => {
+    const dateA = new Date(a.appointmentTime);
+    const dateB = new Date(b.appointmentTime);
+    return dateA.getTime() - dateB.getTime();
+  });
+};
+
 export default function HomeScreen() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [favoriteReviews, setFavoriteReviews] = useState<
+    Record<string, { rating: number; count: number }>
+  >({});
+
+  useEffect(() => {
+    setSelectedType(null);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  }, []);
+
+  // Sayfa focus olduğunda (örn. tab'dan dönünce)
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelectedType(null);
+      setSearchQuery("");
+      setShowSearchResults(false);
+    }, [])
+  );
+
+  const { data: favoriteList = [] } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavorites,
+  });
 
   const { data: businesses, isLoading: isBusinessesLoading } = useQuery({
     queryKey: ["businesses"],
     queryFn: getAllBusinesses,
   });
 
-  const { data: appointments, isLoading: isAppointmentsLoading } = useQuery({
-    queryKey: ["appointments"],
-    queryFn: getAppointments,
-  });
+  const { data: appointmentResult, isLoading: isAppointmentsLoading } =
+    useQuery({
+      queryKey: ["appointments"],
+      queryFn: getAppointments,
+    });
+
+  // Fetch reviews for favorite businesses
+  useEffect(() => {
+    if (favoriteList && favoriteList.length > 0) {
+      const fetchReviewsForFavorites = async () => {
+        const reviewsData: Record<string, { rating: number; count: number }> =
+          {};
+
+        for (const fav of favoriteList) {
+          if (fav.business && fav.business.id) {
+            try {
+              const reviews = await getReviewsForBusiness(
+                fav.business.id.toString()
+              );
+              const { rating, count } = calculateBusinessRating(
+                reviews,
+                fav.business.id.toString()
+              );
+              reviewsData[fav.business.id.toString()] = { rating, count };
+            } catch (error) {
+              console.error(
+                `Error fetching reviews for business ${fav.business.id}:`,
+                error
+              );
+              reviewsData[fav.business.id.toString()] = { rating: 0, count: 0 };
+            }
+          }
+        }
+
+        setFavoriteReviews(reviewsData);
+      };
+
+      fetchReviewsForFavorites();
+    }
+  }, [favoriteList]);
+
+  console.log("Appointments 👉", appointmentResult);
+
+  const appointments = appointmentResult?.data || [];
 
   const filteredBusinesses = useMemo(() => {
     if (!businesses) return [];
@@ -90,7 +171,7 @@ export default function HomeScreen() {
     setSelectedType(
       selectedType === category.businessTypeId ? null : category.businessTypeId
     );
-    setShowSearchResults(true);
+    setShowSearchResults(selectedType !== category.businessTypeId); // ✔️ BU!
   };
 
   const handleSearchBarPress = () => {
@@ -107,6 +188,11 @@ export default function HomeScreen() {
       return `${address.street}, ${address.city}, ${address.postalCode}`;
     }
     return "";
+  };
+
+  // Get business rating from reviews
+  const getBusinessRating = (businessId: string) => {
+    return favoriteReviews[businessId] || { rating: 0, count: 0 };
   };
 
   if (isAuthLoading || isBusinessesLoading || isAppointmentsLoading || !user) {
@@ -163,6 +249,7 @@ export default function HomeScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search businesses..."
+            placeholderTextColor="#6666"
             value={searchQuery}
             onChangeText={handleSearch}
             editable={false}
@@ -215,7 +302,7 @@ export default function HomeScreen() {
         ) : (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>VISITED AND FAVORITES</Text>
+              <Text style={styles.sectionTitle}>FAVORITES</Text>
             </View>
 
             <ScrollView
@@ -223,50 +310,156 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               style={styles.favoritesContainer}
             >
-              {businesses?.slice(0, 3).map((business) => (
-                <TouchableOpacity
-                  key={business.id}
-                  style={styles.favoriteItem}
-                  onPress={() => navigateTo(`/${business.id}`)}
-                >
-                  {business.coverImageUrl && (
-                    <Image
-                      source={{ uri: business.coverImageUrl }}
-                      style={styles.favoriteImage}
-                      resizeMode="cover"
-                    />
-                  )}
-                  <View style={styles.favoriteRating}>
-                    <Text style={styles.favoriteRatingText}>
-                      {business.rating?.toFixed(1) || "0.0"}
+              {favoriteList.map((fav) => {
+                const { rating, count } = getBusinessRating(fav.business.id);
+                return (
+                  <TouchableOpacity
+                    key={fav.business.id}
+                    style={styles.favoriteItem}
+                    onPress={() => navigateTo(`/${fav.business.id}`)}
+                  >
+                    {fav.business.coverImageUrl && (
+                      <Image
+                        source={{ uri: fav.business.coverImageUrl }}
+                        style={styles.favoriteImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View style={styles.favoriteRating}>
+                      <Text style={styles.favoriteRatingText}>
+                        {rating.toFixed(1)}
+                      </Text>
+                      <Text style={styles.favoriteReviewsText}>
+                        {count} reviews
+                      </Text>
+                    </View>
+                    <Text style={styles.favoriteName}>{fav.business.name}</Text>
+                    <Text style={styles.favoriteAddress}>
+                      {renderAddress(fav.business.address)}
                     </Text>
-                    <Text style={styles.favoriteReviewsText}>
-                      {business.reviews || 0} reviews
-                    </Text>
-                  </View>
-                  <Text style={styles.favoriteName}>{business.name}</Text>
-                  <Text style={styles.favoriteAddress}>
-                    {renderAddress(business.address)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>MY APPOINTMENTS</Text>
+              <Text style={styles.sectionTitle}>UPCOMING APPOINTMENTS</Text>
+              <TouchableOpacity
+                onPress={() => navigateTo("/(tabs)/appointments")}
+              ></TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={styles.appointmentsButton}
-              onPress={() => navigateTo("/(tabs)/appointments")}
-            >
-              <Text style={styles.appointmentsButtonText}>
-                {appointments?.length
-                  ? `You have ${appointments.length} appointments`
-                  : "No appointments yet"}
-              </Text>
-              <Ionicons name="arrow-forward" size={20} color="#000" />
-            </TouchableOpacity>
+            {/* Randevu listesini render eden kodu API'nin gerçek veri yapısına göre düzeltelim */}
+            {isAppointmentsLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text>Loading appointments...</Text>
+              </View>
+            ) : Array.isArray(appointments) && appointments.length > 0 ? (
+              <View style={styles.upcomingAppointments}>
+                {sortAppointmentsByDate(appointments)
+                  .filter(
+                    (appointment) =>
+                      new Date(appointment.appointmentTime) >= new Date()
+                  )
+                  .slice(0, 3)
+                  .map((appointment, index) => {
+                    const appointmentDate = new Date(
+                      appointment.appointmentTime
+                    );
+                    const today = new Date();
+                    const tomorrow = new Date();
+                    tomorrow.setDate(today.getDate() + 1);
+
+                    let dateText = appointmentDate.toLocaleDateString();
+                    if (
+                      appointmentDate.toDateString() === today.toDateString()
+                    ) {
+                      dateText = "Today";
+                    } else if (
+                      appointmentDate.toDateString() === tomorrow.toDateString()
+                    ) {
+                      dateText = "Tomorrow";
+                    }
+
+                    const timeText = appointmentDate.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
+                    // İşletme ve hizmet bilgilerini güvenli bir şekilde alıyoruz
+                    const businessName =
+                      appointment.business?.name || "Appointment";
+                    const serviceNames =
+                      appointment.services
+                        ?.map((s) => s.name || "Service")
+                        .join(", ") || "Service";
+
+                    return (
+                      <TouchableOpacity
+                        key={appointment.id}
+                        style={styles.appointmentItem}
+                        onPress={() => navigateTo(`/appointments`)}
+                      >
+                        <View style={styles.appointmentDateContainer}>
+                          <Text style={styles.appointmentDay}>{dateText}</Text>
+                          <Text style={styles.appointmentTime}>{timeText}</Text>
+                        </View>
+                        <View style={styles.appointmentDetails}>
+                          <Text
+                            style={styles.appointmentBusinessName}
+                            numberOfLines={1}
+                          >
+                            {businessName}
+                          </Text>
+                          <Text
+                            style={styles.appointmentServiceName}
+                            numberOfLines={1}
+                          >
+                            {serviceNames}
+                          </Text>
+                        </View>
+                        <View style={styles.appointmentStatus}>
+                          <Text
+                            style={[
+                              styles.statusText,
+                              {
+                                color:
+                                  appointment.status === "confirmed"
+                                    ? "#4CAF50"
+                                    : appointment.status === "pending"
+                                    ? "#FF9800"
+                                    : appointment.status === "cancelled"
+                                    ? "#F44336"
+                                    : "#2596be",
+                              },
+                            ]}
+                          >
+                            {appointment.status?.charAt(0).toUpperCase() +
+                              appointment.status?.slice(1) || "Pending"}
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={20}
+                          color="#999"
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
+              </View>
+            ) : (
+              <View style={styles.noAppointments}>
+                <Text style={styles.noAppointmentsText}>
+                  No upcoming appointments
+                </Text>
+                <TouchableOpacity
+                  style={styles.bookNowButton}
+                  onPress={() => navigateTo("/(tabs)/explore")}
+                >
+                  <Text style={styles.bookNowButtonText}>Book Now</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -350,6 +543,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#f5f5f5",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 14,
@@ -442,5 +638,79 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 4,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: "#2596be",
+    fontWeight: "500",
+  },
+  upcomingAppointments: {
+    marginBottom: 20,
+  },
+  appointmentItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  appointmentDateContainer: {
+    width: 80,
+    marginRight: 15,
+  },
+  appointmentDay: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#2596be",
+  },
+  appointmentTime: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
+  },
+  appointmentDetails: {
+    flex: 1,
+  },
+  appointmentBusinessName: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  appointmentServiceName: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
+  },
+  noAppointments: {
+    padding: 20,
+    alignItems: "center",
+  },
+  noAppointmentsText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+  },
+  bookNowButton: {
+    backgroundColor: "#2596be",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  bookNowButtonText: {
+    color: "#fff",
+    fontWeight: "500",
+  },
+  appointmentStatus: {
+    marginLeft: 10,
+    marginRight: 5,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "500",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.05)",
   },
 });

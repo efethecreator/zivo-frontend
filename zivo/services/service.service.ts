@@ -24,3 +24,4 @@ export const updateService = async (id: number, service: Partial<Service>): Prom
 export const deleteService = async (id: number): Promise<void> => {
   await api.delete(`/services/${id}`);
 }; 
+

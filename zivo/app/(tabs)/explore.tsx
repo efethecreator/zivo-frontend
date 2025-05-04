@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react"
 import {
   View,
   Text,
@@ -11,18 +11,12 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getAllBusinesses,
-  getBusinessReviews,
-  searchBusinesses,
-  Business,
-  SearchParams,
-} from "../../services/business.service";
-import type { Business as BusinessType } from "../../types";
+} from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useQuery } from "@tanstack/react-query"
+import { searchBusinesses, type Business, type SearchParams } from "../../services/business.service"
+import { getReviewsForBusiness, calculateBusinessRating } from "../../services/review.service"
 
 const categories = [
   { id: "all", name: "All" },
@@ -31,12 +25,13 @@ const categories = [
   { id: "spa", name: "Day SPA" },
   { id: "skin", name: "Skin care" },
   { id: "pet", name: "Pet services" },
-];
+]
 
 export default function ExploreScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [sortBy, setSortBy] = useState<SearchParams["sortBy"]>("name");
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedType, setSelectedType] = useState<string>("")
+  const [sortBy, setSortBy] = useState<SearchParams["sortBy"]>("name")
+  const [businessReviews, setBusinessReviews] = useState<Record<string, { rating: number; count: number }>>({})
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["businesses", searchQuery, selectedType, sortBy],
@@ -46,100 +41,89 @@ export default function ExploreScreen() {
         type: selectedType,
         sortBy,
       }),
-  });
+  })
 
-  const { data: reviews } = useQuery({
-    queryKey: ["reviews"],
-    queryFn: () =>
-      Promise.all(
-        businesses?.map((business) => getBusinessReviews(business.id)) || []
-      ),
-    enabled: !!businesses,
-  });
+  // Fetch reviews for each business
+  useEffect(() => {
+    if (businesses && businesses.length > 0) {
+      const fetchReviewsForBusinesses = async () => {
+        const reviewsData: Record<string, { rating: number; count: number }> = {}
+
+        for (const business of businesses) {
+          if (business.id) {
+            try {
+              const reviews = await getReviewsForBusiness(business.id.toString())
+              const { rating, count } = calculateBusinessRating(reviews, business.id.toString())
+              reviewsData[business.id.toString()] = { rating, count }
+            } catch (error) {
+              console.error(`Error fetching reviews for business ${business.id}:`, error)
+              reviewsData[business.id.toString()] = { rating: 0, count: 0 }
+            }
+          }
+        }
+
+        setBusinessReviews(reviewsData)
+      }
+
+      fetchReviewsForBusinesses()
+    }
+  }, [businesses])
 
   const getBusinessRating = (businessId: string) => {
-    if (!reviews) return { rating: 0, count: 0 };
-
-    const businessReviews = reviews
-      .flat()
-      .filter((review) => review.businessId === businessId);
-    if (!businessReviews.length) return { rating: 0, count: 0 };
-
-    const rating =
-      businessReviews.reduce((acc, review) => acc + review.rating, 0) /
-      businessReviews.length;
-    return { rating, count: businessReviews.length };
-  };
+    return businessReviews[businessId] || { rating: 0, count: 0 }
+  }
 
   // Helper function to safely render address
-  const renderAddress = (
-    address: string | { street: string; city: string; postalCode: string }
-  ) => {
+  const renderAddress = (address: string | { street: string; city: string; postalCode: string }) => {
     if (typeof address === "string") {
-      return address;
+      return address
     } else if (address && typeof address === "object") {
-      return `${address.street}, ${address.city}, ${address.postalCode}`;
+      return `${address.street}, ${address.city}, ${address.postalCode}`
     }
-    return "";
-  };
+    return ""
+  }
 
   const handleSearch = (text: string) => {
-    setSearchQuery(text);
-  };
+    setSearchQuery(text)
+  }
 
   const handleTypeFilter = (typeId: string) => {
-    setSelectedType(typeId === selectedType ? "" : typeId);
-  };
+    setSelectedType(typeId === selectedType ? "" : typeId)
+  }
 
   const handleSort = (sortOption: SearchParams["sortBy"]) => {
-    setSortBy(sortOption);
-  };
+    setSortBy(sortOption)
+  }
 
   const handleNearYouPress = () => {
-    router.push("/(tabs)/map");
-  };
+    router.push("/(tabs)/map")
+  }
 
   const renderBusinessItem = ({ item }: { item: Business }) => {
-    const { rating, count } = getBusinessRating(item.id);
+    const { rating, count } = getBusinessRating(item.id?.toString() || "")
     return (
-      <TouchableOpacity
-        style={styles.businessCard}
-        onPress={() => router.push(`/${item.id?.toString()}` as any)}
-      >
+      <TouchableOpacity style={styles.businessCard} onPress={() => router.push(`/${item.id?.toString()}` as any)}>
         {item.coverImageUrl && (
-          <Image
-            source={{ uri: item.coverImageUrl }}
-            style={styles.businessImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.coverImageUrl }} style={styles.businessImage} resizeMode="cover" />
         )}
         <View style={styles.ratingContainer}>
           <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
           <Text style={styles.reviewsText}>{count} reviews</Text>
         </View>
         <Text style={styles.businessName}>{item.name}</Text>
-        <Text style={styles.businessAddress}>
-          {renderAddress(item.address)}
-        </Text>
+        <Text style={styles.businessAddress}>{renderAddress(item.address)}</Text>
       </TouchableOpacity>
-    );
-  };
+    )
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 35, fontWeight: "bold" }}>
-          Explore
-        </Text>
+        <Text style={{ color: "#fff", fontSize: 35, fontWeight: "bold" }}>Explore</Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#666"
-          style={styles.searchIcon}
-        />
+        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholderTextColor="#8888"
@@ -150,10 +134,7 @@ export default function ExploreScreen() {
       </View>
 
       <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={styles.locationButton}
-          onPress={handleNearYouPress}
-        >
+        <TouchableOpacity style={styles.locationButton} onPress={handleNearYouPress}>
           <Text style={styles.locationText}>Near You</Text>
         </TouchableOpacity>
 
@@ -163,42 +144,24 @@ export default function ExploreScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
         <TouchableOpacity
-          style={[
-            styles.categoryButton,
-            selectedType === "" && styles.selectedCategory,
-          ]}
+          style={[styles.categoryButton, selectedType === "" && styles.selectedCategory]}
           onPress={() => handleTypeFilter("")}
         >
-          <Text
-            style={[
-              styles.categoryText,
-              selectedType === "" && styles.selectedCategoryText,
-            ]}
-          >
-            All
-          </Text>
+          <Text style={[styles.categoryText, selectedType === "" && styles.selectedCategoryText]}>All</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.categoryButton,
-            selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" &&
-              styles.selectedCategory,
+            selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" && styles.selectedCategory,
           ]}
-          onPress={() =>
-            handleTypeFilter("c009a262-75b9-4c94-9137-e1195c897b64")
-          }
+          onPress={() => handleTypeFilter("c009a262-75b9-4c94-9137-e1195c897b64")}
         >
           <Text
             style={[
               styles.categoryText,
-              selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" &&
-                styles.selectedCategoryText,
+              selectedType === "c009a262-75b9-4c94-9137-e1195c897b64" && styles.selectedCategoryText,
             ]}
           >
             Hair Salon
@@ -209,69 +172,30 @@ export default function ExploreScreen() {
       <View style={styles.sortContainer}>
         <Text style={styles.sortTitle}>Sort by:</Text>
         <TouchableOpacity
-          style={[
-            styles.sortButton,
-            sortBy === "name" && styles.sortButtonActive,
-          ]}
+          style={[styles.sortButton, sortBy === "name" && styles.sortButtonActive]}
           onPress={() => handleSort("name")}
         >
-          <Text
-            style={[
-              styles.sortText,
-              sortBy === "name" && styles.sortTextActive,
-            ]}
-          >
-            Name
-          </Text>
+          <Text style={[styles.sortText, sortBy === "name" && styles.sortTextActive]}>Name</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.sortButton,
-            sortBy === "distance" && styles.sortButtonActive,
-          ]}
+          style={[styles.sortButton, sortBy === "distance" && styles.sortButtonActive]}
           onPress={() => handleSort("distance")}
         >
-          <Text
-            style={[
-              styles.sortText,
-              sortBy === "distance" && styles.sortTextActive,
-            ]}
-          >
-            Distance
-          </Text>
+          <Text style={[styles.sortText, sortBy === "distance" && styles.sortTextActive]}>Distance</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.sortButton,
-            sortBy === "rating" && styles.sortButtonActive,
-          ]}
+          style={[styles.sortButton, sortBy === "rating" && styles.sortButtonActive]}
           onPress={() => handleSort("rating")}
         >
-          <Text
-            style={[
-              styles.sortText,
-              sortBy === "rating" && styles.sortTextActive,
-            ]}
-          >
-            Rating
-          </Text>
+          <Text style={[styles.sortText, sortBy === "rating" && styles.sortTextActive]}>Rating</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.resultsContainer}>
-        <Text style={styles.resultsText}>
-          Results ({businesses?.length || 0})
-        </Text>
-        <TouchableOpacity
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
+        <Text style={styles.resultsText}>Results ({businesses?.length || 0})</Text>
+        <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.infoText}>What affects the search results?</Text>
-          <Ionicons
-            name="information-circle-outline"
-            size={16}
-            color="#666"
-            style={{ marginLeft: 4 }}
-          />
+          <Ionicons name="information-circle-outline" size={16} color="#666" style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
 
@@ -283,15 +207,13 @@ export default function ExploreScreen() {
         <FlatList
           data={businesses}
           renderItem={renderBusinessItem}
-          keyExtractor={(item) =>
-            item.id?.toString() || Math.random().toString()
-          }
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.businessList}
         />
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -480,4 +402,4 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 10,
   },
-});
+})

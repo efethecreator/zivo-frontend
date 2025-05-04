@@ -67,3 +67,8 @@ export const updateWorkerType = async (
   const response = await api.put(`/worker-types/${id}`, data);
   return response.data;
 }; 
+
+export const getWorkersByServiceId = async (serviceId: string): Promise<Worker[]> => {
+  const response = await api.get(`/services/${serviceId}/workers`);
+  return response.data.map((sw: any) => sw.worker); // çünkü backend'de `worker` nested dönüyor
+};

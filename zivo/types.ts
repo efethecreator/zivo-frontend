@@ -1,12 +1,12 @@
 // Define types for the application
-import type { ImageSourcePropType } from "react-native"
+import type { ImageSourcePropType } from "react-native";
 
 export interface User {
   id: string;
   email: string;
   fullName: string;
   phone: string;
-  userType: 'customer' | 'business' | 'store_owner' | 'admin';
+  userType: "customer" | "business" | "store_owner" | "admin";
   createdAt: string;
   updatedAt: string;
 }
@@ -15,11 +15,13 @@ export interface Business {
   id: string;
   name: string;
   type: string;
-  address: string | {
-    street: string;
-    city: string;
-    postalCode: string;
-  };
+  address:
+    | string
+    | {
+        street: string;
+        city: string;
+        postalCode: string;
+      };
   images?: string[];
   rating?: number;
   reviews?: number;
@@ -32,7 +34,7 @@ export interface Service {
   name: string;
   description?: string;
   price: number | string;
-  duration: number;
+  durationMinutes: number;
   businessId: string;
   createdAt: string;
   updatedAt: string;
@@ -45,11 +47,11 @@ export interface Appointment {
   customerId: string;
   appointmentTime: string;
   totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: "pending" | "confirmed" | "cancelled" | "completed";
   services: {
     serviceId: string;
     price: number;
-    duration: number;
+    durationMinutes: number;
   }[];
   createdAt: string;
   updatedAt: string;
@@ -57,8 +59,42 @@ export interface Appointment {
 
 export interface Worker {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   businessId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Favorite {
+  id: string;
+  businessId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BusinessShift {
+  id: string;
+  businessId: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  shiftTimeId: string;
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  deletedBy?: string;
+  shiftTime?: ShiftTime;
+}
+
+export interface ShiftTime {
+  id: string;
+  startTime: string; // Format: "HH:MM:SS"
+  endTime: string; // Format: "HH:MM:SS"
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  deletedBy?: string;
 }
