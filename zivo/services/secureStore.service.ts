@@ -14,59 +14,43 @@ function isValidKey(key: string): boolean {
   return /^[\w.-]+$/.test(key); // sadece harf, rakam, _ . -
 }
 
-export const SecureStoreService = {
-  async getItem(key: string): Promise<string | null> {
+export class SecureStoreService {
+  static async getItem(key: string): Promise<string | null> {
     try {
-      if (!key || !isValidKey(key)) {
-        console.warn("[SecureStore] ❌ Invalid key passed to getItem:", key);
-        return null;
-      }
-      const value =
-        Platform.OS === "web"
-          ? localStorage.getItem(key)
-          : await SecureStore.getItemAsync(key);
-
-      console.log(`[SecureStore] 🔍 getItem ${key}:`, value);
+      const value = await SecureStore.getItemAsync(key);
+      console.log(
+        `[SecureStore] 🔍 getItem ${key}: ${value ? "exists" : "null"}`
+      );
       return value;
     } catch (error) {
-      console.error("[SecureStore] ❌ Error getting item:", error);
+      console.error(`[SecureStore] ❌ Error getting ${key}:`, error);
       return null;
     }
-  },
+  }
 
-  async setItem(key: string, value: string): Promise<void> {
+  static async setItem(key: string, value: string): Promise<void> {
     try {
-      if (!key || !isValidKey(key)) {
-        console.warn("[SecureStore] ❌ Invalid key passed to setItem:", key);
-        return;
-      }
-      console.log(`[SecureStore] 💾 setItem ${key}:`, value);
-
-      if (Platform.OS === "web") {
-        localStorage.setItem(key, value);
-      } else {
-        await SecureStore.setItemAsync(key, value);
-      }
+      await SecureStore.setItemAsync(key, value);
+      console.log(
+        `[SecureStore] 💾 setItem ${key}: ${value.substring(0, 20)}${
+          value.length > 20 ? "..." : ""
+        }`
+      );
     } catch (error) {
-      console.error("[SecureStore] ❌ Error setting item:", error);
+      console.error(`[SecureStore] ❌ Error setting ${key}:`, error);
     }
-  },
+  }
 
-  async removeItem(key: string): Promise<void> {
+  static async removeItem(key: string): Promise<void> {
     try {
-      if (!key || !isValidKey(key)) {
-        console.warn("[SecureStore] ❌ Invalid key passed to removeItem:", key);
-        return;
-      }
-
+      await SecureStore.deleteItemAsync(key);
       console.log(`[SecureStore] 🗑️ removeItem ${key}`);
-      if (Platform.OS === "web") {
-        localStorage.removeItem(key);
-      } else {
-        await SecureStore.deleteItemAsync(key);
-      }
+
+      // Silme işleminin başarılı olup olmadığını kontrol et
+      const checkValue = await SecureStore.getItemAsync(key);
+      console.log(`[SecureStore] 🧪 post-delete check ${key}: ${checkValue}`);
     } catch (error) {
-      console.error("[SecureStore] ❌ Error removing item:", error);
+      console.error(`[SecureStore] ❌ Error removing ${key}:`, error);
     }
-  },
-};
+  }
+}

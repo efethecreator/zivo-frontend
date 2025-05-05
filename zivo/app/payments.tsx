@@ -1,17 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function PaymentsScreen() {
-  const [activeTab, setActiveTab] = useState("methods")
+  const [activeTab, setActiveTab] = useState("methods");
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Payments</Text>
@@ -63,7 +73,7 @@ export default function PaymentsScreen() {
         <Text style={styles.addCardButtonText}>Add card</Text>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -87,6 +97,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     flex: 1,
     textAlign: "center",
+    fontFamily: "Outfit-Bold",
   },
   helpButton: {
     marginLeft: 20,
@@ -110,6 +121,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     color: "#666",
+    fontFamily: "Outfit-Regular",
   },
   content: {
     flex: 1,
@@ -128,6 +140,7 @@ const styles = StyleSheet.create({
   paymentMethodText: {
     fontSize: 16,
     marginLeft: 10,
+    fontFamily: "Outfit-Light",
   },
   divider: {
     height: 1,
@@ -143,6 +156,7 @@ const styles = StyleSheet.create({
   emptyHistoryText: {
     fontSize: 16,
     color: "#666",
+    fontFamily: "Outfit-Regular",
   },
   addCardButton: {
     backgroundColor: "#1B9AAA",
@@ -154,7 +168,6 @@ const styles = StyleSheet.create({
   addCardButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
-})
-
+});

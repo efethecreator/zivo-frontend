@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  Modal,
   TextInput,
   SafeAreaView,
 } from "react-native";
@@ -24,7 +23,12 @@ import Toast from "react-native-toast-message";
 import { useState, useMemo } from "react";
 import RNModal from "react-native-modal";
 
-type AppointmentStatus = "all" | "confirmed" | "pending" | "cancelled";
+type AppointmentStatus =
+  | "all"
+  | "confirmed"
+  | "pending"
+  | "cancelled"
+  | "today";
 
 export default function AppointmentsScreen() {
   const queryClient = useQueryClient();
@@ -45,6 +49,7 @@ export default function AppointmentsScreen() {
   } = useQuery({
     queryKey: ["appointments"],
     queryFn: getAppointments,
+    
   });
 
   // Extract appointments and error from the response
@@ -56,6 +61,27 @@ export default function AppointmentsScreen() {
     if (statusFilter === "all") {
       return appointments;
     }
+
+    if (statusFilter === "today") {
+      // Get today's date at the start of the day (00:00:00) in local time
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Get tomorrow's date at the start of the day for comparison
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      return appointments.filter((appointment) => {
+        if (!appointment.appointmentTime) return false;
+
+        // Convert appointment time to Date object
+        const appointmentDate = new Date(appointment.appointmentTime);
+
+        // Check if appointment is today (between start of today and start of tomorrow)
+        return appointmentDate >= today && appointmentDate < tomorrow;
+      });
+    }
+
     return appointments.filter(
       (appointment) => appointment.status === statusFilter
     );
@@ -329,7 +355,7 @@ export default function AppointmentsScreen() {
             <>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => console.log("Reschedule pressed")}
+                onPress={() => router.push(`/booking/${item.id}/reschedule`)}
               >
                 <Text style={styles.actionButtonText}>Reschedule</Text>
               </TouchableOpacity>
@@ -350,6 +376,7 @@ export default function AppointmentsScreen() {
 
   const renderFilterTabs = () => {
     const filters: { id: AppointmentStatus; label: string }[] = [
+      { id: "today", label: "Today" },
       { id: "all", label: "All" },
       { id: "confirmed", label: "Confirmed" },
       { id: "pending", label: "Pending" },
@@ -456,7 +483,7 @@ export default function AppointmentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8f9fa",
   },
   title: {
     fontSize: 28,
@@ -464,6 +491,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 10,
+    fontFamily: "Outfit-Bold",
   },
   filterContainer: {
     flexDirection: "row",
@@ -486,10 +514,12 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 14,
     color: "#666",
+    fontFamily: "Outfit-Bold",
   },
   activeFilterText: {
     color: "#fff",
     fontWeight: "500",
+    fontFamily: "Outfit-Bold",
   },
   loadingContainer: {
     flex: 1,
@@ -515,12 +545,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Outfit-Bold",
   },
   emptyText: {
     fontSize: 14,
     color: "#666",
     textAlign: "center",
     marginBottom: 30,
+    fontFamily: "Outfit-Light",
   },
   emptyButton: {
     backgroundColor: "#1B9AAA",
@@ -534,6 +566,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: "Outfit-Bold",
   },
   appointmentsList: {
     padding: 10,
@@ -558,6 +591,7 @@ const styles = StyleSheet.create({
   businessName: {
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -569,26 +603,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     textTransform: "capitalize",
+    fontFamily: "Outfit-Bold",
   },
   serviceName: {
     fontSize: 14,
     marginBottom: 6,
+    fontFamily: "Outfit-Light",
   },
   timeRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
+    
   },
   durationText: {
     fontSize: 14,
     color: "#666",
     marginLeft: 5,
     flex: 1,
+    fontFamily: "Outfit-Light",
   },
   appointmentTime: {
     fontSize: 14,
     fontWeight: "500",
     color: "#666",
+    fontFamily: "Outfit-Bold",
   },
   staffRow: {
     flexDirection: "row",
@@ -599,10 +638,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginRight: 5,
+    fontFamily: "Outfit-Light",
   },
   staffName: {
     fontSize: 14,
     fontWeight: "500",
+    fontFamily: "Outfit-Bold",
   },
   divider: {
     height: 1,
@@ -618,11 +659,13 @@ const styles = StyleSheet.create({
   priceLabel: {
     fontSize: 14,
     color: "#666",
+    fontFamily: "Outfit-Light",
   },
   priceValue: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1B9AAA",
+    fontFamily: "Outfit-Bold",
   },
   appointmentActions: {
     flexDirection: "row",
@@ -635,6 +678,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     marginHorizontal: 4,
+    
   },
   modalContainer: {
     justifyContent: "center",
@@ -646,6 +690,7 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 14,
     fontWeight: "500",
+    fontFamily: "Outfit-Regular",
   },
   cancelButton: {
     backgroundColor: "#fff",
@@ -656,6 +701,7 @@ const styles = StyleSheet.create({
     color: "#ff3b30",
     fontSize: 14,
     fontWeight: "500",
+    fontFamily: "Outfit-Bold",
   },
   reviewButton: {
     backgroundColor: "#1B9AAA",
@@ -665,6 +711,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "500",
     fontSize: 14,
+    fontFamily: "Outfit-Bold",
   },
   feedbackContainer: {
     flex: 1,
@@ -682,6 +729,7 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     fontWeight: "500",
     fontSize: 14,
+    fontFamily: "Outfit-Bold",
   },
   modalOverlay: {
     flex: 1,
@@ -707,6 +755,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 18,
     textAlign: "center",
+    fontFamily: "Outfit-Bold",
   },
   ratingContainer: {
     flexDirection: "row",
@@ -715,6 +764,7 @@ const styles = StyleSheet.create({
   },
   starButton: {
     padding: 5,
+    
   },
   commentInput: {
     borderWidth: 1,
@@ -724,6 +774,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: "top",
     marginBottom: 20,
+    fontFamily: "Outfit-Regular",
   },
   modalButtons: {
     flexDirection: "row",
@@ -743,6 +794,7 @@ const styles = StyleSheet.create({
   },
   cancelModalButtonText: {
     color: "#666",
+    fontFamily: "Outfit-Bold",
   },
   submitButton: {
     backgroundColor: "#1B9AAA",
@@ -750,5 +802,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: "#fff",
     fontWeight: "600",
+    fontFamily: "Outfit-Bold",
   },
 });

@@ -82,3 +82,13 @@ export const updateAppointmentWorker = async (id: string, workerId: string): Pro
   const response = await api.put(`/appointments/${id}/assign`, { workerId })
   return response.data
 }
+
+export const rescheduleAppointment = async (
+  id: string,
+  appointmentTime: string
+): Promise<Appointment> => {
+  const response = await api.put(`/appointments/${id}/reschedule`, {
+    appointmentTime, 
+  });
+  return response.data;
+};

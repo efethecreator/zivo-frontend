@@ -306,7 +306,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8f9fa",
   },
   mapContainer: {
     height: "50%",
@@ -317,18 +317,20 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
-    border: "none",
+    borderWidth: 0,
     backgroundColor: "#f0f0f0",
   },
   businessListContainer: {
     height: "50%",
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8f9fa",
+    
   },
   businessListTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+    fontFamily: "Outfit-Bold",
   },
   businessList: {
     flex: 1,
@@ -346,22 +348,26 @@ const styles = StyleSheet.create({
   businessName: {
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
   businessAddress: {
     fontSize: 14,
     color: "#666",
     marginTop: 4,
+    fontFamily: "Outfit-Light",
   },
   businessDistance: {
     fontSize: 12,
     color: "#1B9AAA",
     marginTop: 4,
+    fontFamily: "Outfit-Regular",
   },
   errorText: {
     fontSize: 16,
     color: "red",
     textAlign: "center",
     marginTop: 20,
+    fontFamily: "Outfit-Regular",
   },
   loadingContainer: {
     flex: 1,
@@ -371,5 +377,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: "#666",
+    fontFamily: "Outfit-Regular",
   },
 });

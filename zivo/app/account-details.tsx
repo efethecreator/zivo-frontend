@@ -30,7 +30,7 @@ export default function AccountDetailsScreen() {
     mutationFn: updateMyProfile,
     onSuccess: (updatedUser) => {
       updateUser(updatedUser);
-      queryClient.invalidateQueries(['user']);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       Alert.alert("Success", "Profile updated successfully");
       router.push("/(tabs)/profile");
     },
@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
   content: {
     flex: 1,
@@ -211,6 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 20,
     marginBottom: 15,
+    fontFamily: "Outfit-Bold",
   },
   inputContainer: {
     marginBottom: 20,
@@ -219,6 +221,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 5,
+    fontFamily: "Outfit-Regular",
   },
   input: {
     borderWidth: 1,
@@ -226,6 +229,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
   biographyInput: {
     height: 100,
@@ -250,6 +254,7 @@ const styles = StyleSheet.create({
   genderText: {
     fontSize: 16,
     color: "#333",
+    fontFamily: "Outfit-Regular",
   },
   deleteAccountButton: {
     flexDirection: "row",
@@ -263,6 +268,7 @@ const styles = StyleSheet.create({
   deleteAccountText: {
     fontSize: 16,
     color: "#E53935",
+    fontFamily: "Outfit-Regular",
   },
   saveButton: {
     backgroundColor: "#2596be",
@@ -274,6 +280,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
 });

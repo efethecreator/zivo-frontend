@@ -1,12 +1,21 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SupportScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Feedback and support</Text>
@@ -27,7 +36,7 @@ export default function SupportScreen() {
         </TouchableOpacity>
       </ScrollView>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -51,6 +60,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
     marginRight: 40,
+    fontFamily: "Outfit-Bold",
   },
   content: {
     flex: 1,
@@ -66,6 +76,7 @@ const styles = StyleSheet.create({
   },
   supportItemText: {
     fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
   likeButton: {
     flexDirection: "row",
@@ -81,6 +92,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#3b5998",
     marginLeft: 5,
+    fontFamily: "Outfit-Regular",
   },
-})
-
+});

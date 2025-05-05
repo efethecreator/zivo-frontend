@@ -1,30 +1,55 @@
-"use client";
+"use client"
 
-import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import { SecureStoreService } from "../../services/secureStore.service";
-import { router } from "expo-router";
+import { useEffect } from "react"
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
+import { useAuth } from "../../context/AuthContext"
+import { setLogoutState } from "../../services/api"
+import { router } from "expo-router"
 
-export const logout = async () => {
-  await SecureStoreService.removeItem("zivo_token");
-  await SecureStoreService.removeItem("zivo_user");
-
-  console.log("✅ User logged out.");
-
-  router.replace("/auth/login");
-};
-
-// Add default export component for Expo Router
 export default function LogoutScreen() {
-  React.useEffect(() => {
-    // Call logout function when component mounts
-    logout();
-  }, []);
+  const { logout } = useAuth()
+
+  useEffect(() => {
+    const handleLogout = async () => {
+      try {
+        // Hızlıca API isteklerini engelle (race condition'dan kaçınmak için)
+        setLogoutState(true)
+
+        // Tüm API isteklerinin durması için biraz bekle
+        await new Promise((resolve) => setTimeout(resolve, 300))
+
+        // Logout işlemini gerçekleştir
+        await logout()
+
+        // Yönlendirme işlemini burada da yapalım (çift kontrol)
+        router.replace("/auth/login")
+      } catch (error) {
+        console.error("Logout failed:", error)
+        // Hata olsa bile login sayfasına yönlendir
+        router.replace("/auth/login")
+      }
+    }
+
+    handleLogout()
+  }, [logout])
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={styles.container}>
       <ActivityIndicator size="large" color="#0000ff" />
-      <Text style={{ marginTop: 20 }}>Logging out...</Text>
+      <Text style={styles.text}>Çıkış yapılıyor...</Text>
     </View>
-  );
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  text: {
+    marginTop: 20,
+    fontSize: 18,
+  },
+})

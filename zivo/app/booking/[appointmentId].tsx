@@ -681,6 +681,7 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: "600",
     marginLeft: 15,
+    fontFamily: "Outfit-Bold",
   },
   scrollContent: {
     paddingBottom: 70,
@@ -693,6 +694,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "600",
     marginBottom: 15,
+    fontFamily: "Outfit-Bold",
   },
   daysOfWeekContainer: {
     flexDirection: "row",
@@ -704,6 +706,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     fontSize: 14,
+    fontFamily: "Outfit-Regular",
   },
   calendarGrid: {
     flexDirection: "row",
@@ -736,12 +739,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#000",
     textAlign: "center",
+    fontFamily: "Outfit-Regular",
   },
   otherMonthDay: {
     opacity: 0.3,
   },
   otherMonthDayText: {
     color: "#666",
+    fontFamily: "Outfit-Regular",
   },
   disabledDayText: {
     color: "#ccc",
@@ -749,6 +754,7 @@ const styles = StyleSheet.create({
   selectedDayText: {
     color: "#fff",
     fontWeight: "600",
+    fontFamily: "Outfit-Bold",
   },
   timeSlotsContainer: {
     flexDirection: "row",
@@ -765,6 +771,7 @@ const styles = StyleSheet.create({
   timeSlotText: {
     fontSize: 16,
     color: "#666",
+    fontFamily: "Outfit-Bold",
   },
   disabledTimeSlot: {
     backgroundColor: "#f0f0f0",
@@ -772,12 +779,14 @@ const styles = StyleSheet.create({
   },
   disabledTimeSlotText: {
     color: "#ccc",
+    fontFamily: "Outfit-Regular",
   },
   selectedTimeSlot: {
     backgroundColor: "#2596be",
   },
   selectedTimeSlotText: {
     color: "#fff",
+    fontFamily: "Outfit-Bold",
   },
   workerSelectionContainer: {
     padding: 15,
@@ -786,6 +795,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 15,
+    fontFamily: "Outfit-Bold",
   },
   workerItem: {
     flexDirection: "row",
@@ -816,6 +826,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 5,
+    fontFamily: "Outfit-Regular",
   },
   serviceSelectionContainer: {
     padding: 15,
@@ -841,6 +852,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 5,
+    fontFamily: "Outfit-Bold",
   },
   serviceDuration: {
     fontSize: 14,
@@ -850,6 +862,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#2596be",
+    fontFamily: "Outfit-Bold",
   },
   bottomBar: {
     position: "absolute",
@@ -876,10 +889,12 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 20,
     fontWeight: "600",
+    fontFamily: "Outfit-Bold",
   },
   priceSubtext: {
     fontSize: 14,
     color: "#666",
+    fontFamily: "Outfit-Light",
   },
   continueButton: {
     backgroundColor: "#2596be",
@@ -894,6 +909,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    fontFamily: "Outfit-Bold",
   },
   noTimeSlotsText: {
     fontSize: 16,
@@ -901,6 +917,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     padding: 20,
     width: "100%",
+    fontFamily: "Outfit-Regular",
   },
   debugContainer: {
     display: "none", // Debug bilgilerini gizle
@@ -909,10 +926,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
+    fontFamily: "Outfit-Bold",
   },
   debugText: {
     fontSize: 14,
     color: "#666",
     marginBottom: 4,
+    fontFamily: "Outfit-Light",
   },
 });

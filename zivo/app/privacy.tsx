@@ -1,56 +1,88 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function PrivacyScreen() {
-  const [termsAccepted, setTermsAccepted] = useState(true)
-  const [receiveOffers, setReceiveOffers] = useState(false)
-  const [receivePartnerOffers, setReceivePartnerOffers] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [receiveOffers, setReceiveOffers] = useState(false);
+  const [receivePartnerOffers, setReceivePartnerOffers] = useState(false);
 
   const handleSave = () => {
-    router.push("/(tabs)/profile")
-  }
+    router.push("/(tabs)/profile");
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Privacy</Text>
       </View>
 
       <ScrollView style={styles.content}>
-        <TouchableOpacity style={styles.privacyItem} onPress={() => router.push("/(tabs)")}>
+        <TouchableOpacity
+          style={styles.privacyItem}
+          onPress={() => router.push("/(tabs)")}
+        >
           <View style={styles.privacyItemLeft}>
-            <View style={[styles.checkIcon, termsAccepted && styles.checkIconActive]}>
+            <View
+              style={[
+                styles.checkIcon,
+                termsAccepted && styles.checkIconActive,
+              ]}
+            >
               <Ionicons name="checkmark" size={20} color="#fff" />
             </View>
             <View style={styles.privacyTextContainer}>
               <Text style={styles.privacyItemText}>
                 <Text style={styles.requiredStar}>* </Text>
-                Acceptance of the Terms of Service and confirmation of having read the Privacy Policy
+                Acceptance of the Terms of Service and confirmation of having
+                read the Privacy Policy
               </Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.privacyItem} onPress={() => setReceiveOffers(!receiveOffers)}>
+        <TouchableOpacity
+          style={styles.privacyItem}
+          onPress={() => setReceiveOffers(!receiveOffers)}
+        >
           <View style={styles.privacyItemLeft}>
-            <View style={styles.checkbox}>{receiveOffers && <View style={styles.checkboxInner} />}</View>
-            <Text style={styles.privacyItemText}>Consent to receiving Booksy offers</Text>
+            <View style={styles.checkbox}>
+              {receiveOffers && <View style={styles.checkboxInner} />}
+            </View>
+            <Text style={styles.privacyItemText}>
+              Consent to receiving Booksy offers
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.privacyItem} onPress={() => setReceivePartnerOffers(!receivePartnerOffers)}>
+        <TouchableOpacity
+          style={styles.privacyItem}
+          onPress={() => setReceivePartnerOffers(!receivePartnerOffers)}
+        >
           <View style={styles.privacyItemLeft}>
-            <View style={styles.checkbox}>{receivePartnerOffers && <View style={styles.checkboxInner} />}</View>
-            <Text style={styles.privacyItemText}>Consent to receiving offers of parties cooperating with Booksy</Text>
+            <View style={styles.checkbox}>
+              {receivePartnerOffers && <View style={styles.checkboxInner} />}
+            </View>
+            <Text style={styles.privacyItemText}>
+              Consent to receiving offers of parties cooperating with Booksy
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
@@ -60,7 +92,7 @@ export default function PrivacyScreen() {
         <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -84,6 +116,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
     marginRight: 40,
+    fontFamily: "Outfit-Bold",
   },
   content: {
     flex: 1,
@@ -109,6 +142,7 @@ const styles = StyleSheet.create({
   privacyItemText: {
     fontSize: 16,
     flex: 1,
+    fontFamily: "Outfit-Light",
   },
   requiredStar: {
     color: "red",
@@ -149,7 +183,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
-})
-
+});

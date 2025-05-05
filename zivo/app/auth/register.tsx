@@ -1,7 +1,7 @@
 // app/auth/register.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,53 +13,63 @@ import {
   Platform,
   SafeAreaView,
   Alert,
-} from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
-import { StatusBar } from 'expo-status-bar';
-import { useRegisterMutation } from '../../services/auth.service';
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import { StatusBar } from "expo-status-bar";
+import { useRegisterMutation } from "../../services/auth.service";
 
 export default function RegisterScreen() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { register } = useAuth();
   const registerMutation = useRegisterMutation();
 
   const handleRegister = async () => {
-    if (!fullName.trim() || !email.trim() || !password.trim() || !phone.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (
+      !fullName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !phone.trim()
+    ) {
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
-      await register({ 
-        fullName, 
-        email, 
-        password, 
+      await register({
+        fullName,
+        email,
+        password,
         phone,
-        userType: 'customer' // Müşteri kaydı için varsayılan olarak 'customer' kullanıyoruz
+        userType: "customer", // Müşteri kaydı için varsayılan olarak 'customer' kullanıyoruz
       });
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to register. Please try again.');
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to register. Please try again."
+      );
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" backgroundColor="#fff" />
-      
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
         <View style={styles.header}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require("../../assets/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -73,7 +83,7 @@ export default function RegisterScreen() {
           <Text style={styles.label}>Full Name</Text>
           <TextInput
             style={styles.input}
-            placeholderTextColor={'#8888'}
+            placeholderTextColor={"#8888"}
             placeholder="Enter your full name"
             value={fullName}
             onChangeText={setFullName}
@@ -85,7 +95,7 @@ export default function RegisterScreen() {
           <Text style={styles.label}>Email Address</Text>
           <TextInput
             style={styles.input}
-            placeholderTextColor={'#8888'}
+            placeholderTextColor={"#8888"}
             placeholder="Enter your email"
             value={email}
             onChangeText={setEmail}
@@ -98,7 +108,7 @@ export default function RegisterScreen() {
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
             style={styles.input}
-            placeholderTextColor={'#8888'}
+            placeholderTextColor={"#8888"}
             placeholder="Enter your phone number"
             value={phone}
             onChangeText={setPhone}
@@ -111,7 +121,7 @@ export default function RegisterScreen() {
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.passwordInput}
-              placeholderTextColor={'#8888'}
+              placeholderTextColor={"#8888"}
               placeholder="Enter your password"
               value={password}
               onChangeText={setPassword}
@@ -122,7 +132,7 @@ export default function RegisterScreen() {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={showPassword ? 'eye-off' : 'eye'}
+                name={showPassword ? "eye-off" : "eye"}
                 size={24}
                 color="#666"
               />
@@ -136,7 +146,7 @@ export default function RegisterScreen() {
           disabled={registerMutation.isPending}
         >
           <Text style={styles.buttonText}>
-            {registerMutation.isPending ? 'Loading...' : 'Sign Up'}
+            {registerMutation.isPending ? "Loading..." : "Sign Up"}
           </Text>
         </TouchableOpacity>
 
@@ -165,7 +175,7 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => router.push('/auth/login')}>
+          <TouchableOpacity onPress={() => router.push("/auth/login")}>
             <Text style={styles.footerLink}>Sign In</Text>
           </TouchableOpacity>
         </View>
@@ -177,15 +187,15 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 20,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   logo: {
@@ -195,35 +205,39 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Outfit-Bold",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
+    fontFamily: "Outfit-Light",
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    color: '#2596be',
+    color: "#2596be",
     marginBottom: 8,
+    fontFamily: "Outfit-Regular",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
+    fontFamily: "Outfit-Light",
   },
   passwordContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   passwordInput: {
     flex: 1,
@@ -236,57 +250,58 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 8,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 10,
   },
   primaryButton: {
-    backgroundColor: '#2596be',
+    backgroundColor: "#2596be",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
+    fontFamily: "Outfit-Light",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#666',
+    color: "#666",
   },
   socialButtons: {
     gap: 10,
   },
   socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   socialButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
     gap: 5,
   },
   footerText: {
-    color: '#666',
+    color: "#666",
   },
   footerLink: {
-    color: '#2596be',
-    fontWeight: '600',
+    color: "#2596be",
+    fontWeight: "600",
   },
 });

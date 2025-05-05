@@ -1,21 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SettingsScreen() {
-  const [language, setLanguage] = useState("Automatic (İngilizce)")
-  const [country, setCountry] = useState("Nederland")
-  const [facebookConnected, setFacebookConnected] = useState(false)
-  const [googleConnected, setGoogleConnected] = useState(true)
-  const [appleConnected, setAppleConnected] = useState(false)
+  const [language, setLanguage] = useState("Automatic (İngilizce)");
+  const [country, setCountry] = useState("Nederland");
+  const [facebookConnected, setFacebookConnected] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(true);
+  const [appleConnected, setAppleConnected] = useState(false);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
@@ -27,7 +36,9 @@ export default function SettingsScreen() {
         </View>
 
         <TouchableOpacity style={styles.settingItem} onPress={() => {}}>
-          <Text style={styles.settingItemText}>Enable notifications (Phone Settings)</Text>
+          <Text style={styles.settingItemText}>
+            Enable notifications (Phone Settings)
+          </Text>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
@@ -64,7 +75,10 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.facebookConnectButton} onPress={() => setFacebookConnected(true)}>
+        <TouchableOpacity
+          style={styles.facebookConnectButton}
+          onPress={() => setFacebookConnected(true)}
+        >
           <Ionicons name="logo-facebook" size={20} color="#fff" />
           <Text style={styles.connectButtonText}>Connect With Facebook</Text>
         </TouchableOpacity>
@@ -85,13 +99,16 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.appleConnectButton} onPress={() => setAppleConnected(true)}>
+        <TouchableOpacity
+          style={styles.appleConnectButton}
+          onPress={() => setAppleConnected(true)}
+        >
           <Ionicons name="logo-apple" size={20} color="#fff" />
           <Text style={styles.connectButtonText}>Connect with Apple</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -115,6 +132,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
     marginRight: 40,
+    fontFamily: "Outfit-Bold",
   },
   content: {
     flex: 1,
@@ -128,6 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     fontWeight: "500",
+    fontFamily: "Outfit-Bold",
   },
   settingItem: {
     flexDirection: "row",
@@ -140,6 +159,7 @@ const styles = StyleSheet.create({
   },
   settingItemText: {
     fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
   settingLabel: {
     fontSize: 14,
@@ -171,6 +191,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     marginLeft: 10,
+    fontFamily: "Outfit-Regular",
   },
-})
-
+});

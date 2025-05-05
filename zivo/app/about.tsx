@@ -1,12 +1,22 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function AboutScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>About ZIVO</Text>
@@ -14,7 +24,10 @@ export default function AboutScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.logoContainer}>
-          <Image source={{ uri: "https://placeholder.svg?height=100&width=100" }} style={styles.logo} />
+          <Image
+            source={{ uri: "https://placeholder.svg?height=100&width=100" }}
+            style={styles.logo}
+          />
         </View>
 
         <Text style={styles.version}>Version 1.0.0</Text>
@@ -22,8 +35,9 @@ export default function AboutScreen() {
         <View style={styles.aboutSection}>
           <Text style={styles.aboutTitle}>About Us</Text>
           <Text style={styles.aboutText}>
-            ZIVO is a platform that connects customers with service providers. Our mission is to make booking
-            appointments easy and convenient for everyone.
+            ZIVO is a platform that connects customers with service providers.
+            Our mission is to make booking appointments easy and convenient for
+            everyone.
           </Text>
         </View>
 
@@ -52,7 +66,7 @@ export default function AboutScreen() {
         </TouchableOpacity>
       </ScrollView>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -76,6 +90,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
     marginRight: 40,
+    fontFamily: "Outfit-Bold",
   },
   content: {
     flex: 1,
@@ -103,11 +118,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Outfit-Bold",
   },
   aboutText: {
     fontSize: 16,
     color: "#333",
     lineHeight: 24,
+    fontFamily: "Outfit-Light",
   },
   linkItem: {
     flexDirection: "row",
@@ -119,6 +136,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
-})
-
+});

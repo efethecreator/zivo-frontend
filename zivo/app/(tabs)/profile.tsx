@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,21 +9,39 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { getMe } from "../../services/user.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getMe, uploadProfilePhoto } from "../../services/user.service";
 import { StatusBar } from "expo-status-bar";
-import { logout } from "../../app/auth/logout"; // yoluna göre düzenle
+import * as ImagePicker from "expo-image-picker";
 
 export default function ProfileScreen() {
-  const { user: authUser, isLoading: isAuthLoading } = useAuth();
+  const {
+    user: authUser,
+    isLoading: isAuthLoading,
+    updateUser: updateAuthUser,
+    logout,
+  } = useAuth();
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
 
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: ["user"],
     queryFn: getMe,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: uploadProfilePhoto,
+    onSuccess: (updatedUser) => {
+      // Update the user in the auth context
+      updateAuthUser(updatedUser);
+      // Invalidate the user query to refetch
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
   });
 
   useEffect(() => {
@@ -29,6 +49,106 @@ export default function ProfileScreen() {
       router.replace("/auth/login");
     }
   }, [authUser, isAuthLoading]);
+
+  const pickImage = async () => {
+    try {
+      // Request permission
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "Please grant permission to access your photos"
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        uploadImage(selectedImage.uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image");
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "Please grant permission to access your camera"
+        );
+        return;
+      }
+
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        uploadImage(selectedImage.uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo");
+    }
+  };
+
+  const uploadImage = async (imageUri: string) => {
+    try {
+      setUploading(true);
+      await uploadMutation.mutateAsync(imageUri);
+      Alert.alert("Success", "Profile photo updated successfully");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      Alert.alert("Error", "Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert("Profile Photo", "Choose an option", [
+      { text: "Take Photo", onPress: takePhoto },
+      { text: "Choose from Library", onPress: pickImage },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 Çıkış yapılıyor...");
+      await logout();
+    } catch (error) {
+      console.error("❌ Çıkış yapılırken hata:", error);
+      Alert.alert(
+        "Hata",
+        "Çıkış yapılırken bir sorun oluştu. Lütfen tekrar deneyin."
+      );
+    }
+  };
+
+  const navigateTo = (path: string) => {
+    router.push(path as any);
+  };
 
   if (isAuthLoading || isUserLoading || !authUser || !user) {
     return (
@@ -38,32 +158,39 @@ export default function ProfileScreen() {
     );
   }
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  const navigateTo = (path: string) => {
-    router.push(path as any);
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar style="dark" backgroundColor="#fff" />
 
       {/* Sabit Kısım */}
       <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          {user.profile?.photoUrl ? (
-            <Image
-              source={{ uri: user.profile.photoUrl }}
-              style={styles.avatarImage}
-            />
-          ) : (
-            <Text style={styles.avatarText}>
-              {user.fullName.charAt(0).toUpperCase()}
-            </Text>
-          )}
-          <TouchableOpacity style={styles.cameraButton}>
+        <View style={styles.avatarWrapper}>
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={showImageOptions}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : user.profile?.photoUrl ? (
+              <Image
+                source={{ uri: user.profile.photoUrl }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.avatarText}>
+                {user.fullName.charAt(0).toUpperCase()}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Artık ayrı dışta bir TouchableOpacity */}
+          <TouchableOpacity
+            style={styles.cameraButton}
+            onPress={showImageOptions}
+            disabled={uploading}
+          >
             <Ionicons name="camera" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -134,15 +261,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  avatarWrapper: {
+    position: "relative",
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#8D6E63",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
-    position: "relative",
     overflow: "hidden",
   },
   avatarImage: {
@@ -153,26 +286,32 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: "#fff",
     fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
   cameraButton: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
+    bottom: -4,
+    right: -4,
     backgroundColor: "#1B9AAA",
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
+
   userName: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 5,
+    fontFamily: "Outfit-Bold",
   },
   userPhone: {
     fontSize: 16,
     color: "#666",
+    fontFamily: "Outfit-Light",
   },
   menuSection: {
     marginBottom: 20,
@@ -190,11 +329,13 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
+    fontFamily: "Outfit-Regular",
   },
   logoutButton: {
     marginTop: -20,
   },
   logoutText: {
     color: "#666",
+    fontFamily: "Outfit-Light",
   },
 });

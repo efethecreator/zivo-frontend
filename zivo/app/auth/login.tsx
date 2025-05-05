@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,25 +18,58 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
 import { useLoginMutation } from "../../services/auth.service";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, resetAuth } = useAuth();
   const loginMutation = useLoginMutation();
+  const queryClient = useQueryClient();
+
+  // Component mount olduğunda auth durumunu sıfırla
+  useEffect(() => {
+    const prepareLogin = async () => {
+      console.log("🔄 Login ekranı hazırlanıyor, auth durumu sıfırlanıyor...");
+      await resetAuth();
+
+      // Query cache'i temizle
+      queryClient.clear();
+      console.log("🧹 Query cache temizlendi");
+    };
+
+    prepareLogin();
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert("Hata", "Lütfen tüm alanları doldurun");
       return;
     }
 
     try {
+      console.log(`🔑 ${email} hesabına giriş yapılıyor...`);
+
+      // Login işlemini gerçekleştir
       await login({ email, password });
-      router.replace("/(tabs)");
+
+      console.log(`✅ ${email} hesabına giriş başarılı, yönlendiriliyor...`);
+
+      // Query cache'i temizle
+      queryClient.clear();
+      console.log("🧹 Query cache temizlendi");
+
+      // Kısa bir gecikme ekle
+      setTimeout(() => {
+        router.replace("/(tabs)");
+      }, 300);
     } catch (error) {
-      Alert.alert("Error", "Failed to login. Please check your credentials.");
+      console.error("❌ Login error:", error);
+      Alert.alert(
+        "Hata",
+        "Giriş başarısız. Lütfen bilgilerinizi kontrol edin."
+      );
     }
   };
 
@@ -42,7 +77,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* Durum çubuğu ayarı: beyaz arka plan üzerine siyah ikonlar */}
       <StatusBar style="dark" backgroundColor="#fff" />
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
@@ -162,16 +197,19 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 20,
+    fontFamily: "Outfit-Regular",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Outfit-Bold",
   },
   subtitle: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",
+    fontFamily: "Outfit-Light",
   },
   inputContainer: {
     marginBottom: 20,
@@ -180,6 +218,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1B9AAA",
     marginBottom: 8,
+    fontFamily: "Outfit-Regular",
   },
   input: {
     borderWidth: 1,
@@ -187,6 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
+    fontFamily: "Outfit-Light",
   },
   passwordContainer: {
     flexDirection: "row",
@@ -210,6 +250,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: "#1B9AAA",
     fontSize: 14,
+    fontFamily: "Outfit-Light",
   },
   button: {
     borderRadius: 8,
@@ -224,6 +265,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    fontFamily: "Outfit-Light",
   },
   divider: {
     flexDirection: "row",
@@ -238,6 +280,7 @@ const styles = StyleSheet.create({
   dividerText: {
     marginHorizontal: 10,
     color: "#666",
+    fontFamily: "Outfit-Light",
   },
   socialButtons: {
     gap: 10,
@@ -253,6 +296,7 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 16,
     fontWeight: "600",
+    fontFamily: "Outfit-Light",
   },
   footer: {
     flexDirection: "row",
@@ -263,10 +307,12 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#666",
     fontSize: 14,
+    fontFamily: "Outfit-Light",
   },
   footerLink: {
     color: "#1B9AAA",
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: "Outfit-Light",
   },
 });

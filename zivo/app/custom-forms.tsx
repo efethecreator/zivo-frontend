@@ -1,29 +1,46 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CustomFormsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Custom Forms</Text>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <Image source={{ uri: "https://placeholder.svg?height=150&width=150" }} style={styles.illustration} />
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <Image
+          source={{ uri: "https://placeholder.svg?height=150&width=150" }}
+          style={styles.illustration}
+        />
 
         <Text style={styles.title}>No Custom Forms Yet</Text>
 
         <Text style={styles.description}>
-          Businesses may ask you to fill out custom forms before your appointments. These forms will appear here once
-          they are assigned to you.
+          Businesses may ask you to fill out custom forms before your
+          appointments. These forms will appear here once they are assigned to
+          you.
         </Text>
       </ScrollView>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -74,5 +91,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
   },
-})
-
+});

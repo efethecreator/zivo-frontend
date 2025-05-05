@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar"; // StatusBar ekleniyor
+import { Text } from "react-native";
 
 export default function TabsLayout() {
   return (
@@ -22,6 +23,11 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: "My ZIVO",
+            tabBarLabel: ({ color }) => (
+              <Text style={{ fontFamily: "Outfit-Bold", fontSize: 12, color }}>
+                My ZIVO
+              </Text>
+            ),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="heart-outline" size={size} color={color} />
             ),
@@ -31,6 +37,11 @@ export default function TabsLayout() {
           name="explore"
           options={{
             title: "Explore",
+            tabBarLabel: ({ color }) => (
+              <Text style={{ fontFamily: "Outfit-Bold", fontSize: 12, color }}>
+                Explore
+              </Text>
+            ),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="search" size={size} color={color} />
             ),
@@ -40,6 +51,11 @@ export default function TabsLayout() {
           name="map"
           options={{
             title: "Map",
+            tabBarLabel: ({ color }) => (
+              <Text style={{ fontFamily: "Outfit-Bold", fontSize: 12, color }}>
+                Map
+              </Text>
+            ),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="map" size={size} color={color} />
             ),
@@ -49,6 +65,11 @@ export default function TabsLayout() {
           name="appointments"
           options={{
             title: "Appointments",
+            tabBarLabel: ({ color }) => (
+              <Text style={{ fontFamily: "Outfit-Bold", fontSize: 12, color }}>
+                Appointments
+              </Text>
+            ),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="calendar" size={size} color={color} />
             ),
@@ -58,6 +79,11 @@ export default function TabsLayout() {
           name="profile"
           options={{
             title: "Profile",
+            tabBarLabel: ({ color }) => (
+              <Text style={{ fontFamily: "Outfit-Bold", fontSize: 12, color }}>
+                Profile
+              </Text>
+            ),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person" size={size} color={color} />
             ),

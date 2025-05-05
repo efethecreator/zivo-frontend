@@ -1,13 +1,21 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import { useQuery } from "@tanstack/react-query"
-import { getMyReviews } from "../services/review.service"
-import { format } from "date-fns"
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { getMyReviews } from "../services/review.service";
+import { format } from "date-fns";
 
 export default function ReviewsScreen() {
   const { data: reviews, isLoading } = useQuery({
-    queryKey: ['myReviews'],
+    queryKey: ["myReviews"],
     queryFn: getMyReviews,
   });
 
@@ -26,7 +34,10 @@ export default function ReviewsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Reviews</Text>
@@ -38,41 +49,52 @@ export default function ReviewsScreen() {
         </View>
       ) : reviews?.length === 0 ? (
         <View style={styles.emptyContainer}>
-        <Image
-          source={{
-            uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reviews.jpg-f5udk4A5cDGCOMIsqf2YVmaFw3uXCm.jpeg",
-          }}
-          style={styles.illustration}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Your reviews</Text>
-        <Text style={styles.description}>Share experiences after your appointments!</Text>
-        <Text style={styles.subDescription}>All of your reviews will show up here.</Text>
+          <Image
+            source={{
+              uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reviews.jpg-f5udk4A5cDGCOMIsqf2YVmaFw3uXCm.jpeg",
+            }}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>Your reviews</Text>
+          <Text style={styles.description}>
+            Share experiences after your appointments!
+          </Text>
+          <Text style={styles.subDescription}>
+            All of your reviews will show up here.
+          </Text>
         </View>
       ) : (
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {reviews?.map((review) => (
             <View key={review.id} style={styles.reviewCard}>
               <View style={styles.reviewHeader}>
                 <View style={styles.userIcon}>
-                  <Ionicons name="person-circle-outline" size={40} color="#2596be" />
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={40}
+                    color="#2596be"
+                  />
                 </View>
                 <View style={styles.reviewInfo}>
                   <View style={styles.ratingContainer}>
                     {renderStars(review.rating)}
                   </View>
                   <Text style={styles.reviewDate}>
-                    {format(new Date(review.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(review.createdAt), "MMM d, yyyy")}
                   </Text>
                 </View>
               </View>
               <Text style={styles.reviewComment}>{review.comment}</Text>
             </View>
           ))}
-      </ScrollView>
+        </ScrollView>
       )}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -92,7 +114,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
   },
   loadingContainer: {
     flex: 1,
@@ -113,11 +135,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   reviewCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 20,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -127,8 +149,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
   },
   userIcon: {
@@ -138,7 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   ratingContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 5,
   },
   star: {
@@ -146,12 +168,14 @@ const styles = StyleSheet.create({
   },
   reviewDate: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
+    fontFamily: "Outfit-Regular",
   },
   reviewComment: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     lineHeight: 20,
+    fontFamily: "Outfit-Regular",
   },
   illustration: {
     width: 150,
@@ -160,7 +184,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit-Bold",
     marginBottom: 15,
     textAlign: "center",
   },
@@ -169,11 +193,12 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     marginBottom: 5,
+    fontFamily: "Outfit-Regular",
   },
   subDescription: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",
+    fontFamily: "Outfit-Regular",
   },
 });
-

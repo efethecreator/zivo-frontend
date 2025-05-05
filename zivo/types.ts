@@ -50,6 +50,7 @@ export interface Appointment {
   status: "pending" | "confirmed" | "cancelled" | "completed";
   services: {
     serviceId: string;
+    name: string;
     price: number;
     durationMinutes: number;
   }[];
