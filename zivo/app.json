@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.muratefe.zivo"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fbc322a0-1a7b-4afd-8d68-dd6e64cf5c06"
+      }
     }
   }
 }
