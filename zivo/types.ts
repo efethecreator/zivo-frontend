@@ -12,6 +12,7 @@ export interface User {
 }
 
 export interface Business {
+  coverImageUrl: string;
   id: string;
   name: string;
   type: string;

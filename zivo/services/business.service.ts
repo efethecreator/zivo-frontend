@@ -1,7 +1,9 @@
-import api from '../utils/api';
-import axios from 'axios';
+import api from "../utils/api";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateAppData } from "../hooks/useInvalidateAppData";
 
 export interface Business {
+  type: string;
   id: string;
   name: string;
   description: string;
@@ -21,7 +23,7 @@ export interface Business {
 export interface SearchParams {
   search?: string;
   type?: string;
-  sortBy?: 'name' | 'distance' | 'rating';
+  sortBy?: "name" | "distance" | "rating";
 }
 
 export const createBusiness = async (data: {
@@ -35,12 +37,12 @@ export const createBusiness = async (data: {
   coverImageUrl: string;
   businessTypeId: string;
 }): Promise<Business> => {
-  const response = await api.post('/business', data);
+  const response = await api.post("/business", data);
   return response.data;
 };
 
 export const getAllBusinesses = async (): Promise<Business[]> => {
-  const response = await api.get('/business');
+  const response = await api.get("/business");
   return response.data;
 };
 
@@ -88,38 +90,87 @@ export const getBusinessServices = async (
 export const getBusinessCustomers = async (
   businessId: string
 ): Promise<any[]> => {
-  const response = await api.get(`/appointments/business/${businessId}/customers`);
+  const response = await api.get(
+    `/appointments/business/${businessId}/customers`
+  );
   return response.data;
 };
 
-export const getNearbyBusinesses = async (lat: number, lng: number, radius: number): Promise<Business[]> => {
+export const getNearbyBusinesses = async (
+  lat: number,
+  lng: number,
+  radius: number
+): Promise<Business[]> => {
   try {
-    const response = await api.get('/explore/nearby', {
+    const response = await api.get("/explore/nearby", {
       params: {
         lat,
         lng,
-        radius
-      }
+        radius,
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching nearby businesses:', error);
+    console.error("Error fetching nearby businesses:", error);
     throw error;
   }
 };
 
-export const searchBusinesses = async (params: SearchParams): Promise<Business[]> => {
+export const searchBusinesses = async (
+  params: SearchParams
+): Promise<Business[]> => {
   try {
-    const response = await api.get('/explore/search', {
+    const response = await api.get("/explore/search", {
       params: {
         search: params.search,
         type: params.type,
-        sortBy: params.sortBy
-      }
+        sortBy: params.sortBy,
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error searching businesses:', error);
+    console.error("Error searching businesses:", error);
     throw error;
   }
-}; 
+};
+
+// Mutation hooks
+export const useCreateBusinessMutation = () => {
+  const { invalidateBusiness } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: createBusiness,
+    onSuccess: () => {
+      invalidateBusiness();
+    },
+  });
+};
+
+export const useUpdateBusinessMutation = () => {
+  const { invalidateBusiness } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; ownerId?: string };
+    }) => updateBusiness(id, data),
+    onSuccess: (_, variables) => {
+      invalidateBusiness(variables.id);
+    },
+  });
+};
+
+export const useDeleteBusinessMutation = () => {
+  const { invalidateBusiness, invalidateAll } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: deleteBusiness,
+    onSuccess: (_, id) => {
+      invalidateBusiness(id);
+      invalidateAll(); // İşletme silindiğinde tüm verileri yenile
+    },
+  });
+};

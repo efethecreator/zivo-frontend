@@ -17,8 +17,8 @@ import {
 import { router } from "expo-router";
 import { Alert, AppState, type AppStateStatus } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { setLogoutState, resetAxiosInstance } from "../services/api";
 
+// AuthContextType'a loggingOut ekleyelim
 type AuthContextType = {
   user: User | null;
   login: (userData: { email: string; password: string }) => Promise<void>;
@@ -33,17 +33,22 @@ type AuthContextType = {
   updateUser: (userData: Partial<User>) => void;
   resetAuth: () => Promise<void>;
   refreshUserState: () => Promise<void>;
+  tokenAvailable: boolean | null;
+  loggingOut: boolean; // Yeni flag
 };
 
 // Use null! to tell TypeScript we'll handle the null case
 const AuthContext = createContext<AuthContextType>(null!);
 
+// AuthProvider içinde loggingOut state'i ekleyelim
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
+  const [tokenAvailable, setTokenAvailable] = useState<boolean | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false); // Yeni state
 
   // Kullanıcı durumunu SecureStore'dan yenile
   const refreshUserState = useCallback(async () => {
@@ -56,15 +61,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const parsedUser = JSON.parse(userJson);
         console.log("👤 Kullanıcı durumu yenilendi:", parsedUser.email);
         setUser(parsedUser);
-        // API isteklerini etkinleştir
-        setLogoutState(false);
+        setTokenAvailable(true);
       } else {
         console.log("⚠️ Kullanıcı bilgisi bulunamadı, state temizleniyor");
         setUser(null);
+        setTokenAvailable(false);
       }
     } catch (error) {
       console.error("❌ Kullanıcı durumu yenilenirken hata:", error);
       setUser(null);
+      setTokenAvailable(false);
     }
   }, []);
 
@@ -93,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Önce state'i temizle
     setUser(null);
+    setTokenAvailable(false);
 
     // Sonra storage'ı temizle
     await SecureStoreService.removeItem("zivo_token");
@@ -100,7 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Query cache'i temizle
     queryClient.clear();
-    console.log("🧹 Query cache temizlendi");
 
     // Kontrol için tekrar oku
     const token = await SecureStoreService.getItem("zivo_token");
@@ -132,9 +138,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Önce mevcut durumu tamamen temizle
       await resetAuth();
 
-      // API isteklerini etkinleştir
-      setLogoutState(false);
-
       // Login işlemini gerçekleştir
       const response = await apiLogin(userData.email, userData.password);
       const { token, user } = response;
@@ -150,10 +153,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // En son state'i güncelle
       console.log("👤 Setting user state after login:", user.email);
       setUser(user);
+      setTokenAvailable(true);
 
       // Query cache'i temizle
       queryClient.clear();
-      console.log("🧹 Query cache temizlendi");
 
       // Kontrol için
       const storedToken = await SecureStoreService.getItem("zivo_token");
@@ -166,10 +169,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Kısa bir gecikme ekle
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      console.log(
-        `✅ ${user.email} hesabına giriş başarılı, yönlendiriliyor...`
-      );
     } catch (error) {
       console.error("❌ Login failed", error);
       Alert.alert(
@@ -196,22 +195,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // handleLogout fonksiyonunu güncelleyelim
   const handleLogout = async () => {
     try {
-      console.log("🚪 Çıkış yapılıyor...");
+      console.log("🚪 Logging out...");
 
-      // API isteklerini engelle - Bu çok önemli, hemen ilk adımda engelle
-      setLogoutState(true);
-
-      // Axios instance'ını sıfırla
-      resetAxiosInstance();
+      // Logout flag'ini aktif et
+      setLoggingOut(true);
 
       // Önce state'i temizle
       setUser(null);
+      setTokenAvailable(false);
 
       // Query cache'i temizle
       queryClient.clear();
-      console.log("🧹 Query cache temizlendi");
 
       // Sonra storage'ı temizle
       await SecureStoreService.removeItem("zivo_token");
@@ -225,8 +222,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       console.log("✅ User logged out.");
 
-      // Daha uzun bir gecikme ekle - Yönlendirmeden önce tüm işlemlerin tamamlanması için
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Kısa bir gecikme ekle
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Yönlendirme
       router.replace("/auth/login");
@@ -234,6 +231,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("❌ Logout failed", error);
       // Hata olsa bile login sayfasına yönlendir
       router.replace("/auth/login");
+    } finally {
+      // İşlem bittiğinde flag'i kapat
+      setLoggingOut(false);
     }
   };
 
@@ -258,6 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // AuthContext.Provider value'suna loggingOut ekleyelim
   return (
     <AuthContext.Provider
       value={{
@@ -269,6 +270,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         updateUser,
         resetAuth,
         refreshUserState,
+        tokenAvailable,
+        loggingOut, // Yeni flag'i ekleyelim
       }}
     >
       {children}

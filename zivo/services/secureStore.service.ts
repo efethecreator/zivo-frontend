@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { jwtDecode } from "jwt-decode"; // jwt-decode paketi lazım
 
 const WEB_API_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000/api/v1";
@@ -18,6 +19,16 @@ export class SecureStoreService {
   static async getItem(key: string): Promise<string | null> {
     try {
       const value = await SecureStore.getItemAsync(key);
+
+      if (key === "zivo_token" && value) {
+        const isExpired = SecureStoreService.isTokenExpired(value);
+        if (isExpired) {
+          console.warn(`[SecureStore] ⚠️ Token expired, removing key: ${key}`);
+          await SecureStore.deleteItemAsync(key);
+          return null;
+        }
+      }
+
       console.log(
         `[SecureStore] 🔍 getItem ${key}: ${value ? "exists" : "null"}`
       );
@@ -51,6 +62,23 @@ export class SecureStoreService {
       console.log(`[SecureStore] 🧪 post-delete check ${key}: ${checkValue}`);
     } catch (error) {
       console.error(`[SecureStore] ❌ Error removing ${key}:`, error);
+    }
+  }
+
+  private static isTokenExpired(token: string): boolean {
+    try {
+      const decoded: { exp: number } = jwtDecode(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      if (decoded.exp < currentTime) {
+        console.warn("[SecureStore] ⏰ Token expired:", decoded.exp, currentTime);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("[SecureStore] ❌ Error decoding token:", error);
+      return true; // decode edilemiyorsa geçersiz kabul et
     }
   }
 }

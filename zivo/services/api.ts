@@ -1,189 +1,141 @@
-// File: zivo/services/api.ts
-import axios, {
-  type AxiosInstance,
-  type AxiosRequestConfig,
-  type AxiosResponse,
-} from "axios";
+import axios from "axios";
+import { Platform } from "react-native";
 import { router } from "expo-router";
-import { SecureStoreService, getApiUrl } from "./secureStore.service";
+import { getApiUrl, SecureStoreService } from "../services/secureStore.service";
 
-// Global logout state
-export let isLoggedOut = false;
+// Axios instance (baseURL tanımlamıyoruz)
+export const api = axios.create({
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-// Axios instance'ını saklayacak değişken
-let axiosInstance: AxiosInstance | null = null;
+// Token gerektirmeyen endpoint'lerin listesi
+const PUBLIC_ENDPOINTS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
 
-// Logout durumunu ayarlamak için fonksiyon
-export const setLogoutState = (state: boolean) => {
-  isLoggedOut = state;
-  console.log(`🔒 API istekleri ${state ? "engellendi" : "etkinleştirildi"}`);
+// Request Interceptor: Dynamic BaseURL + Token ekleme + log
+api.interceptors.request.use(
+  async (config) => {
+    // ✅ Her istekte güncel baseURL al
+    config.baseURL = getApiUrl();
 
-  // Eğer logout yapılıyorsa, axios instance'ını yeniden oluştur
-  if (state) {
-    resetAxiosInstance();
-  }
-};
+    try {
+      // Endpoint'in token gerektirip gerektirmediğini kontrol et
+      const isPublicEndpoint = PUBLIC_ENDPOINTS.some((endpoint) =>
+        config.url?.includes(endpoint)
+      );
 
-// Axios instance'ını sıfırlamak için fonksiyon
-export const resetAxiosInstance = () => {
-  console.log("🔄 Axios instance sıfırlanıyor...");
-  axiosInstance = null;
-  createAxiosInstance();
-};
+      // SecureStore'dan token al
+      const token = await SecureStoreService.getItem("zivo_token");
 
-// Axios instance'ını oluşturmak için fonksiyon
-export const createAxiosInstance = (): AxiosInstance => {
-  if (!axiosInstance) {
-    console.log("🔨 Yeni Axios instance oluşturuluyor...");
-    axiosInstance = axios.create({
-      baseURL: getApiUrl(),
-      headers: {
-        "Content-Type": "application/json",
+      // Eğer token yoksa ve public endpoint değilse, isteği iptal et
+      if (!token && !isPublicEndpoint) {
+        console.warn(
+          "[API] ⚠️ Token bulunamadı, istek iptal ediliyor:",
+          config.url
+        );
+
+        // İsteği iptal et
+        const controller = new AbortController();
+        controller.abort();
+
+        // Axios'a isteğin iptal edildiğini bildir
+        return {
+          ...config,
+          signal: controller.signal,
+        };
+      }
+
+      // Token varsa ekle (public endpoint olsa bile ekleyebiliriz)
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log("[API] ✅ Token eklendi:", token.slice(0, 10) + "...");
+      } else if (isPublicEndpoint) {
+        console.log("[API] ℹ️ Public endpoint, token gerekmez:", config.url);
+      }
+
+      const fullUrl = `${config.baseURL ?? ""}${config.url ?? ""}`;
+      console.log("[API] 📤 İstek gönderiliyor:", {
+        method: config.method,
+        url: fullUrl,
+        headers: config.headers,
+      });
+
+      return config;
+    } catch (err) {
+      console.error("[API] ❌ Token alma hatası:", err);
+      return config;
+    }
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response Interceptor: Hata loglama + yönlendirme
+api.interceptors.response.use(
+  (response) => {
+    console.log("[API] ✅ Yanıt alındı:", {
+      url: response.config.url,
+      status: response.status,
+    });
+    return response;
+  },
+  async (error) => {
+    // İstek iptal edildiyse, detaylı log yazmaya gerek yok
+    if (axios.isCancel(error)) {
+      console.log("[API] ℹ️ İstek iptal edildi:", error.message);
+      return Promise.reject(error);
+    }
+
+    console.error("[API] ❌ API Error Details:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        headers: error.config?.headers,
       },
+      message: error.message,
+      code: error.code,
+      platform: Platform.OS,
     });
 
-    // Request interceptor
-    axiosInstance.interceptors.request.use(
-      async (config) => {
-        try {
-          // Eğer logout durumundaysak ve auth ile ilgili olmayan bir istek ise engelle
-          if (isLoggedOut && !config.url?.includes("/auth/login")) {
-            console.log(
-              `🛑 Logout durumunda API isteği engellendi: ${config.url}`
-            );
-            // İsteği iptal et
-            return Promise.reject({
-              message: "User is logged out",
-              isLogoutRelated: true,
-            });
-          }
-
-          const token = await SecureStoreService.getItem("zivo_token");
-
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-            console.log("[API] ✅ Token eklendi:", token.slice(0, 10) + "...");
-          } else {
-            console.warn(
-              "[API] ⚠️ Token bulunamadı, Authorization header eklenmedi."
-            );
-          }
-
-          const fullUrl = (config.baseURL ?? "") + (config.url ?? "");
-          console.log("[API] 📤 İstek gönderiliyor:", {
-            method: config.method,
-            url: fullUrl,
-            headers: config.headers,
-          });
-
-          return config;
-        } catch (err) {
-          console.error("[API] ❌ Token alma sırasında hata:", err);
-          return config;
-        }
-      },
-      (error) => {
-        console.error("[API] ❌ Request interceptor hatası:", error);
-        return Promise.reject(error);
-      }
+    // Çıkış işlemi sırasında 401 hatalarını yok sayalım
+    const isLogoutInProgress = error.config?.url?.includes("/auth/logout");
+    const isPublicEndpoint = PUBLIC_ENDPOINTS.some((endpoint) =>
+      error.config?.url?.includes(endpoint)
     );
 
-    // Response interceptor
-    axiosInstance.interceptors.response.use(
-      (response) => {
-        console.log("[API] ✅ Yanıt alındı:", {
-          url: response.config.url,
-          status: response.status,
-        });
-        return response;
-      },
-      async (error) => {
-        // Logout ile ilgili hataları sessizce geç
-        if (error.isLogoutRelated) {
-          console.log("🔇 Logout ile ilgili hata sessizce geçildi");
-          return new Promise(() => {}); // İsteği askıda bırak
-        }
+    // Only redirect to login for 401 errors (unauthorized) and not during logout or public endpoints
+    if (
+      error.response?.status === 401 &&
+      !isLogoutInProgress &&
+      !isPublicEndpoint
+    ) {
+      // Önce token kontrolü yapalım
+      const token = await SecureStoreService.getItem("zivo_token");
 
-        // Eğer axios iptal edildiyse, sessizce geç
-        if (axios.isCancel(error)) {
-          console.log("🔇 Axios isteği iptal edildi");
-          return new Promise(() => {}); // İsteği askıda bırak
-        }
-
-        console.error("[API] ❌ API yanıt hatası:", {
-          status: error.response?.status,
-          message: error.message,
-          url: error.config?.url,
-          method: error.config?.method,
-          data: error.response?.data,
-        });
-
-        if (error.response?.status === 401) {
-          console.warn("[API] ⚠️ 401 Unauthorized - Token siliniyor.");
-
-          // Eğer auth/login isteği değilse ve logout durumunda değilsek
-          if (!error.config?.url?.includes("/auth/login") && !isLoggedOut) {
-            console.warn(
-              "[API] ⚠️ 401 Unauthorized - Login'e yönlendiriliyor."
-            );
-            setLogoutState(true); // Önce logout durumunu ayarla
-            await SecureStoreService.removeItem("zivo_token");
-            await SecureStoreService.removeItem("zivo_user");
-            router.replace("/auth/login");
-          }
-        }
-
-        return Promise.reject(error);
+      // Eğer token zaten yoksa, yönlendirmeye gerek yok
+      if (token) {
+        console.warn("[API] ⚠️ 401 Unauthorized - Token siliniyor.");
+        await SecureStoreService.removeItem("zivo_token");
+        await SecureStoreService.removeItem("zivo_user");
+        router.replace("/auth/login");
+      } else {
+        console.log(
+          "[API] ℹ️ 401 alındı ama token zaten yok, yönlendirme yapılmıyor."
+        );
       }
-    );
+    }
+
+    return Promise.reject(error);
   }
-
-  return axiosInstance;
-};
-
-// API fonksiyonu - Her çağrıda güncel axios instance'ını kullanır
-const api = {
-  get: async <T>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): Promise<AxiosResponse<T>> => {
-    const instance = createAxiosInstance();
-    return instance.get<T>(url, config);
-  },
-  post: async <T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<AxiosResponse<T>> => {
-    const instance = createAxiosInstance();
-    return instance.post<T>(url, data, config);
-  },
-  put: async <T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<AxiosResponse<T>> => {
-    const instance = createAxiosInstance();
-    return instance.put<T>(url, data, config);
-  },
-  delete: async <T>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): Promise<AxiosResponse<T>> => {
-    const instance = createAxiosInstance();
-    return instance.delete<T>(url, config);
-  },
-  patch: async <T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<AxiosResponse<T>> => {
-    const instance = createAxiosInstance();
-    return instance.patch<T>(url, data, config);
-  },
-};
-
-// İlk instance'ı oluştur
-createAxiosInstance();
+);
 
 export default api;

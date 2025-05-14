@@ -13,9 +13,12 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getServiceById } from "../../services/service.service";
-import { createAppointment } from "../../services/appointment.service";
+import {
+  createAppointment,
+  getAppointmentsByDate,
+} from "../../services/appointment.service";
 import type { Service, Worker, BusinessShift } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { AxiosError } from "axios";
@@ -53,7 +56,7 @@ type CalendarDay = {
   isSelectable: boolean;
 };
 
-const daysOfWeek = ["MA", "DI", "WO", "DO", "VR", "ZA", "ZO"];
+const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 // ISO datetime string'den saat kısmını çıkaran yardımcı fonksiyon
 const extractTimeFromISOString = (isoString: string): string => {
@@ -79,7 +82,8 @@ const generateCalendarDays = (
   const lastDayOfMonth = new Date(year, month + 1, 0);
 
   // Ayın ilk gününün haftanın hangi günü olduğunu bul (0: Pazar, 1: Pazartesi, ...)
-  const firstDayOfWeek = firstDayOfMonth.getDay();
+  let firstDayOfWeek = firstDayOfMonth.getDay();
+  firstDayOfWeek = (firstDayOfWeek + 6) % 7;
 
   // Önceki ayın son günlerini ekle
   const prevMonthLastDay = new Date(year, month, 0).getDate();
@@ -197,7 +201,8 @@ const filterTimeSlotsByBusinessHours = (
 
 // BookingScreen bileşeninde değişiklikler yapalım
 export default function BookingScreen() {
-  const { appointmentId } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const appointmentId = params.appointmentId as string;
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<CalendarDay | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -231,7 +236,13 @@ export default function BookingScreen() {
 
   const { data: service, isLoading: isServiceLoading } = useQuery({
     queryKey: ["service", appointmentId],
-    queryFn: () => getServiceById(appointmentId as string),
+    queryFn: () => {
+      if (!appointmentId || appointmentId === "undefined") {
+        throw new Error("Invalid service ID");
+      }
+      return getServiceById(appointmentId);
+    },
+    enabled: !!appointmentId && appointmentId !== "undefined",
   });
 
   const { data: workers, isLoading: isWorkersLoading } = useQuery({
@@ -248,6 +259,29 @@ export default function BookingScreen() {
       enabled: !!service?.businessId,
     }
   );
+
+  // Seçilen tarihe göre randevuları çeken query hook'unu ekleyelim
+  const {
+    data: bookedAppointments = [],
+    isLoading: isAppointmentsLoading,
+    refetch: refetchAppointmentsByDate,
+  } = useQuery({
+    queryKey: [
+      "appointments",
+      service?.businessId,
+      selectedDate?.day,
+      selectedDate?.month,
+      selectedDate?.year,
+    ],
+    queryFn: async () => {
+      if (!service?.businessId || !selectedDate) return [];
+      const formattedDate = `${selectedDate.year}-${String(
+        selectedDate.month
+      ).padStart(2, "0")}-${String(selectedDate.day).padStart(2, "0")}`;
+      return getAppointmentsByDate(service.businessId, formattedDate);
+    },
+    enabled: !!service?.businessId && !!selectedDate,
+  });
 
   // Tüm shift saatlerini al
   const { data: shiftTimes, isLoading: isShiftTimesLoading } = useQuery({
@@ -284,8 +318,17 @@ export default function BookingScreen() {
   const createAppointmentMutation = useMutation({
     mutationFn: createAppointment,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
       Alert.alert("Success", "Appointment created successfully", [
-        { text: "OK", onPress: () => router.back() },
+        {
+          text: "OK",
+          onPress: () => {
+            queryClient.invalidateQueries({ queryKey: ["service-workers"] });
+            queryClient.invalidateQueries({ queryKey: ["business-shifts"] });
+            queryClient.invalidateQueries({ queryKey: ["shift-times"] });
+            router.back();
+          },
+        },
       ]);
     },
     onError: (error) => {
@@ -332,6 +375,16 @@ export default function BookingScreen() {
     );
   }, [timeSlots, businessShifts, selectedDate]);
 
+  // Şimdi, filteredTimeSlots'tan sonra, müsait saatleri hesaplayan useMemo hook'unu ekleyelim
+  // Bu kısmı, filteredTimeSlots useMemo'sundan sonra ekleyelim
+  const availableTimeSlots = useMemo(() => {
+    if (!filteredTimeSlots || !bookedAppointments) return [];
+    const bookedTimes = bookedAppointments.map((appointment) =>
+      extractTimeFromISOString(appointment.appointmentTime)
+    );
+    return filteredTimeSlots.filter((slot) => !bookedTimes.includes(slot));
+  }, [filteredTimeSlots, bookedAppointments]);
+
   // Sayfa yüklendiğinde ilk seçilebilir günü seç
   useEffect(() => {
     if (calendarDays && calendarDays.length > 0) {
@@ -344,12 +397,26 @@ export default function BookingScreen() {
 
   // Tarih değiştiğinde ilk geçerli saati seç
   useEffect(() => {
-    if (filteredTimeSlots && filteredTimeSlots.length > 0) {
-      setSelectedTime(filteredTimeSlots[0]);
-    } else {
-      setSelectedTime(null);
+    if (availableTimeSlots && selectedDate) {
+      // Randevu alınca slotlar değiştiyse ilk uygun slotu tekrar seç
+      setSelectedTime(availableTimeSlots[0] || null);
     }
-  }, [filteredTimeSlots]);
+  }, [availableTimeSlots, selectedDate]);
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (
+        event?.query?.queryKey?.[0] === "appointments" &&
+        event?.type === "invalidated"
+      ) {
+        console.log("appointments query invalidated → refetching by date...");
+        refetchAppointmentsByDate();
+      }
+    });
+    return unsubscribe;
+  }, [queryClient, refetchAppointmentsByDate]);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedServices((prev) => {
@@ -391,12 +458,18 @@ export default function BookingScreen() {
       return;
 
     try {
+      // Bu fonksiyon, seçilen saati UTC olarak ayarlayacak şekilde düzeltir
+      const [hours, minutes] = selectedTime.split(":").map(Number);
+
+      // Tarih nesnesini oluştur ve UTC saatini ayarla
       const appointmentTime = new Date(
-        selectedDate.year,
-        selectedDate.month - 1,
-        selectedDate.day,
-        Number.parseInt(selectedTime.split(":")[0]),
-        Number.parseInt(selectedTime.split(":")[1])
+        Date.UTC(
+          selectedDate.year,
+          selectedDate.month - 1,
+          selectedDate.day,
+          hours,
+          minutes
+        )
       ).toISOString();
 
       const appointmentData = {
@@ -541,12 +614,14 @@ export default function BookingScreen() {
 
         {/* Time Slots */}
         <View style={styles.timeSlotsContainer}>
-          {filteredTimeSlots.length === 0 ? (
+          {isAppointmentsLoading ? (
+            <ActivityIndicator size="small" color="#2596be" />
+          ) : availableTimeSlots.length === 0 ? (
             <Text style={styles.noTimeSlotsText}>
               No available time slots for selected date
             </Text>
           ) : (
-            filteredTimeSlots.map((time, index) => (
+            availableTimeSlots.map((time, index) => (
               <TouchableOpacity
                 key={index}
                 style={[

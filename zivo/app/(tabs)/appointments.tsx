@@ -22,6 +22,7 @@ import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useState, useMemo } from "react";
 import RNModal from "react-native-modal";
+import { useAuth } from "../../context/AuthContext";
 
 type AppointmentStatus =
   | "all"
@@ -31,6 +32,7 @@ type AppointmentStatus =
   | "today";
 
 export default function AppointmentsScreen() {
+  // useAuth'dan tokenAvailable'ı alalım
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,6 +42,7 @@ export default function AppointmentsScreen() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus>("all");
+  const { tokenAvailable } = useAuth(); // useAuth'dan tokenAvailable'ı alalım
 
   const {
     data: appointmentsResponse,
@@ -49,7 +52,7 @@ export default function AppointmentsScreen() {
   } = useQuery({
     queryKey: ["appointments"],
     queryFn: getAppointments,
-    
+    enabled: !!tokenAvailable, // Token varsa çalıştır
   });
 
   // Extract appointments and error from the response
@@ -71,19 +74,21 @@ export default function AppointmentsScreen() {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      return appointments.filter((appointment) => {
-        if (!appointment.appointmentTime) return false;
+      return appointments.filter(
+        (appointment: { appointmentTime: string | number | Date }) => {
+          if (!appointment.appointmentTime) return false;
 
-        // Convert appointment time to Date object
-        const appointmentDate = new Date(appointment.appointmentTime);
+          // Convert appointment time to Date object
+          const appointmentDate = new Date(appointment.appointmentTime);
 
-        // Check if appointment is today (between start of today and start of tomorrow)
-        return appointmentDate >= today && appointmentDate < tomorrow;
-      });
+          // Check if appointment is today (between start of today and start of tomorrow)
+          return appointmentDate >= today && appointmentDate < tomorrow;
+        }
+      );
     }
 
     return appointments.filter(
-      (appointment) => appointment.status === statusFilter
+      (appointment: { status: string }) => appointment.status === statusFilter
     );
   }, [appointments, statusFilter]);
 
@@ -258,9 +263,12 @@ export default function AppointmentsScreen() {
         0
       ) || 0;
 
-    const appointmentTime = item.appointmentTime
-      ? new Date(item.appointmentTime)
-      : new Date();
+    const appointmentTimeString = item.appointmentTime
+      ? item.appointmentTime.slice(11, 16) // "HH:MM" formatı
+      : "--:--";
+    const appointmentDateString = item.appointmentTime
+      ? item.appointmentTime.slice(0, 10) // YYYY-MM-DD formatı
+      : "--/--/----";
 
     // Check if this appointment already has a review
     const hasReview = item.review !== undefined && item.review !== null;
@@ -300,12 +308,10 @@ export default function AppointmentsScreen() {
         <View style={styles.timeRow}>
           <Ionicons name="time-outline" size={16} color="#666" />
           <Text style={styles.durationText}>{totalDuration} minutes</Text>
-          <Text style={styles.appointmentTime}>
-            {appointmentTime.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={styles.appointmentTime}>{appointmentTimeString}</Text>
+            <Text style={styles.appointmentDate}>{appointmentDateString}</Text>
+          </View>
         </View>
 
         <View style={styles.staffRow}>
@@ -511,6 +517,13 @@ const styles = StyleSheet.create({
   activeFilterTab: {
     backgroundColor: "#1B9AAA",
   },
+  appointmentDate: {
+    fontSize: 12,
+    color: "#999",
+    fontFamily: "Outfit-Regular",
+    marginTop: 2,
+  },
+
   filterText: {
     fontSize: 14,
     color: "#666",
@@ -614,7 +627,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
-    
   },
   durationText: {
     fontSize: 14,
@@ -678,7 +690,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     marginHorizontal: 4,
-    
   },
   modalContainer: {
     justifyContent: "center",
@@ -764,7 +775,6 @@ const styles = StyleSheet.create({
   },
   starButton: {
     padding: 5,
-    
   },
   commentInput: {
     borderWidth: 1,

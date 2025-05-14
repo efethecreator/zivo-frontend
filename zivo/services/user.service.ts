@@ -1,4 +1,6 @@
 import api from "./api";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateAppData } from "../hooks/useInvalidateAppData";
 
 export interface User {
   id: string;
@@ -84,4 +86,55 @@ export const deleteUser = async (id: string): Promise<void> => {
 export const getMe = async (): Promise<User> => {
   const response = await api.get("/auth/me");
   return response.data;
+};
+
+// Mutation hooks
+export const useUpdateUserMutation = () => {
+  const { invalidateProfile } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { fullName?: string; email?: string };
+    }) => updateUser(id, data),
+    onSuccess: () => {
+      invalidateProfile();
+    },
+  });
+};
+
+export const useUpdateMyProfileMutation = () => {
+  const { invalidateProfile } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      invalidateProfile();
+    },
+  });
+};
+
+export const useUploadProfilePhotoMutation = () => {
+  const { invalidateProfile } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: uploadProfilePhoto,
+    onSuccess: () => {
+      invalidateProfile();
+    },
+  });
+};
+
+export const useDeleteUserMutation = () => {
+  const { invalidateAll } = useInvalidateAppData();
+
+  return useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      invalidateAll(); // Kullanıcı silindiğinde tüm verileri yenile
+    },
+  });
 };

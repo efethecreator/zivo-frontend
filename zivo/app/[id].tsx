@@ -1,8 +1,8 @@
 // app/[id].tsx
 
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -17,121 +17,161 @@ import {
   Animated,
   Modal,
   Pressable,
-} from "react-native"
-import { useLocalSearchParams, router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getBusinessById } from "../services/business.service"
-import { getBusinessServices } from "../services/service.service"
-import { getBusinessReviews } from "../services/review.service"
-import { addToFavorites, removeFromFavorites, getFavorites } from "../services/favorite.service"
-import { getBusinessPortfolio } from "../services/portfolio.service"
-import { StatusBar } from "expo-status-bar"
-import { WebView } from "react-native-webview"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { FadeInDown } from "react-native-reanimated"
+} from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
+// Removed duplicate import
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getBusinessById } from "../services/business.service";
+import { getBusinessServices } from "../services/service.service";
+import { getBusinessReviews } from "../services/review.service";
+import {
+  addToFavorites,
+  removeFromFavorites,
+  getFavorites,
+} from "../services/favorite.service";
+import { getBusinessPortfolio } from "../services/portfolio.service";
+import { StatusBar } from "expo-status-bar";
+import { WebView } from "react-native-webview";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FadeInDown } from "react-native-reanimated";
+import { useAuth } from "../context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
+import { toZonedTime, format } from "date-fns-tz";
 
-const { width, height } = Dimensions.get("window")
+const { width, height } = Dimensions.get("window");
+
+// <-- buraya
+const getContactIcon = (name: string) => {
+  switch (name.toLowerCase()) {
+    case "instagram":
+      return "logo-instagram";
+    case "facebook":
+      return "logo-facebook";
+    case "twitter":
+      return "logo-twitter";
+    case "linkedin":
+      return "logo-linkedin";
+    case "whatsapp":
+      return "logo-whatsapp";
+    default:
+      return "link-outline";
+  }
+};
 
 export default function BusinessDetailScreen() {
-  const { id } = useLocalSearchParams()
-  const [activeTab, setActiveTab] = useState("SERVICES")
-  const [canReview, setCanReview] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const queryClient = useQueryClient()
-  const [mapHtml, setMapHtml] = useState<string>("")
-  const [scrollEnabled, setScrollEnabled] = useState(true)
-  const insets = useSafeAreaInsets()
-  const [expandedReviews, setExpandedReviews] = useState<{ [key: string]: boolean }>({})
-  const [modalVisible, setModalVisible] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any>(null)
+  const { id } = useLocalSearchParams();
+  const [activeTab, setActiveTab] = useState("SERVICES");
+  const [canReview, setCanReview] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
+  const [mapHtml, setMapHtml] = useState<string>("");
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+  const insets = useSafeAreaInsets();
+  const [expandedReviews, setExpandedReviews] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any>(null);
 
   // Animation values
-  const scrollY = useRef(new Animated.Value(0)).current
+  const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100, 200],
     outputRange: [0, 0.8, 1],
     extrapolate: "clamp",
-  })
+  });
 
   const headerTitleOpacity = scrollY.interpolate({
     inputRange: [150, 200],
     outputRange: [0, 1],
     extrapolate: "clamp",
-  })
+  });
 
   const imageScale = scrollY.interpolate({
     inputRange: [-100, 0],
     outputRange: [1.2, 1],
     extrapolate: "clamp",
-  })
+  });
 
+  // useAuth'dan tokenAvailable'ı alalım
+  const { tokenAvailable } = useAuth();
+
+  // İşletme detayları için useQuery
   const { data: business, isLoading: isBusinessLoading } = useQuery({
     queryKey: ["business", id],
-    queryFn: () => getBusinessById(id as string),
-  })
+    queryFn: () => getBusinessById(id),
+    enabled: !!id && !!tokenAvailable, // ID ve token varsa çalıştır
+  });
+
+  // Favoriler için useQuery
+  const { data: favorites, isLoading: isFavoritesLoading } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavorites,
+    enabled: !!tokenAvailable, // Token varsa çalıştır
+  });
 
   const { data: services, isLoading: isServicesLoading } = useQuery({
     queryKey: ["services", id],
     queryFn: () => getBusinessServices(id as string),
-  })
+  });
 
   const { data: reviews, isLoading: isLoadingReviews } = useQuery({
     queryKey: ["reviews", id],
     queryFn: () => getBusinessReviews(id as string),
-  })
+  });
 
   const { data: portfolio, isLoading: isLoadingPortfolio } = useQuery({
     queryKey: ["portfolio", id],
     queryFn: () => getBusinessPortfolio(id as string),
-  })
+  });
 
-  const { data: favorites, isLoading: isFavoritesLoading } = useQuery({
-    queryKey: ["favorites"],
-    queryFn: getFavorites,
-  })
-
-  const [localFavoriteState, setLocalFavoriteState] = useState(false)
+  const [localFavoriteState, setLocalFavoriteState] = useState(false);
 
   // Toggle review expansion
   const toggleReviewExpansion = (reviewId: string) => {
     setExpandedReviews((prev) => ({
       ...prev,
       [reviewId]: !prev[reviewId],
-    }))
-  }
+    }));
+  };
 
   // Open location in maps app
   const openInMaps = () => {
-    if (!business) return
+    if (!business) return;
 
-    const { latitude, longitude, name, address } = business
-    const label = encodeURIComponent(name)
-    const addr = encodeURIComponent(typeof address === "string" ? address : "")
+    const { latitude, longitude, name, address } = business;
+    const label = encodeURIComponent(name);
+    const addr = encodeURIComponent(typeof address === "string" ? address : "");
 
-    const scheme = Platform.select({ ios: "maps:", android: "geo:" })
-    const latLng = `${latitude},${longitude}`
+    const scheme = Platform.select({ ios: "maps:", android: "geo:" });
+    const latLng = `${latitude},${longitude}`;
 
     // Different URL formats for iOS and Android
     const url = Platform.select({
       ios: `${scheme}?q=${label}&ll=${latLng}&address=${addr}`,
       android: `${scheme}${latLng}?q=${latLng}(${label})`,
       web: `https://www.google.com/maps/search/?api=1&query=${latLng}&query_place_id=${label}`,
-    })
+    });
 
     if (url) {
       Linking.openURL(url).catch((err) => {
-        console.error("Error opening maps app:", err)
+        console.error("Error opening maps app:", err);
         // Fallback to Google Maps web
-        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latLng}`)
-      })
+        Linking.openURL(
+          `https://www.google.com/maps/search/?api=1&query=${latLng}`
+        );
+      });
     }
-  }
+  };
 
   useEffect(() => {
     if (business) {
-      console.log("Creating business map with location:", business.latitude, business.longitude)
+      console.log(
+        "Creating business map with location:",
+        business.latitude,
+        business.longitude
+      );
 
       const html = `
         <!DOCTYPE html>
@@ -210,134 +250,163 @@ export default function BusinessDetailScreen() {
             </script>
           </body>
         </html>
-      `
+      `;
 
-      console.log("Setting business map HTML...")
-      setMapHtml(html)
+      console.log("Setting business map HTML...");
+      setMapHtml(html);
     }
-  }, [business])
+  }, [business]);
 
   useEffect(() => {
     if (favorites && id) {
-      const isFav = favorites.some((fav) => String(fav.businessId) === String(id))
-      setLocalFavoriteState(isFav)
-      console.log("[Favorites] 🔄 State güncellendi:", isFav)
+      const isFav = favorites.some(
+        (fav) => String(fav.businessId) === String(id)
+      );
+      setLocalFavoriteState(isFav);
+      console.log("[Favorites] 🔄 State güncellendi:", isFav);
     }
-  }, [favorites, id])
+  }, [favorites, id]);
 
   const favoriteMutation = useMutation({
     mutationFn: async (businessId: string) => {
       if (localFavoriteState) {
-        const matchedFavorite = favorites?.find((fav) => fav.business.id === businessId)
+        const matchedFavorite = favorites?.find(
+          (fav) => fav.business.id === businessId
+        );
 
         if (!matchedFavorite) {
-          throw new Error("Favori bulunamadı")
+          throw new Error("Favori bulunamadı");
         }
 
-        console.log("🗑️ Silinecek favorite ID:", matchedFavorite.id)
-        return await removeFromFavorites(matchedFavorite.id)
+        console.log("🗑️ Silinecek favorite ID:", matchedFavorite.id);
+        return await removeFromFavorites(matchedFavorite.id);
       } else {
-        return await addToFavorites(businessId)
+        return await addToFavorites(businessId);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] })
-      setLocalFavoriteState(!localFavoriteState)
-      console.log("[Favorites] ✅ Toggled local state:", !localFavoriteState)
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      setLocalFavoriteState(!localFavoriteState);
+      console.log("[Favorites] ✅ Toggled local state:", !localFavoriteState);
     },
     onError: (error) => {
-      console.error("[Favorites] ❌ Hata:", error)
+      console.error("[Favorites] ❌ Hata:", error);
     },
-  })
+  });
 
   // Handle WebView messages
   const handleWebViewMessage = (event) => {
-    const message = event.nativeEvent.data
+    const message = event.nativeEvent.data;
     if (message === "MAP_DRAG_START") {
-      setScrollEnabled(false)
+      setScrollEnabled(false);
     } else if (message === "MAP_DRAG_END") {
-      setScrollEnabled(true)
+      setScrollEnabled(true);
     }
-  }
+  };
 
   // Calculate average rating and review count
-  const averageRating = reviews?.reduce((acc, review) => acc + review.rating, 0) / (reviews?.length || 1)
-  const reviewCount = reviews?.length || 0
+  const averageRating =
+    reviews?.reduce((acc, review) => acc + review.rating, 0) /
+    (reviews?.length || 1);
+  const reviewCount = reviews?.length || 0;
 
   // Calculate ratings breakdown
   const getRatingBreakdown = () => {
-    if (!reviews || reviews.length === 0) return Array(5).fill(0)
+    if (!reviews || reviews.length === 0) return Array(5).fill(0);
 
-    const breakdown = Array(5).fill(0)
+    const breakdown = Array(5).fill(0);
     reviews.forEach((review) => {
-      const rating = Math.floor(review.rating)
+      const rating = Math.floor(review.rating);
       if (rating >= 1 && rating <= 5) {
-        breakdown[5 - rating]++
+        breakdown[5 - rating]++;
       }
-    })
-    return breakdown
-  }
+    });
+    return breakdown;
+  };
 
-  const ratingBreakdown = getRatingBreakdown()
+  const ratingBreakdown = getRatingBreakdown();
 
   const handleBookService = (serviceId: number) => {
-    router.push(`/booking/${serviceId}` as any)
-  }
+    router.push(`/booking/${serviceId}` as any);
+  };
 
   const openImageModal = (item) => {
-    setSelectedImage(item.imageUrl)
-    setSelectedPortfolioItem(item)
-    setModalVisible(true)
-  }
+    setSelectedImage(item.imageUrl);
+    setSelectedPortfolioItem(item);
+    setModalVisible(true);
+  };
 
   const closeImageModal = () => {
-    setModalVisible(false)
-    setSelectedImage(null)
-    setSelectedPortfolioItem(null)
-  }
+    setModalVisible(false);
+    setSelectedImage(null);
+    setSelectedPortfolioItem(null);
+  };
 
-  const isLoading = isBusinessLoading || isServicesLoading || isLoadingReviews || isLoadingPortfolio
+  const isLoading =
+    isBusinessLoading ||
+    isServicesLoading ||
+    isLoadingReviews ||
+    isLoadingPortfolio;
 
   if (isLoading || !business) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color="#2596be" />
       </View>
-    )
+    );
   }
 
   // Helper function to safely render address
   const renderAddress = () => {
     if (typeof business.address === "string") {
-      return business.address
+      return business.address;
     } else if (business.address && typeof business.address === "object") {
-      return `${business.address.street}, ${business.address.city}, ${business.address.postalCode}`
+      return `${business.address.street}, ${business.address.city}, ${business.address.postalCode}`;
     }
-    return ""
-  }
+    return "";
+  };
 
   // Helper function to safely render price
   const renderPrice = (price: string | number) => {
     if (typeof price === "number") {
-      return price.toFixed(2)
+      return price.toFixed(2);
     }
-    return price
-  }
+    return price;
+  };
 
   const renderMap = () => {
     if (Platform.OS === "web") {
       return (
-        <View style={{ position: "relative", width: "100%", height: 200, borderRadius: 12, overflow: "hidden" }}>
+        <View
+          style={{
+            position: "relative",
+            width: "100%",
+            height: 200,
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
           <iframe srcDoc={mapHtml} style={styles.map} allow="geolocation" />
-          <TouchableOpacity style={styles.mapDirectionsButton} onPress={openInMaps}>
+          <TouchableOpacity
+            style={styles.mapDirectionsButton}
+            onPress={openInMaps}
+          >
             <Ionicons name="navigate" size={20} color="#fff" />
             <Text style={styles.mapDirectionsText}>Directions</Text>
           </TouchableOpacity>
         </View>
-      )
+      );
     }
     return (
-      <View style={{ position: "relative", width: "100%", height: 200, borderRadius: 12, overflow: "hidden" }}>
+      <View
+        style={{
+          position: "relative",
+          width: "100%",
+          height: 200,
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
+      >
         <WebView
           source={{ html: mapHtml }}
           style={styles.map}
@@ -347,13 +416,16 @@ export default function BusinessDetailScreen() {
           onMessage={handleWebViewMessage}
           onError={(e) => console.error("WebView error:", e.nativeEvent)}
         />
-        <TouchableOpacity style={styles.mapDirectionsButton} onPress={openInMaps}>
+        <TouchableOpacity
+          style={styles.mapDirectionsButton}
+          onPress={openInMaps}
+        >
           <Ionicons name="navigate" size={20} color="#fff" />
           <Text style={styles.mapDirectionsText}>Directions</Text>
         </TouchableOpacity>
       </View>
-    )
-  }
+    );
+  };
 
   const renderReviews = () => (
     <View style={styles.tabContent}>
@@ -385,13 +457,19 @@ export default function BusinessDetailScreen() {
                       style={[
                         styles.ratingStatsBreakdownFill,
                         {
-                          width: `${reviews.length > 0 ? (ratingBreakdown[index] / reviews.length) * 100 : 0}%`,
+                          width: `${
+                            reviews.length > 0
+                              ? (ratingBreakdown[index] / reviews.length) * 100
+                              : 0
+                          }%`,
                           backgroundColor: star === 5 ? "#FFA500" : "#e0e0e0",
                         },
                       ]}
                     />
                   </View>
-                  <Text style={styles.ratingStatsBreakdownCount}>{ratingBreakdown[index]}</Text>
+                  <Text style={styles.ratingStatsBreakdownCount}>
+                    {ratingBreakdown[index]}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -402,23 +480,29 @@ export default function BusinessDetailScreen() {
           </View>
 
           {canReview && (
-            <TouchableOpacity style={styles.addReviewButton} onPress={() => router.push(`/create-review/${id}` as any)}>
+            <TouchableOpacity
+              style={styles.addReviewButton}
+              onPress={() => router.push(`/create-review/${id}` as any)}
+            >
               <Text style={styles.addReviewButtonText}>Write a Review</Text>
             </TouchableOpacity>
           )}
 
           {reviews?.map((review) => {
             // Kullanıcı adını doğru şekilde al
-            const userName = review.appointment?.customer?.user?.fullName || "Anonymous"
+            const userName =
+              review.appointment?.customer?.user?.fullName || "Anonymous";
             // Kullanıcı fotoğrafını kontrol et
-            const userPhoto = review.appointment?.customer?.photoUrl
+            const userPhoto = review.appointment?.customer?.photoUrl;
             // Yorum içeriğini belirli bir uzunlukta göster
-            const isExpanded = expandedReviews[review.id] || false
-            const reviewText = review.comment || ""
+            const isExpanded = expandedReviews[review.id] || false;
+            const reviewText = review.comment || "";
 
             // Service and staff info
-            const serviceName = review.appointment?.service?.name || "Unspecified service"
-            const staffName = review.appointment?.worker?.user?.fullName || "Unspecified staff"
+            const serviceName =
+              review.appointment?.service?.name || "Unspecified service";
+            const staffName =
+              review.appointment?.worker?.user?.fullName || "Unspecified staff";
 
             return (
               <View key={review.id} style={styles.reviewCard}>
@@ -426,9 +510,17 @@ export default function BusinessDetailScreen() {
                   <View style={styles.reviewUserInfo}>
                     <View style={styles.userIcon}>
                       {userPhoto ? (
-                        <Image source={{ uri: userPhoto }} style={styles.userProfilePhoto} resizeMode="cover" />
+                        <Image
+                          source={{ uri: userPhoto }}
+                          style={styles.userProfilePhoto}
+                          resizeMode="cover"
+                        />
                       ) : (
-                        <Ionicons name="person-circle-outline" size={40} color="#2596be" />
+                        <Ionicons
+                          name="person-circle-outline"
+                          size={40}
+                          color="#2596be"
+                        />
                       )}
                     </View>
                     <View>
@@ -439,18 +531,23 @@ export default function BusinessDetailScreen() {
                             key={index}
                             name="star"
                             size={16}
-                            color={index < review.rating ? "#FFA500" : "#e0e0e0"}
+                            color={
+                              index < review.rating ? "#FFA500" : "#e0e0e0"
+                            }
                           />
                         ))}
                       </View>
                       <Text style={styles.reviewDate}>
-                        {new Date(review.createdAt).toLocaleDateString("tr-TR", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(review.createdAt).toLocaleDateString(
+                          "tr-TR",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </Text>
                     </View>
                   </View>
@@ -459,9 +556,18 @@ export default function BusinessDetailScreen() {
                 <Text style={styles.reviewComment}>{reviewText}</Text>
 
                 {reviewText.length > 120 && (
-                  <TouchableOpacity style={styles.showMoreButton} onPress={() => toggleReviewExpansion(review.id)}>
-                    <Text style={styles.showMoreText}>{isExpanded ? "LESS DAYS" : "SHOW MORE"}</Text>
-                    <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={16} color="#666" />
+                  <TouchableOpacity
+                    style={styles.showMoreButton}
+                    onPress={() => toggleReviewExpansion(review.id)}
+                  >
+                    <Text style={styles.showMoreText}>
+                      {isExpanded ? "LESS DAYS" : "SHOW MORE"}
+                    </Text>
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={16}
+                      color="#666"
+                    />
                   </TouchableOpacity>
                 )}
 
@@ -469,30 +575,40 @@ export default function BusinessDetailScreen() {
                   <>
                     <View style={styles.serviceInfoContainer}>
                       <View style={styles.serviceInfoRow}>
-                        <Text style={styles.serviceInfoLabel}>Staff member:</Text>
+                        <Text style={styles.serviceInfoLabel}>
+                          Staff member:
+                        </Text>
                         <Text style={styles.serviceInfoValue}>{staffName}</Text>
                       </View>
                       <View style={styles.serviceInfoRow}>
                         <Text style={styles.serviceInfoLabel}>Service:</Text>
-                        <Text style={styles.serviceInfoValue}>{serviceName}</Text>
+                        <Text style={styles.serviceInfoValue}>
+                          {serviceName}
+                        </Text>
                       </View>
                     </View>
 
                     <View style={styles.reviewHelpfulContainer}>
-                      <Text style={styles.reviewHelpfulText}>Was this review helpful?</Text>
+                      <Text style={styles.reviewHelpfulText}>
+                        Was this review helpful?
+                      </Text>
                       <View style={styles.reviewHelpfulButtons}>
                         <TouchableOpacity style={styles.reviewHelpfulButton}>
-                          <Text style={styles.reviewHelpfulButtonText}>Yes (0)</Text>
+                          <Text style={styles.reviewHelpfulButtonText}>
+                            Yes (0)
+                          </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.reviewHelpfulButton}>
-                          <Text style={styles.reviewHelpfulButtonText}>No (0)</Text>
+                          <Text style={styles.reviewHelpfulButtonText}>
+                            No (0)
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
                   </>
                 )}
               </View>
-            )
+            );
           })}
         </>
       ) : (
@@ -502,12 +618,16 @@ export default function BusinessDetailScreen() {
         </View>
       )}
     </View>
-  )
+  );
 
   const renderPortfolio = () => (
     <View style={styles.tabContent}>
       {isLoadingPortfolio ? (
-        <ActivityIndicator size="large" color="#2596be" style={{ marginTop: 20 }} />
+        <ActivityIndicator
+          size="large"
+          color="#2596be"
+          style={{ marginTop: 20 }}
+        />
       ) : portfolio && portfolio.length > 0 ? (
         <View style={styles.portfolioContainer}>
           {/* Portfolio Öğeleri */}
@@ -519,8 +639,15 @@ export default function BusinessDetailScreen() {
                 style={styles.portfolioItemWrapper}
               >
                 <View style={styles.portfolioItem}>
-                  <TouchableOpacity activeOpacity={0.9} onPress={() => openImageModal(item)}>
-                    <Image source={{ uri: item.imageUrl }} style={styles.portfolioImage} resizeMode="cover" />
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => openImageModal(item)}
+                  >
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={styles.portfolioImage}
+                      resizeMode="cover"
+                    />
                   </TouchableOpacity>
 
                   <View style={styles.portfolioContent}>
@@ -531,15 +658,27 @@ export default function BusinessDetailScreen() {
                     </View>
 
                     {item.description && (
-                      <Text style={styles.portfolioDescription} numberOfLines={2}>
+                      <Text
+                        style={styles.portfolioDescription}
+                        numberOfLines={2}
+                      >
                         {item.description}
                       </Text>
                     )}
 
                     <View style={styles.portfolioFooter}>
-                      <TouchableOpacity style={styles.portfolioMoreButton} onPress={() => openImageModal(item)}>
-                        <Text style={styles.portfolioMoreButtonText}>Details</Text>
-                        <Ionicons name="chevron-forward" size={14} color="#2596be" />
+                      <TouchableOpacity
+                        style={styles.portfolioMoreButton}
+                        onPress={() => openImageModal(item)}
+                      >
+                        <Text style={styles.portfolioMoreButtonText}>
+                          Details
+                        </Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={14}
+                          color="#2596be"
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -551,33 +690,53 @@ export default function BusinessDetailScreen() {
       ) : (
         <View style={styles.emptyStateContainer}>
           <Ionicons name="images-outline" size={60} color="#ccc" />
-          <Text style={styles.emptyStateText}>Henüz portfolio öğesi bulunmuyor</Text>
+          <Text style={styles.emptyStateText}>
+            There are no portfolio items yet.
+          </Text>
         </View>
       )}
 
       {/* Image Modal */}
-      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={closeImageModal}>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeImageModal}
+      >
         <Pressable style={styles.modalOverlay} onPress={closeImageModal}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectedPortfolioItem?.title || "Details"}</Text>
-              <TouchableOpacity onPress={closeImageModal} style={styles.modalCloseButton}>
+              <Text style={styles.modalTitle}>
+                {selectedPortfolioItem?.title || "Details"}
+              </Text>
+              <TouchableOpacity
+                onPress={closeImageModal}
+                style={styles.modalCloseButton}
+              >
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
 
-            {selectedImage && <Image source={{ uri: selectedImage }} style={styles.modalImage} resizeMode="contain" />}
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
+            )}
 
             {selectedPortfolioItem?.description && (
               <View style={styles.modalDescriptionContainer}>
-                <Text style={styles.modalDescription}>{selectedPortfolioItem.description}</Text>
+                <Text style={styles.modalDescription}>
+                  {selectedPortfolioItem.description}
+                </Text>
               </View>
             )}
           </View>
         </Pressable>
       </Modal>
     </View>
-  )
+  );
 
   return (
     <View style={styles.container}>
@@ -596,8 +755,15 @@ export default function BusinessDetailScreen() {
           },
         ]}
       >
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={scrollY._value > 100 ? "#000" : "#fff"} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={scrollY._value > 100 ? "#000" : "#fff"}
+          />
         </TouchableOpacity>
 
         <Animated.Text
@@ -619,7 +785,10 @@ export default function BusinessDetailScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         scrollEnabled={scrollEnabled}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
         scrollEventThrottle={16}
       >
         {/* Header Image */}
@@ -632,7 +801,11 @@ export default function BusinessDetailScreen() {
           ]}
         >
           {business.coverImageUrl ? (
-            <Image source={{ uri: business.coverImageUrl }} style={styles.headerImage} resizeMode="cover" />
+            <Image
+              source={{ uri: business.coverImageUrl }}
+              style={styles.headerImage}
+              resizeMode="cover"
+            />
           ) : (
             <View style={[styles.headerImage, styles.placeholderImage]}>
               <Ionicons name="image-outline" size={50} color="#ccc" />
@@ -671,7 +844,12 @@ export default function BusinessDetailScreen() {
           <View style={styles.businessTypeContainer}>
             <Text style={styles.businessType}>{business.type}</Text>
             <View style={styles.dot} />
-            <Ionicons name="location-outline" size={16} color="#666" style={{ marginRight: 4 }} />
+            <Ionicons
+              name="location-outline"
+              size={16}
+              color="#666"
+              style={{ marginRight: 4 }}
+            />
             <Text style={styles.businessAddress} numberOfLines={1}>
               {renderAddress()}
             </Text>
@@ -686,7 +864,14 @@ export default function BusinessDetailScreen() {
               style={[styles.tab, activeTab === tab && styles.activeTab]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && styles.activeTabText,
+                ]}
+              >
+                {tab}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -695,7 +880,12 @@ export default function BusinessDetailScreen() {
         {activeTab === "SERVICES" && (
           <>
             <View style={styles.searchContainer}>
-              <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+              <Ionicons
+                name="search"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholderTextColor="#999"
@@ -711,17 +901,28 @@ export default function BusinessDetailScreen() {
               </View>
 
               {isServicesLoading ? (
-                <ActivityIndicator size="large" color="#2596be" style={{ marginTop: 20 }} />
+                <ActivityIndicator
+                  size="large"
+                  color="#2596be"
+                  style={{ marginTop: 20 }}
+                />
               ) : services && services.length > 0 ? (
                 services.map((service) => (
                   <View key={service.id} style={styles.serviceItem}>
                     <View style={styles.serviceInfo}>
                       <Text style={styles.serviceName}>{service.name}</Text>
-                      <Text style={styles.serviceDuration}>{service.durationMinutes} min</Text>
+                      <Text style={styles.serviceDuration}>
+                        {service.durationMinutes} min
+                      </Text>
                     </View>
                     <View style={styles.servicePriceContainer}>
-                      <Text style={styles.servicePrice}>€ {renderPrice(service.price)}</Text>
-                      <TouchableOpacity style={styles.bookButton} onPress={() => handleBookService(service.id)}>
+                      <Text style={styles.servicePrice}>
+                        € {renderPrice(service.price)}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.bookButton}
+                        onPress={() => handleBookService(service.id)}
+                      >
                         <Text style={styles.bookButtonText}>Book</Text>
                       </TouchableOpacity>
                     </View>
@@ -730,7 +931,9 @@ export default function BusinessDetailScreen() {
               ) : (
                 <View style={styles.emptyStateContainer}>
                   <Ionicons name="calendar-outline" size={60} color="#ccc" />
-                  <Text style={styles.emptyStateText}>No services available</Text>
+                  <Text style={styles.emptyStateText}>
+                    No services available
+                  </Text>
                 </View>
               )}
             </View>
@@ -745,26 +948,114 @@ export default function BusinessDetailScreen() {
           <View style={styles.detailsContainer}>
             <View style={styles.detailSection}>
               <Text style={styles.detailSectionTitle}>About</Text>
-              <Text style={styles.detailDescription}>{business.description || "No description available."}</Text>
+              <Text style={styles.detailDescription}>
+                {business.description || "No description available."}
+              </Text>
             </View>
 
             <View style={styles.detailSection}>
               <Text style={styles.detailSectionTitle}>Contact Information</Text>
+
               <View style={styles.detailRow}>
                 <Ionicons name="location-outline" size={20} color="#2596be" />
-                <Text style={styles.detailText}>{renderAddress()}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Ionicons name="call-outline" size={20} color="#2596be" />
-                <Text style={styles.detailText}>{business.phone || "No phone number available"}</Text>
+                <Text style={styles.detailText}>
+                  {business.address || "-"} | {business.city || "-"},{" "}
+                  {business.district || "-"}, {business.postalCode || "-"}
+                </Text>
               </View>
 
-              <Text style={[styles.detailSectionTitle, { marginTop: 20, marginBottom: 10 }]}>Location</Text>
+              <View style={styles.detailRow}>
+                <Ionicons name="call-outline" size={20} color="#2596be" />
+                <Text style={styles.detailText}>
+                  {business.phone || "No phone number available"}
+                </Text>
+              </View>
+
+              {business.website && (
+                <View style={styles.detailRow}>
+                  <Ionicons name="globe-outline" size={20} color="#2596be" />
+                  <Text
+                    style={styles.detailText}
+                    onPress={() => Linking.openURL(business.website)}
+                  >
+                    {business.website}
+                  </Text>
+                </View>
+              )}
+
+              {business.contacts?.map((contact) => (
+                <View key={contact.id} style={styles.detailRow}>
+                  <Ionicons
+                    name={getContactIcon(contact.contactName)}
+                    size={20}
+                    color="#2596be"
+                  />
+                  <Text
+                    style={styles.detailText}
+                    onPress={() => Linking.openURL(contact.contactValue)}
+                  >
+                    {contact.contactName}: {contact.contactValue}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.detailSection}>
+              <Text style={styles.detailSectionTitle}>Working Hours</Text>
+              {business.shifts?.length > 0 ? (
+                business.shifts
+                  .filter((shift) => shift.isActive)
+                  .map((shift) => {
+                    const shiftTime = shift.shiftTime;
+                    if (!shiftTime) return null;
+
+                    const startTimeString = shiftTime.startTime.slice(11, 16); // "HH:mm"
+                    const endTimeString = shiftTime.endTime.slice(11, 16); // "HH:mm"
+
+                    const dayName = [
+                      "Sunday",
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                    ][shift.dayOfWeek];
+
+                    return {
+                      id: shift.id,
+                      dayOfWeek: shift.dayOfWeek,
+                      display: (
+                        <View key={shift.id} style={styles.detailRow}>
+                          <Ionicons
+                            name="time-outline"
+                            size={20}
+                            color="#2596be"
+                          />
+                          <Text style={styles.detailText}>
+                            {dayName}: {startTimeString} - {endTimeString}
+                          </Text>
+                        </View>
+                      ),
+                    };
+                  })
+                  .filter(Boolean)
+                  .sort((a, b) => a.dayOfWeek - b.dayOfWeek) // 🔥 Günleri sıralıyoruz
+                  .map((item) => item.display)
+              ) : (
+                <Text style={styles.detailText}>No working hours defined</Text>
+              )}
+            </View>
+
+            <View style={styles.detailSection}>
+              <Text style={styles.detailSectionTitle}>Location</Text>
               <View style={styles.mapContainer}>
                 {!mapHtml ? (
                   <View style={styles.mapPlaceholder}>
                     <ActivityIndicator size="large" color="#2596be" />
-                    <Text style={{ marginTop: 10, color: "#666" }}>Loading map...</Text>
+                    <Text style={{ marginTop: 10, color: "#666" }}>
+                      Loading map...
+                    </Text>
                   </View>
                 ) : (
                   renderMap()
@@ -775,7 +1066,7 @@ export default function BusinessDetailScreen() {
         )}
       </Animated.ScrollView>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -1025,7 +1316,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    
   },
   bookButtonText: {
     color: "#fff",
@@ -1065,7 +1355,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 8,
     fontFamily: "Outfit-Bold",
-    
   },
   ratingScaleText: {
     fontSize: 18,
@@ -1186,7 +1475,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
-
 
   reviewComment: {
     fontSize: 18,
@@ -1519,7 +1807,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     borderRadius: 16,
     overflow: "hidden",
-    
   },
   modalHeader: {
     flexDirection: "row",
@@ -1553,4 +1840,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontFamily: "Outfit-Regular",
   },
-})
+});
