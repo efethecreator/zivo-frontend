@@ -38,41 +38,48 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalize, fontSizes, spacing } from "../../utils/responsive";
+import type { Category } from "../../types";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.75;
 const SPACING = normalize(10);
 
-const categories = [
+const categories: Category[] = [
   {
-    id: "massage",
-    name: "Massage",
-    icon: require("../../assets/images/images.jpeg"),
-    businessTypeId: "c434d876-adf7-41e8-a903-c18af53c8fe6",
+    id: "hairsalon",
+    name: "Hair Salon",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/hairsalon.jpg",
+    businessTypeId: "17e8c196-d4b9-4949-806d-d093900a749f",
   },
   {
-    id: "spa",
-    name: "Day SPA",
-    icon: require("../../assets/images/spa.jpg"),
-    businessTypeId: "28ec23f3-73c0-47fb-a72c-dc94da77dacf",
+    id: "spawellness",
+    name: "Spa & Wellness",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/spawelness.jpg",
+    businessTypeId: "ab25e866-1922-45ef-8caa-fc0116175a3c",
   },
   {
-    id: "skin",
-    name: "Skin care",
-    icon: require("../../assets/images/Facial-providence-ri.jpg"),
-    businessTypeId: "ed90a82e-0041-4414-8772-d2aabf15f4cb",
+    id: "skincare",
+    name: "Skin Care",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/skincare.jpg",
+    businessTypeId: "9acf7844-ff2e-4453-a6ce-9e0cfea4d583",
   },
   {
-    id: "pet",
-    name: "Pet services",
-    icon: require("../../assets/images/pet-sitters.jpg"),
-    businessTypeId: "58858f87-0060-4869-a83c-c838cd1c1e29",
+    id: "beautysalon",
+    name: "Beauty Salon",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/beautysalon.jpg",
+    businessTypeId: "46afc6d0-95ed-4b92-8047-3daed9f7472e",
   },
   {
-    id: "hair",
-    name: "Hair salons",
-    icon: require("../../assets/images/24pt-tif-gould-sprowston-240208-20-1400x800.jpg"),
-    businessTypeId: "26a88520-e2b2-4e2d-87cb-9348026185f7",
+    id: "tattoo",
+    name: "Tattoo Studio",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/tattoo.jpeg",
+    businessTypeId: "cd3048d1-1aa4-456d-b1b8-b497b9efd761",
+  },
+  {
+    id: "nail",
+    name: "Nail Studio",
+    icon: "https://zivo-project.s3.eu-central-1.amazonaws.com/uploads/nailstudio.jpg",
+    businessTypeId: "9a0432c8-098f-4339-a743-6bbf7ec07db3",
   },
 ];
 
@@ -381,9 +388,8 @@ export default function HomeScreen() {
                     >
                       <View style={styles.categoryIconContainer}>
                         <Image
-                          source={category.icon}
+                          source={{ uri: category.icon as string }}
                           style={styles.categoryIcon}
-                          resizeMode="cover"
                         />
                         {selectedType === category.businessTypeId && (
                           <View style={styles.categorySelectedOverlay} />
@@ -483,9 +489,8 @@ export default function HomeScreen() {
                     >
                       <View style={styles.categoryIconContainer}>
                         <Image
-                          source={category.icon}
+                          source={{ uri: category.icon }}
                           style={styles.categoryIcon}
-                          resizeMode="cover"
                         />
                         {selectedType === category.businessTypeId && (
                           <View style={styles.categorySelectedOverlay} />

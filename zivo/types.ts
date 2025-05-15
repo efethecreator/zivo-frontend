@@ -8,6 +8,14 @@ export interface User {
   updatedAt: string;
 }
 
+export type Category = {
+  id: string;
+  name: string;
+  icon: string;  // ✅ burada ImageSourcePropType değil sadece string
+  businessTypeId: string;
+}
+
+
 // Update the Business interface to include all the missing properties
 export interface Business {
   coverImageUrl: string;
