@@ -27,6 +27,8 @@ import {
   getBusinessShifts,
   getShiftTimes,
 } from "../../services/businessShift.service";
+import { notifyManager } from "@tanstack/query-core";
+import { debounce } from "lodash";
 
 const extractTimeSlotsFromShift = (start: string, end: string): string[] => {
   const slots: string[] = [];
@@ -396,26 +398,28 @@ export default function BookingScreen() {
   }, [calendarDays]);
 
   // Tarih değiştiğinde ilk geçerli saati seç
-  useEffect(() => {
-    if (availableTimeSlots && selectedDate) {
-      // Randevu alınca slotlar değiştiyse ilk uygun slotu tekrar seç
-      setSelectedTime(availableTimeSlots[0] || null);
-    }
-  }, [availableTimeSlots, selectedDate]);
-
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); // 🔥 Bunu en üste taşı
 
   useEffect(() => {
+    const debouncedRefetch = debounce(() => {
+      console.log("appointments query updated → refetching by date...");
+      refetchAppointmentsByDate();
+    }, 500);
+
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       if (
-        event?.query?.queryKey?.[0] === "appointments" &&
-        event?.type === "invalidated"
+        "query" in event &&
+        event.query.queryKey[0] === "appointments" &&
+        event.type === "updated"
       ) {
-        console.log("appointments query invalidated → refetching by date...");
-        refetchAppointmentsByDate();
+        debouncedRefetch();
       }
     });
-    return unsubscribe;
+
+    return () => {
+      unsubscribe();
+      debouncedRefetch.cancel();
+    };
   }, [queryClient, refetchAppointmentsByDate]);
 
   const handleServiceSelect = (service: Service) => {

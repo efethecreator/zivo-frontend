@@ -11,6 +11,24 @@ export interface Business {
   latitude: number;
   longitude: number;
   phone: string;
+  website: string;
+  city: string;
+  district: string;
+  contacts?: Array<{
+    id: string;
+    contactName: string;
+    contactValue: string;
+  }>;
+  postalCode: string;
+  shifts?: Array<{
+    id: string;
+    dayOfWeek: number;
+    isActive: boolean;
+    shiftTime?: {
+      startTime: string;
+      endTime: string;
+    };
+  }>;
   profileImageUrl: string;
   coverImageUrl: string;
   businessTypeId: string;

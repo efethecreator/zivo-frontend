@@ -1,6 +1,3 @@
-// Define types for the application
-import type { ImageSourcePropType } from "react-native";
-
 export interface User {
   id: string;
   email: string;
@@ -11,6 +8,7 @@ export interface User {
   updatedAt: string;
 }
 
+// Update the Business interface to include all the missing properties
 export interface Business {
   coverImageUrl: string;
   id: string;
@@ -28,6 +26,28 @@ export interface Business {
   reviews?: number;
   createdAt: string;
   updatedAt: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
+  website?: string;
+  phone?: string;
+  latitude?: number;
+  longitude?: number;
+  description?: string;
+  contacts?: Array<{
+    id: string;
+    contactName: string;
+    contactValue: string;
+  }>;
+  shifts?: Array<{
+    id: string;
+    dayOfWeek: number;
+    isActive: boolean;
+    shiftTime?: {
+      startTime: string;
+      endTime: string;
+    };
+  }>;
 }
 
 export interface Service {

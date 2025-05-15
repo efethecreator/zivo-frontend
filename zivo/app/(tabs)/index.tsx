@@ -200,10 +200,15 @@ export default function HomeScreen() {
   };
 
   const handleCategoryPress = (category: (typeof categories)[0]) => {
-    setSelectedType(
-      selectedType === category.businessTypeId ? null : category.businessTypeId
-    );
-    setShowSearchResults(selectedType !== category.businessTypeId);
+    // If the same category is clicked again, toggle it off
+    if (selectedType === category.businessTypeId) {
+      setSelectedType(null);
+      setShowSearchResults(false);
+    } else {
+      // Otherwise, select the new category and show search results
+      setSelectedType(category.businessTypeId);
+      setShowSearchResults(true);
+    }
   };
 
   const handleSearchBarPress = () => {
@@ -304,389 +309,470 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Scroll edilebilir içerik */}
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {/* Arama Çubuğu */}
-          <Animated.View
-            style={[styles.searchContainerWrapper, searchBarAnimatedStyle]}
-            entering={FadeInDown.delay(100).duration(500)}
-          >
-            <TouchableOpacity
-              style={styles.searchContainer}
-              activeOpacity={0.7}
-              onPress={() => {
-                router.push({
-                  pathname: "/(tabs)/explore",
-                  params: { focusSearch: "true" },
-                });
-              }}
+        {showSearchResults ? (
+          // When search results should be shown, render just the FlatList
+          <View style={styles.container}>
+            {/* Arama Çubuğu */}
+            <Animated.View
+              style={[styles.searchContainerWrapper, searchBarAnimatedStyle]}
+              entering={FadeInDown.delay(100).duration(500)}
             >
-              <Ionicons
-                name="search"
-                size={20}
-                color="#666"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search businesses..."
-                placeholderTextColor="#6666"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                editable={false}
-                pointerEvents="none"
-              />
-            </TouchableOpacity>
-          </Animated.View>
+              <TouchableOpacity
+                style={styles.searchContainer}
+                activeOpacity={0.7}
+                onPress={() => {
+                  router.push({
+                    pathname: "/(tabs)/explore",
+                    params: { focusSearch: "true" },
+                  });
+                }}
+              >
+                <Ionicons
+                  name="search"
+                  size={20}
+                  color="#666"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search businesses..."
+                  placeholderTextColor="#6666"
+                  value={searchQuery}
+                  onChangeText={handleSearch}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </TouchableOpacity>
+            </Animated.View>
 
-          {/* Kategoriler */}
-          <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-            <Text style={styles.sectionLabel}>CATEGORIES</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoriesContainer}
-              contentContainerStyle={styles.categoriesContent}
-            >
-              {categories.map((category, index) => (
-                <Animated.View
-                  key={category.id}
-                  entering={FadeInDown.delay(200 + index * 50).duration(400)}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.categoryItem,
-                      selectedType === category.businessTypeId &&
-                        styles.categoryItemActive,
-                    ]}
-                    onPress={() => handleCategoryPress(category)}
+            {/* Kategoriler */}
+            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+              <Text style={styles.sectionLabel}>CATEGORIES</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoriesContainer}
+                contentContainerStyle={styles.categoriesContent}
+              >
+                {categories.map((category, index) => (
+                  <Animated.View
+                    key={category.id}
+                    entering={FadeInDown.delay(200 + index * 50).duration(400)}
                   >
-                    <View style={styles.categoryIconContainer}>
-                      <Image
-                        source={category.icon}
-                        style={styles.categoryIcon}
-                        resizeMode="cover"
-                      />
-                      {selectedType === category.businessTypeId && (
-                        <View style={styles.categorySelectedOverlay} />
-                      )}
-                    </View>
-                    <Text
+                    <TouchableOpacity
                       style={[
-                        styles.categoryName,
+                        styles.categoryItem,
                         selectedType === category.businessTypeId &&
-                          styles.categoryNameActive,
+                          styles.categoryItemActive,
                       ]}
+                      onPress={() => handleCategoryPress(category)}
                     >
-                      {category.name}
-                    </Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-            </ScrollView>
-          </Animated.View>
+                      <View style={styles.categoryIconContainer}>
+                        <Image
+                          source={category.icon}
+                          style={styles.categoryIcon}
+                          resizeMode="cover"
+                        />
+                        {selectedType === category.businessTypeId && (
+                          <View style={styles.categorySelectedOverlay} />
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.categoryName,
+                          selectedType === category.businessTypeId &&
+                            styles.categoryNameActive,
+                        ]}
+                      >
+                        {category.name}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
+              </ScrollView>
+            </Animated.View>
 
-          {showSearchResults ? (
             <FlatList
               data={filteredBusinesses}
               renderItem={renderBusinessItem}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.businessList}
+              style={{ flex: 1 }}
             />
-          ) : (
-            <>
-              {/* Favoriler Bölümü */}
-              <Animated.View entering={FadeInDown.delay(300).duration(500)}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>FAVORITES</Text>
-                  {favoriteList.length > 0 && (
-                    <TouchableOpacity>
-                      <Text style={styles.seeAllText}>See All</Text>
+          </View>
+        ) : (
+          // When showing regular content, use the ScrollView
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {/* Arama Çubuğu */}
+            <Animated.View
+              style={[styles.searchContainerWrapper, searchBarAnimatedStyle]}
+              entering={FadeInDown.delay(100).duration(500)}
+            >
+              <TouchableOpacity
+                style={styles.searchContainer}
+                activeOpacity={0.7}
+                onPress={() => {
+                  router.push({
+                    pathname: "/(tabs)/explore",
+                    params: { focusSearch: "true" },
+                  });
+                }}
+              >
+                <Ionicons
+                  name="search"
+                  size={20}
+                  color="#666"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search businesses..."
+                  placeholderTextColor="#6666"
+                  value={searchQuery}
+                  onChangeText={handleSearch}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Kategoriler */}
+            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+              <Text style={styles.sectionLabel}>CATEGORIES</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoriesContainer}
+                contentContainerStyle={styles.categoriesContent}
+              >
+                {categories.map((category, index) => (
+                  <Animated.View
+                    key={category.id}
+                    entering={FadeInDown.delay(200 + index * 50).duration(400)}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.categoryItem,
+                        selectedType === category.businessTypeId &&
+                          styles.categoryItemActive,
+                      ]}
+                      onPress={() => handleCategoryPress(category)}
+                    >
+                      <View style={styles.categoryIconContainer}>
+                        <Image
+                          source={category.icon}
+                          style={styles.categoryIcon}
+                          resizeMode="cover"
+                        />
+                        {selectedType === category.businessTypeId && (
+                          <View style={styles.categorySelectedOverlay} />
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.categoryName,
+                          selectedType === category.businessTypeId &&
+                            styles.categoryNameActive,
+                        ]}
+                      >
+                        {category.name}
+                      </Text>
                     </TouchableOpacity>
-                  )}
+                  </Animated.View>
+                ))}
+              </ScrollView>
+            </Animated.View>
+
+            {/* Favoriler Bölümü */}
+            <Animated.View entering={FadeInDown.delay(300).duration(500)}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>FAVORITES</Text>
+                {favoriteList.length > 0 && (
+                  <TouchableOpacity>
+                    <Text style={styles.seeAllText}>See All</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {isFavoritesLoading ? (
+                <View style={styles.loadingContainer}>
+                  <Loading message="Loading favorites..." />
                 </View>
+              ) : favoriteList.length > 0 ? (
+                <View style={{ height: 220 }}>
+                  <FlatList
+                    data={favoriteList}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.favoritesContainer}
+                    contentContainerStyle={styles.favoritesContent}
+                    snapToInterval={CARD_WIDTH + SPACING}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    bounces={favoriteList.length > 1}
+                    scrollEnabled={favoriteList.length > 1}
+                    keyExtractor={(item) => item.businessId.toString()}
+                    renderItem={({ item: fav, index }) => {
+                      const { rating, count } = getBusinessRating(
+                        fav.businessId
+                      );
+                      const isSingleFavorite = favoriteList.length === 1;
 
-                {isFavoritesLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <Loading message="Loading favorites..." />
-                  </View>
-                ) : favoriteList.length > 0 ? (
-                  <View style={{ height: 220 }}>
-                    <FlatList
-                      data={favoriteList}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.favoritesContainer}
-                      contentContainerStyle={styles.favoritesContent}
-                      snapToInterval={CARD_WIDTH + SPACING}
-                      snapToAlignment="start"
-                      decelerationRate="fast"
-                      bounces={favoriteList.length > 1}
-                      scrollEnabled={favoriteList.length > 1}
-                      keyExtractor={(item) => item.businessId.toString()}
-                      renderItem={({ item: fav, index }) => {
-                        const { rating, count } = getBusinessRating(
-                          fav.businessId
-                        );
-                        const isSingleFavorite = favoriteList.length === 1;
-
-                        return (
-                          <Animated.View
-                            entering={FadeInDown.delay(
-                              300 + index * 100
-                            ).duration(500)}
-                            style={[
-                              styles.favoriteItemContainer,
-                              isSingleFavorite && {
-                                marginLeft:
-                                  (width - CARD_WIDTH) / 2 - SPACING / 2,
-                              },
-                            ]}
+                      return (
+                        <Animated.View
+                          entering={FadeInDown.delay(
+                            300 + index * 100
+                          ).duration(500)}
+                          style={[
+                            styles.favoriteItemContainer,
+                            isSingleFavorite && {
+                              marginLeft:
+                                (width - CARD_WIDTH) / 2 - SPACING / 2,
+                            },
+                          ]}
+                        >
+                          <TouchableOpacity
+                            style={styles.favoriteItem}
+                            onPress={() => navigateTo(`/${fav.businessId}`)}
+                            activeOpacity={0.9}
                           >
-                            <TouchableOpacity
-                              style={styles.favoriteItem}
-                              onPress={() => navigateTo(`/${fav.businessId}`)}
-                              activeOpacity={0.9}
-                            >
-                              {businesses?.find((b) => b.id === fav.businessId)
-                                ?.coverImageUrl && (
-                                <Image
-                                  source={{
-                                    uri: businesses.find(
-                                      (b) => b.id === fav.businessId
-                                    )?.coverImageUrl,
-                                  }}
-                                  style={styles.favoriteImage}
-                                  resizeMode="cover"
-                                />
-                              )}
-                              <LinearGradient
-                                colors={["transparent", "rgba(0,0,0,0.7)"]}
-                                style={styles.favoriteImageOverlay}
-                              />
-                              <View style={styles.favoriteContent}>
-                                <View style={styles.favoriteRating}>
-                                  <Ionicons
-                                    name="star"
-                                    size={16}
-                                    color="#FFD700"
-                                  />
-                                  <Text style={styles.favoriteRatingText}>
-                                    {rating.toFixed(1)}
-                                  </Text>
-                                  <Text style={styles.favoriteReviewsText}>
-                                    ({count})
-                                  </Text>
-                                </View>
-                                <Text style={styles.favoriteName}>
-                                  {businesses?.find(
+                            {businesses?.find((b) => b.id === fav.businessId)
+                              ?.coverImageUrl && (
+                              <Image
+                                source={{
+                                  uri: businesses.find(
                                     (b) => b.id === fav.businessId
-                                  )?.name || "Unknown Business"}
-                                </Text>
-                                <Text style={styles.favoriteAddress}>
-                                  {renderAddress(
-                                    businesses?.find(
-                                      (b) => b.id === fav.businessId
-                                    )?.address || ""
-                                  )}
-                                </Text>
-                              </View>
-                            </TouchableOpacity>
-                          </Animated.View>
-                        );
-                      }}
-                    />
-                  </View>
-                ) : (
-                  <Animated.View
-                    style={styles.emptyFavoritesContainer}
-                    entering={FadeInDown.delay(400).duration(500)}
-                  >
-                    <Ionicons
-                      name="heart-outline"
-                      size={48}
-                      color="#ccc"
-                      style={styles.emptyIcon}
-                    />
-                    <Text style={styles.noFavoritesText}>No favorites yet</Text>
-                    <Text style={styles.noFavoritesSubtext}>
-                      Add businesses to your favorites for quick access
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.exploreButton}
-                      onPress={() => navigateTo("/(tabs)/explore")}
-                    >
-                      <Ionicons
-                        name="search-outline"
-                        size={18}
-                        color="#fff"
-                        style={{ marginRight: 6 }}
-                      />
-                      <Text style={styles.exploreButtonText}>EXPLORE</Text>
-                    </TouchableOpacity>
-                  </Animated.View>
-                )}
-              </Animated.View>
-
-              {/* Yaklaşan Randevular Bölümü */}
-              <Animated.View entering={FadeInDown.delay(400).duration(500)}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>UPCOMING APPOINTMENTS</Text>
-                  {upcomingAppointments.length > 0 && (
-                    <TouchableOpacity
-                      onPress={() => navigateTo("/(tabs)/appointments")}
-                    >
-                      <Text style={styles.seeAllText}>See All</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                {isAppointmentsLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <Loading message="Loading appointments..." />
-                  </View>
-                ) : upcomingAppointments.length > 0 ? (
-                  <View style={styles.upcomingAppointments}>
-                    {upcomingAppointments
-                      .slice(0, 3)
-                      .map((appointment, index) => {
-                        const appointmentDate = new Date(
-                          appointment.appointmentTime
-                        );
-                        const today = new Date();
-                        const tomorrow = new Date();
-                        tomorrow.setDate(today.getDate() + 1);
-
-                        let dateText = appointmentDate.toLocaleDateString();
-                        if (
-                          appointmentDate.toDateString() ===
-                          today.toDateString()
-                        ) {
-                          dateText = "Today";
-                        } else if (
-                          appointmentDate.toDateString() ===
-                          tomorrow.toDateString()
-                        ) {
-                          dateText = "Tomorrow";
-                        }
-                        const timeText = appointment.appointmentTime
-                          ? appointment.appointmentTime.slice(11, 16) // HH:MM
-                          : "--:--";
-
-                        const businessName =
-                          appointment.business?.name || "Appointment";
-                        const serviceNames =
-                          appointment.appointmentServices
-                            ?.map(
-                              (s: { service?: { name?: string } }) =>
-                                s.service?.name || "Service"
-                            )
-                            .join(", ") || "Service";
-
-                        return (
-                          <Animated.View
-                            key={appointment.id}
-                            entering={FadeInDown.delay(
-                              400 + index * 100
-                            ).duration(500)}
-                          >
-                            <TouchableOpacity
-                              style={styles.appointmentItem}
-                              onPress={() => navigateTo(`/appointments`)}
-                              activeOpacity={0.8}
-                            >
-                              <View style={styles.appointmentDateContainer}>
-                                <Text style={styles.appointmentDay}>
-                                  {dateText}
-                                </Text>
-                                <Text style={styles.appointmentTime}>
-                                  {timeText}
-                                </Text>
-                              </View>
-                              <View style={styles.appointmentDetails}>
-                                <Text
-                                  style={styles.appointmentBusinessName}
-                                  numberOfLines={1}
-                                >
-                                  {businessName}
-                                </Text>
-                                <Text
-                                  style={styles.appointmentServiceName}
-                                  numberOfLines={1}
-                                >
-                                  {serviceNames}
-                                </Text>
-                              </View>
-                              <View style={styles.appointmentStatus}>
-                                <Text
-                                  style={[
-                                    styles.statusText,
-                                    {
-                                      backgroundColor:
-                                        appointment.status === "confirmed"
-                                          ? "rgba(76, 175, 80, 0.1)"
-                                          : appointment.status === "pending"
-                                          ? "rgba(255, 152, 0, 0.1)"
-                                          : appointment.status === "cancelled"
-                                          ? "rgba(244, 67, 54, 0.1)"
-                                          : "rgba(37, 150, 190, 0.1)",
-                                      color:
-                                        appointment.status === "confirmed"
-                                          ? "#4CAF50"
-                                          : appointment.status === "pending"
-                                          ? "#FF9800"
-                                          : appointment.status === "cancelled"
-                                          ? "#F44336"
-                                          : "#2596be",
-                                    },
-                                  ]}
-                                >
-                                  {appointment.status?.charAt(0).toUpperCase() +
-                                    appointment.status?.slice(1) || "Pending"}
-                                </Text>
-                              </View>
-                              <Ionicons
-                                name="chevron-forward"
-                                size={20}
-                                color="#999"
+                                  )?.coverImageUrl,
+                                }}
+                                style={styles.favoriteImage}
+                                resizeMode="cover"
                               />
-                            </TouchableOpacity>
-                          </Animated.View>
-                        );
-                      })}
-                  </View>
-                ) : (
-                  <Animated.View
-                    style={styles.noAppointments}
-                    entering={FadeInDown.delay(500).duration(500)}
+                            )}
+                            <LinearGradient
+                              colors={["transparent", "rgba(0,0,0,0.7)"]}
+                              style={styles.favoriteImageOverlay}
+                            />
+                            <View style={styles.favoriteContent}>
+                              <View style={styles.favoriteRating}>
+                                <Ionicons
+                                  name="star"
+                                  size={16}
+                                  color="#FFD700"
+                                />
+                                <Text style={styles.favoriteRatingText}>
+                                  {rating.toFixed(1)}
+                                </Text>
+                                <Text style={styles.favoriteReviewsText}>
+                                  ({count})
+                                </Text>
+                              </View>
+                              <Text style={styles.favoriteName}>
+                                {businesses?.find(
+                                  (b) => b.id === fav.businessId
+                                )?.name || "Unknown Business"}
+                              </Text>
+                              <Text style={styles.favoriteAddress}>
+                                {renderAddress(
+                                  businesses?.find(
+                                    (b) => b.id === fav.businessId
+                                  )?.address || ""
+                                )}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        </Animated.View>
+                      );
+                    }}
+                  />
+                </View>
+              ) : (
+                <Animated.View
+                  style={styles.emptyFavoritesContainer}
+                  entering={FadeInDown.delay(400).duration(500)}
+                >
+                  <Ionicons
+                    name="heart-outline"
+                    size={48}
+                    color="#ccc"
+                    style={styles.emptyIcon}
+                  />
+                  <Text style={styles.noFavoritesText}>No favorites yet</Text>
+                  <Text style={styles.noFavoritesSubtext}>
+                    Add businesses to your favorites for quick access
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.exploreButton}
+                    onPress={() => navigateTo("/(tabs)/explore")}
                   >
                     <Ionicons
-                      name="calendar-outline"
-                      size={48}
-                      color="#2596be"
-                      style={styles.emptyIcon}
+                      name="search-outline"
+                      size={18}
+                      color="#fff"
+                      style={{ marginRight: 6 }}
                     />
-                    <Text style={styles.noAppointmentsText}>
-                      You have no upcoming appointments
-                    </Text>
-                    <Text style={styles.noAppointmentsSubtext}>
-                      Book a service now and never miss out!
-                    </Text>
-                  </Animated.View>
-                )}
-              </Animated.View>
-            </>
-          )}
+                    <Text style={styles.exploreButtonText}>EXPLORE</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              )}
+            </Animated.View>
 
-          {/* Ekstra boşluk */}
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
+            {/* Yaklaşan Randevular Bölümü */}
+            <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>UPCOMING APPOINTMENTS</Text>
+                {upcomingAppointments.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => navigateTo("/(tabs)/appointments")}
+                  >
+                    <Text style={styles.seeAllText}>See All</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {isAppointmentsLoading ? (
+                <View style={styles.loadingContainer}>
+                  <Loading message="Loading appointments..." />
+                </View>
+              ) : upcomingAppointments.length > 0 ? (
+                <View style={styles.upcomingAppointments}>
+                  {upcomingAppointments
+                    .slice(0, 3)
+                    .map((appointment, index) => {
+                      const appointmentDate = new Date(
+                        appointment.appointmentTime
+                      );
+                      const today = new Date();
+                      const tomorrow = new Date();
+                      tomorrow.setDate(today.getDate() + 1);
+
+                      let dateText = appointmentDate.toLocaleDateString();
+                      if (
+                        appointmentDate.toDateString() === today.toDateString()
+                      ) {
+                        dateText = "Today";
+                      } else if (
+                        appointmentDate.toDateString() ===
+                        tomorrow.toDateString()
+                      ) {
+                        dateText = "Tomorrow";
+                      }
+                      const timeText = appointment.appointmentTime
+                        ? appointment.appointmentTime.slice(11, 16) // HH:MM
+                        : "--:--";
+
+                      const businessName =
+                        appointment.business?.name || "Appointment";
+                      const serviceNames =
+                        appointment.appointmentServices
+                          ?.map(
+                            (s: { service?: { name?: string } }) =>
+                              s.service?.name || "Service"
+                          )
+                          .join(", ") || "Service";
+
+                      return (
+                        <Animated.View
+                          key={appointment.id}
+                          entering={FadeInDown.delay(
+                            400 + index * 100
+                          ).duration(500)}
+                        >
+                          <TouchableOpacity
+                            style={styles.appointmentItem}
+                            onPress={() => navigateTo(`/appointments`)}
+                            activeOpacity={0.8}
+                          >
+                            <View style={styles.appointmentDateContainer}>
+                              <Text style={styles.appointmentDay}>
+                                {dateText}
+                              </Text>
+                              <Text style={styles.appointmentTime}>
+                                {timeText}
+                              </Text>
+                            </View>
+                            <View style={styles.appointmentDetails}>
+                              <Text
+                                style={styles.appointmentBusinessName}
+                                numberOfLines={1}
+                              >
+                                {businessName}
+                              </Text>
+                              <Text
+                                style={styles.appointmentServiceName}
+                                numberOfLines={1}
+                              >
+                                {serviceNames}
+                              </Text>
+                            </View>
+                            <View style={styles.appointmentStatus}>
+                              <Text
+                                style={[
+                                  styles.statusText,
+                                  {
+                                    backgroundColor:
+                                      appointment.status === "confirmed"
+                                        ? "rgba(76, 175, 80, 0.1)"
+                                        : appointment.status === "pending"
+                                        ? "rgba(255, 152, 0, 0.1)"
+                                        : appointment.status === "cancelled"
+                                        ? "rgba(244, 67, 54, 0.1)"
+                                        : "rgba(37, 150, 190, 0.1)",
+                                    color:
+                                      appointment.status === "confirmed"
+                                        ? "#4CAF50"
+                                        : appointment.status === "pending"
+                                        ? "#FF9800"
+                                        : appointment.status === "cancelled"
+                                        ? "#F44336"
+                                        : "#2596be",
+                                  },
+                                ]}
+                              >
+                                {appointment.status?.charAt(0).toUpperCase() +
+                                  appointment.status?.slice(1) || "Pending"}
+                              </Text>
+                            </View>
+                            <Ionicons
+                              name="chevron-forward"
+                              size={20}
+                              color="#999"
+                            />
+                          </TouchableOpacity>
+                        </Animated.View>
+                      );
+                    })}
+                </View>
+              ) : (
+                <Animated.View
+                  style={styles.noAppointments}
+                  entering={FadeInDown.delay(500).duration(500)}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={48}
+                    color="#2596be"
+                    style={styles.emptyIcon}
+                  />
+                  <Text style={styles.noAppointmentsText}>
+                    You have no upcoming appointments
+                  </Text>
+                  <Text style={styles.noAppointmentsSubtext}>
+                    Book a service now and never miss out!
+                  </Text>
+                </Animated.View>
+              )}
+            </Animated.View>
+
+            {/* Ekstra boşluk */}
+            <View style={styles.bottomSpacer} />
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );

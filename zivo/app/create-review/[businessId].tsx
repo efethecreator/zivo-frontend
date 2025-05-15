@@ -26,7 +26,7 @@ export default function CreateReview() {
     }
 
     reviewMutation.mutate({
-      businessId: businessId as string,
+      appointmentId: businessId as string,
       rating,
       comment,
     });

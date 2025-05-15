@@ -22,6 +22,7 @@ export const register = async (userData: {
   fullName: string;
   email: string;
   password: string;
+  phone: string;
   userType: "customer" | "business" | "store_owner" | "admin";
 }): Promise<LoginResponse> => {
   const response = await api.post("/auth/register", userData);
@@ -103,6 +104,7 @@ export const useRegisterMutation = () => {
       fullName: string;
       email: string;
       password: string;
+      phone: string;
       userType: "customer" | "business" | "store_owner" | "admin";
     }) => register(data),
     onSuccess: () => {

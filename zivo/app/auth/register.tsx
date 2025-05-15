@@ -1,7 +1,6 @@
-// app/auth/register.tsx
-"use client";
+"use client"
 
-import React, { useState } from "react";
+import { useState } from "react"
 import {
   View,
   Text,
@@ -13,72 +12,71 @@ import {
   Platform,
   SafeAreaView,
   Alert,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../../context/AuthContext";
-import { StatusBar } from "expo-status-bar";
-import { useRegisterMutation } from "../../services/auth.service";
+} from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../../context/AuthContext"
+import { StatusBar } from "expo-status-bar"
+import { useRegisterMutation, login } from "../../services/auth.service"
+import { updateMyProfile } from "../../services/user.service"
 
 export default function RegisterScreen() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const { register } = useAuth();
-  const registerMutation = useRegisterMutation();
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [phone, setPhone] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const { register } = useAuth()
+  const registerMutation = useRegisterMutation()
 
   const handleRegister = async () => {
-    if (
-      !fullName.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !phone.trim()
-    ) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
+    if (!fullName.trim() || !email.trim() || !password.trim() || !phone.trim()) {
+      Alert.alert("Error", "Please fill in all fields")
+      return
     }
 
     try {
+      // ✅ Önce register işlemi
       await register({
         fullName,
         email,
         password,
         phone,
-        userType: "customer", // Müşteri kaydı için varsayılan olarak 'customer' kullanıyoruz
-      });
-      router.replace("/(tabs)");
+        userType: "customer",
+      })
+
+      // ✅ Sonra login işlemi
+      const loginResponse = await login(email, password)
+
+      console.log("[Auth] ✅ Login success:", loginResponse)
+
+      // ✅ Update the user's profile with the phone number
+      try {
+        await updateMyProfile({ phone })
+        console.log("[Profile] ✅ Phone number updated in profile")
+      } catch (profileError) {
+        console.error("[Profile] ❌ Failed to update phone in profile:", profileError)
+        // Continue with registration even if profile update fails
+      }
+
+      router.replace("/(tabs)")
     } catch (error) {
-      Alert.alert(
-        "Error",
-        error instanceof Error
-          ? error.message
-          : "Failed to register. Please try again."
-      );
+      console.error("[Register] ❌ Error:", error)
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to register. Please try again.")
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" backgroundColor="#fff" />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
         <View style={styles.header}>
-          <Image
-            source={require("../../assets/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require("../../assets/images/logo.jpg")} style={styles.logo} resizeMode="contain" />
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Sign up to book and manage your appointments
-          </Text>
+          <Text style={styles.subtitle}>Sign up to book and manage your appointments</Text>
         </View>
 
+        {/* Full Name */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Full Name</Text>
           <TextInput
@@ -91,6 +89,7 @@ export default function RegisterScreen() {
           />
         </View>
 
+        {/* Email */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email Address</Text>
           <TextInput
@@ -104,6 +103,7 @@ export default function RegisterScreen() {
           />
         </View>
 
+        {/* Phone */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
@@ -116,6 +116,7 @@ export default function RegisterScreen() {
           />
         </View>
 
+        {/* Password */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
           <View style={styles.passwordContainer}>
@@ -127,35 +128,29 @@ export default function RegisterScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#666" />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Submit */}
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={handleRegister}
           disabled={registerMutation.isPending}
         >
-          <Text style={styles.buttonText}>
-            {registerMutation.isPending ? "Loading..." : "Sign Up"}
-          </Text>
+          <Text style={styles.buttonText}>{registerMutation.isPending ? "Loading..." : "Sign Up"}</Text>
         </TouchableOpacity>
 
+        {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>OR</Text>
           <View style={styles.dividerLine} />
         </View>
 
+        {/* Social Logins */}
         <View style={styles.socialButtons}>
           <TouchableOpacity style={[styles.button, styles.socialButton]}>
             <Ionicons name="logo-apple" size={24} color="#000" />
@@ -173,6 +168,7 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
           <TouchableOpacity onPress={() => router.push("/auth/login")}>
@@ -181,9 +177,8 @@ export default function RegisterScreen() {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
+  )
 }
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -304,4 +299,4 @@ const styles = StyleSheet.create({
     color: "#2596be",
     fontWeight: "600",
   },
-});
+})

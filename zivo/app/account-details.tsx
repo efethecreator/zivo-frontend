@@ -1,57 +1,50 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../context/AuthContext";
-import { updateMyProfile } from "../services/user.service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+"use client"
+
+import { useState } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native"
+import { router } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useAuth } from "../context/AuthContext"
+import { updateMyProfile } from "../services/user.service"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 export default function AccountDetailsScreen() {
-  const { user, updateUser } = useAuth();
-  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuth()
+  const queryClient = useQueryClient()
+
+  const [fullName, setFullName] = useState(user?.fullName || "")
+  const [email, setEmail] = useState(user?.email || "")
+  const [phone, setPhone] = useState(user?.profile?.phone || "")
+  const [location, setLocation] = useState(user?.profile?.location || "")
+  const [gender, setGender] = useState(user?.profile?.gender || "")
+  const [biography, setBiography] = useState(user?.profile?.biography || "")
   
-  const [fullName, setFullName] = useState(user?.fullName || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.profile?.phone || "");
-  const [location, setLocation] = useState(user?.profile?.location || "");
-  const [gender, setGender] = useState(user?.profile?.gender || "");
-  const [biography, setBiography] = useState(user?.profile?.biography || "");
-  const [photoUrl, setPhotoUrl] = useState(user?.profile?.photoUrl || "");
 
   const updateProfileMutation = useMutation({
     mutationFn: updateMyProfile,
     onSuccess: (updatedUser) => {
-      updateUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      Alert.alert("Success", "Profile updated successfully");
-      router.push("/(tabs)/profile");
+      updateUser(updatedUser)
+      queryClient.invalidateQueries({ queryKey: ["user"] })
+      Alert.alert("Success", "Profile updated successfully")
+      router.push("/(tabs)/profile")
     },
     onError: (error) => {
-      Alert.alert("Error", "Failed to update profile. Please try again.");
-    }
-  });
+      Alert.alert("Error", "Failed to update profile. Please try again.")
+    },
+  })
 
   const handleSave = () => {
-    if (!user) return;
+    if (!user) return
 
     const profileData = {
       phone,
       location,
       gender,
       biography,
-      photoUrl,
-    };
+    }
 
-    updateProfileMutation.mutate(profileData);
-  };
+    updateProfileMutation.mutate(profileData)
+  }
 
   return (
     <View style={styles.container}>
@@ -111,28 +104,19 @@ export default function AccountDetailsScreen() {
         <Text style={styles.sectionTitle}>Gender</Text>
         <View style={styles.genderContainer}>
           <TouchableOpacity
-            style={[
-              styles.genderButton,
-              gender === "Male" && styles.genderButtonActive,
-            ]}
+            style={[styles.genderButton, gender === "Male" && styles.genderButtonActive]}
             onPress={() => setGender("Male")}
           >
             <Text style={styles.genderText}>Male</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.genderButton,
-              gender === "Female" && styles.genderButtonActive,
-            ]}
+            style={[styles.genderButton, gender === "Female" && styles.genderButtonActive]}
             onPress={() => setGender("Female")}
           >
             <Text style={styles.genderText}>Female</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.genderButton,
-              gender === "Other" && styles.genderButtonActive,
-            ]}
+            style={[styles.genderButton, gender === "Other" && styles.genderButtonActive]}
             onPress={() => setGender("Other")}
           >
             <Text style={styles.genderText}>Other</Text>
@@ -151,36 +135,18 @@ export default function AccountDetailsScreen() {
           />
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Profile Photo URL</Text>
-          <TextInput
-            style={styles.input}
-            value={photoUrl}
-            onChangeText={setPhotoUrl}
-            placeholder="Enter your profile photo URL"
-          />
-        </View>
 
-        <TouchableOpacity 
-          style={styles.deleteAccountButton}
-          onPress={() => router.push("/(tabs)")}
-        >
+        <TouchableOpacity style={styles.deleteAccountButton} onPress={() => router.push("/(tabs)")}>
           <Text style={styles.deleteAccountText}>Account deletion process</Text>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
       </ScrollView>
 
-      <TouchableOpacity 
-        style={styles.saveButton} 
-        onPress={handleSave}
-        disabled={updateProfileMutation.isPending}
-      >
-        <Text style={styles.saveButtonText}>
-          {updateProfileMutation.isPending ? "Saving..." : "Save"}
-        </Text>
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={updateProfileMutation.isPending}>
+        <Text style={styles.saveButtonText}>{updateProfileMutation.isPending ? "Saving..." : "Save"}</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -233,7 +199,7 @@ const styles = StyleSheet.create({
   },
   biographyInput: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   genderContainer: {
     flexDirection: "row",
@@ -282,4 +248,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Outfit-Bold",
   },
-});
+})

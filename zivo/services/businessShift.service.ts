@@ -1,17 +1,8 @@
 import { api } from "../utils/api";
 import { useMutation } from "@tanstack/react-query";
 import { useInvalidateAppData } from "../hooks/useInvalidateAppData";
+import { BusinessShift } from "../types";
 
-export interface BusinessShift {
-  id: string;
-  businessId: string;
-  dayOfWeek: number; // 0-6 (Pazar-Cumartesi)
-  startTime: string; // "09:00"
-  endTime: string; // "17:00"
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface ShiftTime {
   id: string;
