@@ -8,6 +8,8 @@ import Toast from "react-native-toast-message";
 import { useCustomFonts } from "../hooks/useFonts"; // Fontları yüklemek için özel bir hook
 import { ActivityIndicator, View } from "react-native";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+// Remove the global StatusBarManager import since we'll use it per-screen
 
 // React Query Client ayarı
 const queryClient = new QueryClient({
@@ -37,12 +39,16 @@ export default function RootLayout() {
       </View>
     );
   }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Slot />
-        <Toast />
-      </AuthProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      {/* Remove global StatusBar configuration */}
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Slot />
+          <Toast />
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

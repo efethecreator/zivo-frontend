@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -10,10 +12,14 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { useQuery } from "@tanstack/react-query";
-import { getNearbyBusinesses, Business } from "../../services/business.service";
+import {
+  getNearbyBusinesses,
+  type Business,
+} from "../../services/business.service";
 import { WebView } from "react-native-webview";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -24,6 +30,7 @@ export default function MapScreen() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null
   );
+  const insets = useSafeAreaInsets();
 
   const { data: nearbyBusinesses, isLoading } = useQuery({
     queryKey: [
@@ -47,7 +54,7 @@ export default function MapScreen() {
   useEffect(() => {
     (async () => {
       console.log("Requesting location permission...");
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       console.log("Location permission status:", status);
 
       if (status !== "granted") {
@@ -56,7 +63,7 @@ export default function MapScreen() {
       }
 
       console.log("Getting current position...");
-      let currentLocation = await Location.getCurrentPositionAsync({});
+      const currentLocation = await Location.getCurrentPositionAsync({});
       console.log("Current location:", currentLocation);
       setLocation(currentLocation);
     })();
@@ -256,7 +263,7 @@ export default function MapScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.mapContainer}>
         {!location ? (
           <View style={styles.loadingContainer}>
@@ -324,7 +331,6 @@ const styles = StyleSheet.create({
     height: "50%",
     padding: 16,
     backgroundColor: "#f8f9fa",
-    
   },
   businessListTitle: {
     fontSize: 18,

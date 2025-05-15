@@ -36,10 +36,12 @@ import Animated, {
   FadeInDown,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { normalize, fontSizes, spacing } from "../../utils/responsive";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.75;
-const SPACING = 10;
+const SPACING = normalize(10);
 
 const categories = [
   {
@@ -97,6 +99,7 @@ export default function HomeScreen() {
   const [scrollY, setScrollY] = useState(0);
   const headerOpacity = useSharedValue(1);
   const searchBarTranslateY = useSharedValue(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     setSelectedType(null);
@@ -298,7 +301,16 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#2596be" />
       <SafeAreaView style={styles.safeContainer}>
         {/* Header */}
-        <Animated.View style={[styles.header, headerAnimatedStyle]}>
+        <Animated.View
+          style={[
+            styles.header,
+            headerAnimatedStyle,
+            {
+              paddingTop: insets.top,
+              marginTop: normalize(10), // Add this line to move header down
+            },
+          ]}
+        >
           <View style={styles.headerContent}>
             <Text style={styles.logoText}>ZIVO</Text>
             {user && (
@@ -329,7 +341,7 @@ export default function HomeScreen() {
               >
                 <Ionicons
                   name="search"
-                  size={20}
+                  size={normalize(20)}
                   color="#666"
                   style={styles.searchIcon}
                 />
@@ -398,16 +410,21 @@ export default function HomeScreen() {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.businessList}
               style={{ flex: 1 }}
+              contentInsetAdjustmentBehavior="automatic"
             />
           </View>
         ) : (
           // When showing regular content, use the ScrollView
           <ScrollView
             style={styles.container}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: insets.bottom + normalize(60) },
+            ]}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
+            contentInsetAdjustmentBehavior="automatic"
           >
             {/* Arama Çubuğu */}
             <Animated.View
@@ -426,7 +443,7 @@ export default function HomeScreen() {
               >
                 <Ionicons
                   name="search"
-                  size={20}
+                  size={normalize(20)}
                   color="#666"
                   style={styles.searchIcon}
                 />
@@ -505,7 +522,7 @@ export default function HomeScreen() {
                   <Loading message="Loading favorites..." />
                 </View>
               ) : favoriteList.length > 0 ? (
-                <View style={{ height: 220 }}>
+                <View style={{ height: normalize(220) }}>
                   <FlatList
                     data={favoriteList}
                     horizontal
@@ -562,7 +579,7 @@ export default function HomeScreen() {
                               <View style={styles.favoriteRating}>
                                 <Ionicons
                                   name="star"
-                                  size={16}
+                                  size={normalize(16)}
                                   color="#FFD700"
                                 />
                                 <Text style={styles.favoriteRatingText}>
@@ -598,7 +615,7 @@ export default function HomeScreen() {
                 >
                   <Ionicons
                     name="heart-outline"
-                    size={48}
+                    size={normalize(48)}
                     color="#ccc"
                     style={styles.emptyIcon}
                   />
@@ -612,9 +629,9 @@ export default function HomeScreen() {
                   >
                     <Ionicons
                       name="search-outline"
-                      size={18}
+                      size={normalize(18)}
                       color="#fff"
-                      style={{ marginRight: 6 }}
+                      style={{ marginRight: spacing.xs }}
                     />
                     <Text style={styles.exploreButtonText}>EXPLORE</Text>
                   </TouchableOpacity>
@@ -740,7 +757,7 @@ export default function HomeScreen() {
                             </View>
                             <Ionicons
                               name="chevron-forward"
-                              size={20}
+                              size={normalize(20)}
                               color="#999"
                             />
                           </TouchableOpacity>
@@ -755,7 +772,7 @@ export default function HomeScreen() {
                 >
                   <Ionicons
                     name="calendar-outline"
-                    size={48}
+                    size={normalize(48)}
                     color="#2596be"
                     style={styles.emptyIcon}
                   />
@@ -790,32 +807,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: 10, // Header ile arama çubuğu arasındaki boşluğu azalttık
+    borderTopLeftRadius: normalize(20),
+    borderTopRightRadius: normalize(20),
+    marginTop: normalize(10), // Header ile arama çubuğu arasındaki boşluğu azalttık
   },
   scrollContent: {
-    paddingTop: 15, // İçeriğin üst kısmında biraz boşluk bırakıyoruz
+    paddingTop: spacing.m, // İçeriğin üst kısmında biraz boşluk bırakıyoruz
   },
   contentContainer: {
-    paddingBottom: 20,
+    paddingBottom: spacing.l,
   },
   loadingContainer: {
-    padding: 20,
+    padding: spacing.l,
     alignItems: "center",
   },
   header: {
     width: "100%",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "ios" ? 10 : 10,
-    paddingBottom: 15,
+    paddingHorizontal: spacing.l,
+    paddingTop: Platform.OS === "ios" ? normalize(25) : normalize(20), // Increased from 10 to 25/20
+    paddingBottom: spacing.m,
   },
   headerContent: {
     alignItems: "center", // Logo ve welcome text'i ortaladık
     justifyContent: "center",
   },
   logoText: {
-    fontSize: 28,
+    fontSize: fontSizes.header,
     fontWeight: "bold",
     color: "#fff",
     fontFamily: "Outfit-Bold",
@@ -826,24 +843,24 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontFamily: "Outfit-Regular",
-    marginTop: 5,
+    marginTop: spacing.xs,
     textShadowColor: "rgba(0, 0, 0, 0.2)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   searchContainerWrapper: {
-    paddingHorizontal: 15,
-    paddingBottom: 5,
+    paddingHorizontal: spacing.m,
+    paddingBottom: spacing.xs,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 50,
+    borderRadius: normalize(12),
+    paddingHorizontal: spacing.m,
+    height: normalize(50),
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -851,43 +868,43 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   searchIcon: {
-    marginRight: 10,
+    marginRight: spacing.s,
   },
   searchInput: {
     flex: 1,
-    height: 50,
-    fontSize: 16,
+    height: normalize(50),
+    fontSize: fontSizes.l,
     fontFamily: "Outfit-Regular",
     color: "#333",
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     color: "#666",
     fontFamily: "Outfit-Bold",
-    marginLeft: 15,
-    marginTop: 15,
-    marginBottom: 8,
+    marginLeft: spacing.m,
+    marginTop: spacing.m,
+    marginBottom: spacing.xs,
     letterSpacing: 0.5,
   },
   categoriesContainer: {
-    marginBottom: 20,
+    marginBottom: spacing.l,
   },
   categoriesContent: {
-    paddingHorizontal: 10,
+    paddingHorizontal: spacing.s,
   },
   categoryItem: {
     alignItems: "center",
-    marginHorizontal: 8,
-    width: 80,
-    borderRadius: 12,
+    marginHorizontal: spacing.xs,
+    width: normalize(80),
+    borderRadius: normalize(12),
   },
   categoryItemActive: {
     backgroundColor: "transparent",
   },
   categoryIconContainer: {
     position: "relative",
-    marginBottom: 8,
-    borderRadius: 20,
+    marginBottom: spacing.xs,
+    borderRadius: normalize(20),
     overflow: "hidden",
     elevation: 3,
     shadowColor: "#000",
@@ -896,9 +913,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   categoryIcon: {
-    width: 70,
-    height: 70,
-    borderRadius: 20,
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(20),
   },
   categorySelectedOverlay: {
     position: "absolute",
@@ -909,10 +926,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(37, 150, 190, 0.3)",
     borderWidth: 3,
     borderColor: "#2596be",
-    borderRadius: 20,
+    borderRadius: normalize(20),
   },
   categoryName: {
-    fontSize: 13,
+    fontSize: fontSizes.s,
     textAlign: "center",
     color: "#444",
     fontFamily: "Outfit-Regular",
@@ -925,28 +942,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
     backgroundColor: "transparent",
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#333",
     fontWeight: "600",
     fontFamily: "Outfit-Bold",
     letterSpacing: 0.5,
   },
   seeAllText: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#2596be",
     fontFamily: "Outfit-Regular",
   },
   favoritesContainer: {
-    marginBottom: 20,
+    marginBottom: spacing.l,
   },
   favoritesContent: {
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingHorizontal: spacing.s,
+    paddingBottom: spacing.s,
   },
   favoriteItemContainer: {
     width: CARD_WIDTH,
@@ -954,7 +971,7 @@ const styles = StyleSheet.create({
   },
 
   favoriteItem: {
-    borderRadius: 16,
+    borderRadius: normalize(16),
     overflow: "hidden",
     backgroundColor: "#fff",
     elevation: 4,
@@ -965,52 +982,52 @@ const styles = StyleSheet.create({
   },
   favoriteImage: {
     width: "100%",
-    height: 160,
+    height: normalize(160),
   },
   favoriteImageOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 80,
+    height: normalize(80),
   },
   favoriteContent: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 15,
+    padding: spacing.m,
   },
   favoriteRating: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   favoriteRatingText: {
     color: "#fff",
     fontWeight: "bold",
-    marginLeft: 4,
-    fontSize: 14,
+    marginLeft: spacing.xs,
+    fontSize: fontSizes.m,
     fontFamily: "Outfit-Bold",
   },
   favoriteReviewsText: {
     color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 12,
-    marginLeft: 4,
+    fontSize: fontSizes.s,
+    marginLeft: spacing.xs,
     fontFamily: "Outfit-Light",
   },
   favoriteName: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 2,
+    marginBottom: spacing.xs,
     fontFamily: "Outfit-Bold",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   favoriteAddress: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     color: "rgba(255, 255, 255, 0.9)",
     fontFamily: "Outfit-Light",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
@@ -1020,11 +1037,11 @@ const styles = StyleSheet.create({
   emptyFavoritesContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.l,
     backgroundColor: "#fff",
-    margin: 15,
-    borderRadius: 16,
+    margin: spacing.m,
+    borderRadius: normalize(16),
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -1032,19 +1049,19 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   emptyIcon: {
-    marginBottom: 15,
+    marginBottom: spacing.m,
   },
   noFavoritesText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#333",
-    marginBottom: 8,
+    marginBottom: spacing.xs,
     fontFamily: "Outfit-Bold",
     textAlign: "center",
   },
   noFavoritesSubtext: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
-    marginBottom: 20,
+    marginBottom: spacing.l,
     fontFamily: "Outfit-Light",
     textAlign: "center",
   },
@@ -1052,9 +1069,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#2596be",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.l,
+    borderRadius: normalize(25),
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -1063,21 +1080,21 @@ const styles = StyleSheet.create({
   },
   exploreButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "600",
     fontFamily: "Outfit-Bold",
   },
   upcomingAppointments: {
-    marginBottom: 20,
-    paddingHorizontal: 15,
+    marginBottom: spacing.l,
+    paddingHorizontal: spacing.m,
   },
   appointmentItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 15,
+    padding: spacing.m,
     backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 10,
+    borderRadius: normalize(12),
+    marginBottom: spacing.s,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -1085,44 +1102,44 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   appointmentDateContainer: {
-    width: 80,
-    marginRight: 15,
+    width: normalize(80),
+    marginRight: spacing.m,
   },
   appointmentDay: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "bold",
     color: "#2596be",
     fontFamily: "Outfit-Bold",
   },
   appointmentTime: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     color: "#666",
-    marginTop: 2,
+    marginTop: spacing.xs,
     fontFamily: "Outfit-Light",
   },
   appointmentDetails: {
     flex: 1,
   },
   appointmentBusinessName: {
-    fontSize: 15,
+    fontSize: fontSizes.m,
     fontWeight: "600",
     color: "#333",
     fontFamily: "Outfit-Bold",
   },
   appointmentServiceName: {
-    fontSize: 13,
+    fontSize: fontSizes.s,
     color: "#666",
-    marginTop: 2,
+    marginTop: spacing.xs,
     fontFamily: "Outfit-Light",
   },
   noAppointments: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.l,
     backgroundColor: "#fff",
-    margin: 15,
-    borderRadius: 16,
+    margin: spacing.m,
+    borderRadius: normalize(16),
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -1130,24 +1147,24 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   noAppointmentsText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#333",
-    marginBottom: 8,
+    marginBottom: spacing.xs,
     fontFamily: "Outfit-Bold",
     textAlign: "center",
   },
   noAppointmentsSubtext: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
-    marginBottom: 20,
+    marginBottom: spacing.l,
     fontFamily: "Outfit-Light",
     textAlign: "center",
   },
   bookNowButton: {
     backgroundColor: "#2596be",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.l,
+    borderRadius: normalize(25),
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -1157,29 +1174,29 @@ const styles = StyleSheet.create({
   bookNowButtonText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontFamily: "Outfit-Bold",
   },
   appointmentStatus: {
-    marginLeft: 10,
-    marginRight: 5,
+    marginLeft: spacing.s,
+    marginRight: spacing.xs,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     fontWeight: "500",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    borderRadius: normalize(12),
     overflow: "hidden",
     fontFamily: "Outfit-Bold",
   },
   businessList: {
-    padding: 16,
+    padding: spacing.m,
   },
   businessCard: {
     position: "relative",
-    marginBottom: 16,
-    borderRadius: 12,
+    marginBottom: spacing.m,
+    borderRadius: normalize(12),
     backgroundColor: "#fff",
     overflow: "hidden",
     elevation: 3,
@@ -1190,24 +1207,24 @@ const styles = StyleSheet.create({
   },
   businessImage: {
     width: "100%",
-    height: 180,
+    height: normalize(180),
   },
   businessImageOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 80,
+    height: normalize(80),
   },
   businessInfo: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 15,
+    padding: spacing.m,
   },
   businessName: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontWeight: "bold",
     color: "#fff",
     fontFamily: "Outfit-Bold",
@@ -1216,15 +1233,15 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   businessAddress: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     color: "rgba(255, 255, 255, 0.9)",
-    marginTop: 4,
+    marginTop: spacing.xs,
     fontFamily: "Outfit-Light",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   bottomSpacer: {
-    height: 60,
+    height: normalize(60),
   },
 });

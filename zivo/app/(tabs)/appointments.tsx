@@ -7,7 +7,6 @@ import {
   FlatList,
   Image,
   TextInput,
-  SafeAreaView,
 } from "react-native";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +22,9 @@ import Toast from "react-native-toast-message";
 import { useState, useMemo } from "react";
 import RNModal from "react-native-modal";
 import { useAuth } from "../../context/AuthContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { normalize, fontSizes, spacing } from "../../utils/responsive";
+import { SafeAreaWrapper } from "../../components/SafeAreaWrapper";
 
 type AppointmentStatus =
   | "all"
@@ -43,6 +45,7 @@ export default function AppointmentsScreen() {
   const [comment, setComment] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus>("all");
   const { tokenAvailable } = useAuth(); // useAuth'dan tokenAvailable'ı alalım
+  const insets = useSafeAreaInsets();
 
   const {
     data: appointmentsResponse,
@@ -203,7 +206,7 @@ export default function AppointmentsScreen() {
           >
             <AntDesign
               name={rating >= star ? "star" : "staro"}
-              size={30}
+              size={normalize(30)}
               color={rating >= star ? "#FFD700" : "#CCCCCC"}
             />
           </TouchableOpacity>
@@ -238,7 +241,7 @@ export default function AppointmentsScreen() {
     <View style={styles.emptyContainer}>
       <Ionicons
         name="alert-circle-outline"
-        size={80}
+        size={normalize(80)}
         color="#ff3b30"
         style={styles.errorIcon}
       />
@@ -306,7 +309,7 @@ export default function AppointmentsScreen() {
         <Text style={styles.serviceName}>{serviceName}</Text>
 
         <View style={styles.timeRow}>
-          <Ionicons name="time-outline" size={16} color="#666" />
+          <Ionicons name="time-outline" size={normalize(16)} color="#666" />
           <Text style={styles.durationText}>{totalDuration} minutes</Text>
           <View style={{ alignItems: "flex-end" }}>
             <Text style={styles.appointmentTime}>{appointmentTimeString}</Text>
@@ -334,7 +337,7 @@ export default function AppointmentsScreen() {
               <View style={styles.feedbackContainer}>
                 <Ionicons
                   name="checkmark-circle"
-                  size={16}
+                  size={normalize(16)}
                   color="#4CAF50"
                   style={styles.feedbackIcon}
                 />
@@ -415,9 +418,11 @@ export default function AppointmentsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaWrapper style={styles.container} backgroundColor="#f8f9fa">
       <StatusBar style="dark" backgroundColor="#fff" />
-      <Text style={styles.title}>Appointments</Text>
+      <Text style={[styles.title, { marginTop: normalize(1) }]}>
+        Appointments
+      </Text>
 
       {renderFilterTabs()}
 
@@ -436,7 +441,10 @@ export default function AppointmentsScreen() {
           keyExtractor={(item) =>
             item.id?.toString() || Math.random().toString()
           }
-          contentContainerStyle={styles.appointmentsList}
+          contentContainerStyle={[
+            styles.appointmentsList,
+            { paddingBottom: insets.bottom + normalize(20) },
+          ]}
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
         />
@@ -482,7 +490,7 @@ export default function AppointmentsScreen() {
           </View>
         </View>
       </RNModal>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 
@@ -492,40 +500,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   title: {
-    fontSize: 28,
+    fontSize: fontSizes.header,
     fontWeight: "bold",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingHorizontal: spacing.l,
+    paddingTop: spacing.s,
+    paddingBottom: spacing.s,
     fontFamily: "Outfit-Bold",
   },
   filterContainer: {
     flexDirection: "row",
-    paddingHorizontal: 15,
-    paddingBottom: 10,
+    paddingHorizontal: spacing.m,
+    paddingBottom: spacing.s,
     justifyContent: "space-between",
   },
   filterTab: {
-    paddingVertical: 8,
+    paddingVertical: spacing.xs,
     paddingHorizontal: 0,
-    borderRadius: 25,
+    borderRadius: normalize(25),
     backgroundColor: "#f5f5f5",
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: spacing.xs,
     alignItems: "center",
   },
   activeFilterTab: {
     backgroundColor: "#1B9AAA",
   },
   appointmentDate: {
-    fontSize: 12,
+    fontSize: fontSizes.s,
     color: "#999",
     fontFamily: "Outfit-Regular",
-    marginTop: 2,
+    marginTop: spacing.xs,
   },
 
   filterText: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
     fontFamily: "Outfit-Bold",
   },
@@ -543,52 +551,52 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: spacing.l,
   },
   emptyIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
-    marginBottom: 20,
+    width: normalize(120),
+    height: normalize(120),
+    borderRadius: normalize(10),
+    marginBottom: spacing.l,
   },
   errorIcon: {
-    marginBottom: 20,
+    marginBottom: spacing.l,
   },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: fontSizes.xxl,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: spacing.s,
     fontFamily: "Outfit-Bold",
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: spacing.xl,
     fontFamily: "Outfit-Light",
   },
   emptyButton: {
     backgroundColor: "#1B9AAA",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.xl,
+    borderRadius: normalize(8),
     width: "100%",
     alignItems: "center",
   },
   emptyButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "600",
     fontFamily: "Outfit-Bold",
   },
   appointmentsList: {
-    padding: 10,
+    padding: spacing.s,
   },
   appointmentCard: {
     backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 12,
-    padding: 12,
+    borderRadius: normalize(10),
+    marginBottom: spacing.s,
+    padding: spacing.s,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -599,44 +607,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   businessName: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontWeight: "bold",
     fontFamily: "Outfit-Bold",
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    borderRadius: normalize(20),
   },
   statusText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: fontSizes.s,
     fontWeight: "600",
     textTransform: "capitalize",
     fontFamily: "Outfit-Bold",
   },
   serviceName: {
-    fontSize: 14,
-    marginBottom: 6,
+    fontSize: fontSizes.m,
+    marginBottom: spacing.xs,
     fontFamily: "Outfit-Light",
   },
   timeRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   durationText: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
-    marginLeft: 5,
+    marginLeft: spacing.xs,
     flex: 1,
     fontFamily: "Outfit-Light",
   },
   appointmentTime: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "500",
     color: "#666",
     fontFamily: "Outfit-Bold",
@@ -644,37 +652,37 @@ const styles = StyleSheet.create({
   staffRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   staffLabel: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
-    marginRight: 5,
+    marginRight: spacing.xs,
     fontFamily: "Outfit-Light",
   },
   staffName: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "500",
     fontFamily: "Outfit-Bold",
   },
   divider: {
     height: 1,
     backgroundColor: "#eee",
-    marginVertical: 8,
+    marginVertical: spacing.xs,
   },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: spacing.s,
   },
   priceLabel: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
     fontFamily: "Outfit-Light",
   },
   priceValue: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontWeight: "600",
     color: "#1B9AAA",
     fontFamily: "Outfit-Bold",
@@ -686,10 +694,10 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    padding: 10,
-    borderRadius: 6,
+    padding: spacing.s,
+    borderRadius: normalize(6),
     alignItems: "center",
-    marginHorizontal: 4,
+    marginHorizontal: spacing.xs,
   },
   modalContainer: {
     justifyContent: "center",
@@ -699,7 +707,7 @@ const styles = StyleSheet.create({
 
   actionButtonText: {
     color: "#000",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "500",
     fontFamily: "Outfit-Regular",
   },
@@ -710,7 +718,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#ff3b30",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontWeight: "500",
     fontFamily: "Outfit-Bold",
   },
@@ -721,7 +729,7 @@ const styles = StyleSheet.create({
   reviewButtonText: {
     color: "#fff",
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontFamily: "Outfit-Bold",
   },
   feedbackContainer: {
@@ -730,16 +738,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f0f9f8",
-    padding: 10,
-    borderRadius: 6,
+    padding: spacing.s,
+    borderRadius: normalize(6),
   },
   feedbackIcon: {
-    marginRight: 6,
+    marginRight: spacing.xs,
   },
   feedbackText: {
     color: "#4CAF50",
     fontWeight: "500",
-    fontSize: 14,
+    fontSize: fontSizes.m,
     fontFamily: "Outfit-Bold",
   },
   modalOverlay: {
@@ -747,12 +755,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: spacing.l,
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: normalize(12),
+    padding: spacing.l,
     width: "100%",
     maxWidth: 400,
     shadowColor: "#000",
@@ -762,28 +770,28 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: fontSizes.xl,
     fontWeight: "bold",
-    marginBottom: 18,
+    marginBottom: spacing.l,
     textAlign: "center",
     fontFamily: "Outfit-Bold",
   },
   ratingContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: spacing.l,
   },
   starButton: {
-    padding: 5,
+    padding: spacing.xs,
   },
   commentInput: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 10,
-    minHeight: 100,
+    borderRadius: normalize(8),
+    padding: spacing.s,
+    minHeight: normalize(100),
     textAlignVertical: "top",
-    marginBottom: 20,
+    marginBottom: spacing.l,
     fontFamily: "Outfit-Regular",
   },
   modalButtons: {
@@ -792,10 +800,10 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: spacing.s,
+    borderRadius: normalize(8),
     alignItems: "center",
-    marginHorizontal: 5,
+    marginHorizontal: spacing.xs,
   },
   cancelModalButton: {
     backgroundColor: "#f5f5f5",

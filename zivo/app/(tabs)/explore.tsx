@@ -24,6 +24,9 @@ import {
   getReviewsForBusiness,
   calculateBusinessRating,
 } from "../../services/review.service";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { normalize, fontSizes, spacing } from "../../utils/responsive";
+import { SafeAreaWrapper } from "../../components/SafeAreaWrapper";
 
 const categories = [
   { id: "all", name: "All" },
@@ -41,6 +44,7 @@ export default function ExploreScreen() {
   const [businessReviews, setBusinessReviews] = useState<
     Record<string, { rating: number; count: number }>
   >({});
+  const insets = useSafeAreaInsets();
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["businesses", searchQuery, selectedType, sortBy],
@@ -150,17 +154,11 @@ export default function ExploreScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={{ color: "#fff", fontSize: 35, fontWeight: "bold" }}>
-          Explore
-        </Text>
-      </View>
-
+    <SafeAreaWrapper style={styles.container} backgroundColor="#f8f9fa">
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
-          size={20}
+          size={normalize(20)}
           color="#666"
           style={styles.searchIcon}
         />
@@ -179,13 +177,17 @@ export default function ExploreScreen() {
           onPress={handleNearYouPress}
         >
           <View style={styles.buttonContent}>
-            <Ionicons name="location-outline" size={20} color="#000" />
+            <Ionicons
+              name="location-outline"
+              size={normalize(20)}
+              color="#000"
+            />
             <Text style={styles.locationText}>Near You</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.dateButton}>
-          <Ionicons name="calendar-outline" size={20} color="#000" />
+          <Ionicons name="calendar-outline" size={normalize(20)} color="#000" />
           <Text style={styles.dateText}>When?</Text>
         </TouchableOpacity>
       </View>
@@ -230,9 +232,9 @@ export default function ExploreScreen() {
             </Text>
             <Ionicons
               name="information-circle-outline"
-              size={16}
+              size={normalize(16)}
               color="#666"
-              style={{ marginLeft: 4 }}
+              style={{ marginLeft: spacing.xs }}
             />
           </TouchableOpacity>
         </View>
@@ -250,10 +252,13 @@ export default function ExploreScreen() {
             item.id?.toString() || Math.random().toString()
           }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.businessList}
+          contentContainerStyle={[
+            styles.businessList,
+            { paddingBottom: insets.bottom + normalize(20) },
+          ]}
         />
       )}
-    </View>
+    </SafeAreaWrapper>
   );
 }
 
@@ -263,87 +268,87 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    padding: 5,
+    padding: spacing.xs,
     alignItems: "center",
     backgroundColor: "#f8f9fa",
   },
   logo: {
-    fontSize: 24,
+    fontSize: fontSizes.xxl,
     fontWeight: "bold",
     color: "#fff",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    margin: 15,
-    paddingHorizontal: 15,
+    margin: spacing.m,
+    paddingHorizontal: spacing.m,
     backgroundColor: "#f5f5f5",
-    borderRadius: 8,
+    borderRadius: normalize(8),
   },
   searchIcon: {
-    marginRight: 10,
+    marginRight: spacing.s,
   },
   searchInput: {
     flex: 1,
-    height: 45,
-    fontSize: 16,
+    height: normalize(45),
+    fontSize: fontSizes.l,
     fontFamily: "Outfit-Regular",
   },
   filterContainer: {
     flexDirection: "row",
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    paddingHorizontal: spacing.m,
+    marginBottom: spacing.m,
   },
   locationButton: {
     flex: 1,
-    height: 45,
+    height: normalize(45),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
-    marginRight: 10,
+    borderRadius: normalize(8),
+    marginRight: spacing.s,
   },
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6, // Eğer gap çalışmazsa aşağıdaki gibi marginLeft ver
+    gap: spacing.xs, // Eğer gap çalışmazsa aşağıdaki gibi marginLeft ver
   },
   locationText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontFamily: "Outfit-Regular",
   },
   dateButton: {
     flex: 1,
-    height: 45,
+    height: normalize(45),
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: normalize(8),
   },
   dateText: {
-    fontSize: 16,
-    marginLeft: 5,
+    fontSize: fontSizes.l,
+    marginLeft: spacing.xs,
     fontFamily: "Outfit-Regular",
   },
   contentContainer: {
     // This container wraps categories, sort and results to keep them together
   },
   categoriesContainer: {
-    paddingHorizontal: 10,
-    height: 40, // Reduced height
+    paddingHorizontal: spacing.s,
+    height: normalize(40), // Reduced height
     marginBottom: 0, // Removed bottom margin completely
   },
   categoryButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginHorizontal: 5,
-    height: 40,
-    minWidth: 80,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs,
+    marginHorizontal: spacing.xs,
+    height: normalize(40),
+    minWidth: normalize(80),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -352,7 +357,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1B9AAA",
   },
   categoryText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#666",
     fontFamily: "Outfit-Regular",
   },
@@ -364,23 +369,23 @@ const styles = StyleSheet.create({
   sortContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    paddingTop: 8, // Reduced top padding
-    paddingBottom: 8, // Reduced bottom padding
+    padding: spacing.m,
+    paddingTop: spacing.xs, // Reduced top padding
+    paddingBottom: spacing.xs, // Reduced bottom padding
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   sortTitle: {
-    marginRight: 8,
+    marginRight: spacing.xs,
     color: "#666",
     fontFamily: "Outfit-Regular",
   },
   sortButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    borderRadius: normalize(16),
     backgroundColor: "#f0f0f0",
-    marginRight: 8,
+    marginRight: spacing.xs,
   },
   sortButtonActive: {
     backgroundColor: "#1B9AAA",
@@ -396,17 +401,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 15,
-    paddingTop: 10, // Reduced top padding
-    paddingBottom: 10, // Reduced bottom padding
+    paddingHorizontal: spacing.m,
+    paddingTop: spacing.s, // Reduced top padding
+    paddingBottom: spacing.s, // Reduced bottom padding
   },
   resultsText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontWeight: "500",
     fontFamily: "Outfit-Bold",
   },
   infoText: {
-    fontSize: 14,
+    fontSize: fontSizes.m,
     color: "#666",
     fontFamily: "Outfit-Regular",
   },
@@ -416,11 +421,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   businessList: {
-    padding: 15,
+    padding: spacing.m,
   },
   businessCard: {
-    marginBottom: 20,
-    borderRadius: 8,
+    marginBottom: spacing.l,
+    borderRadius: normalize(8),
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: {
@@ -433,17 +438,17 @@ const styles = StyleSheet.create({
   },
   businessImage: {
     width: "100%",
-    height: 200,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    height: normalize(200),
+    borderTopLeftRadius: normalize(8),
+    borderTopRightRadius: normalize(8),
   },
   ratingContainer: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: spacing.s,
+    right: spacing.s,
     backgroundColor: "rgba(0,0,0,0.7)",
-    borderRadius: 4,
-    padding: 5,
+    borderRadius: normalize(4),
+    padding: spacing.xs,
   },
   ratingText: {
     color: "#fff",
@@ -453,21 +458,21 @@ const styles = StyleSheet.create({
   },
   reviewsText: {
     color: "#fff",
-    fontSize: 10,
+    fontSize: fontSizes.xs,
     fontFamily: "Outfit-Light",
   },
   businessName: {
-    fontSize: 19,
+    fontSize: fontSizes.xl,
     fontWeight: "bold",
-    marginTop: 10,
-    marginHorizontal: 10,
+    marginTop: spacing.s,
+    marginHorizontal: spacing.s,
     fontFamily: "Outfit-Bold",
   },
   businessAddress: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#666",
-    marginHorizontal: 10,
-    marginBottom: 10,
+    marginHorizontal: spacing.s,
+    marginBottom: spacing.s,
     fontFamily: "Outfit-Light",
   },
 });

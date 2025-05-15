@@ -18,6 +18,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getMe, uploadProfilePhoto } from "../../services/user.service";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { normalize, fontSizes, spacing } from "../../utils/responsive";
+import { SafeAreaWrapper } from "../../components/SafeAreaWrapper";
 
 export default function ProfileScreen() {
   const {
@@ -28,6 +31,7 @@ export default function ProfileScreen() {
   } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: ["user"],
@@ -159,11 +163,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaWrapper style={styles.container} backgroundColor="#fff">
       <StatusBar style="dark" backgroundColor="#fff" />
 
       {/* Sabit Kısım */}
-      <View style={styles.profileHeader}>
+      <View style={[styles.profileHeader, { paddingTop: normalize(20) }]}>
         <View style={styles.avatarWrapper}>
           <TouchableOpacity
             style={styles.avatarContainer}
@@ -191,7 +195,7 @@ export default function ProfileScreen() {
             onPress={showImageOptions}
             disabled={uploading}
           >
-            <Ionicons name="camera" size={20} color="#fff" />
+            <Ionicons name="camera" size={normalize(20)} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -205,6 +209,7 @@ export default function ProfileScreen() {
       <ScrollView
         style={styles.scrollArea}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + normalize(20) }}
       >
         <View style={styles.menuSection}>
           {[
@@ -223,7 +228,11 @@ export default function ProfileScreen() {
               onPress={() => navigateTo(item.path)}
             >
               <Text style={styles.menuItemText}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              <Ionicons
+                name="chevron-forward"
+                size={normalize(20)}
+                color="#ccc"
+              />
             </TouchableOpacity>
           ))}
         </View>
@@ -234,10 +243,10 @@ export default function ProfileScreen() {
           onPress={handleLogout}
         >
           <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
-          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <Ionicons name="chevron-forward" size={normalize(20)} color="#ccc" />
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaWrapper>
   );
 }
 
@@ -253,7 +262,7 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: "center",
-    padding: 70,
+    padding: normalize(70),
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
@@ -263,16 +272,16 @@ const styles = StyleSheet.create({
   },
   avatarWrapper: {
     position: "relative",
-    width: 100,
-    height: 100,
-    marginBottom: 10,
+    width: normalize(100),
+    height: normalize(100),
+    marginBottom: spacing.s,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: normalize(100),
+    height: normalize(100),
+    borderRadius: normalize(50),
     backgroundColor: "#8D6E63",
     justifyContent: "center",
     alignItems: "center",
@@ -283,7 +292,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   avatarText: {
-    fontSize: 36,
+    fontSize: fontSizes.xxxl,
     color: "#fff",
     fontWeight: "bold",
     fontFamily: "Outfit-Bold",
@@ -293,9 +302,9 @@ const styles = StyleSheet.create({
     bottom: -4,
     right: -4,
     backgroundColor: "#1B9AAA",
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
@@ -303,18 +312,18 @@ const styles = StyleSheet.create({
   },
 
   userName: {
-    fontSize: 22,
+    fontSize: fontSizes.xxl,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: spacing.xs,
     fontFamily: "Outfit-Bold",
   },
   userPhone: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     color: "#666",
     fontFamily: "Outfit-Light",
   },
   menuSection: {
-    marginBottom: 20,
+    marginBottom: spacing.l,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
@@ -322,17 +331,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.l,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   menuItemText: {
-    fontSize: 16,
+    fontSize: fontSizes.l,
     fontFamily: "Outfit-Regular",
   },
   logoutButton: {
-    marginTop: -20,
+    marginTop: -normalize(20),
   },
   logoutText: {
     color: "#666",
