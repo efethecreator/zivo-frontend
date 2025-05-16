@@ -71,7 +71,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingContainer>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Image source={require("../../assets/images/logo.jpg")} style={styles.logo} resizeMode="contain" />
+            <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to continue to your account</Text>
           </View>

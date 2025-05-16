@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -14,30 +14,35 @@ import {
   Alert,
   ScrollView,
   Dimensions,
-} from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import { useAuth } from "../../context/AuthContext"
-import { StatusBar } from "expo-status-bar"
-import { useRegisterMutation, login } from "../../services/auth.service"
-import { updateMyProfile } from "../../services/user.service"
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import { StatusBar } from "expo-status-bar";
+import { useRegisterMutation, login } from "../../services/auth.service";
+import { updateMyProfile } from "../../services/user.service";
 
-const { width } = Dimensions.get("window")
-const inputWidth = Math.min(width - 40, 400)
+const { width } = Dimensions.get("window");
+const inputWidth = Math.min(width - 40, 400);
 
 export default function RegisterScreen() {
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [phone, setPhone] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const { register } = useAuth()
-  const registerMutation = useRegisterMutation()
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const { register } = useAuth();
+  const registerMutation = useRegisterMutation();
 
   const handleRegister = async () => {
-    if (!fullName.trim() || !email.trim() || !password.trim() || !phone.trim()) {
-      Alert.alert("Error", "Please fill in all fields")
-      return
+    if (
+      !fullName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !phone.trim()
+    ) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
     }
 
     try {
@@ -48,28 +53,36 @@ export default function RegisterScreen() {
         password,
         phone,
         userType: "customer",
-      })
+      });
 
       // ✅ Sonra login işlemi
-      const loginResponse = await login(email, password)
+      const loginResponse = await login(email, password);
 
-      console.log("[Auth] ✅ Login success:", loginResponse)
+      console.log("[Auth] ✅ Login success:", loginResponse);
 
       // ✅ Update the user's profile with the phone number
       try {
-        await updateMyProfile({ phone })
-        console.log("[Profile] ✅ Phone number updated in profile")
+        await updateMyProfile({ phone });
+        console.log("[Profile] ✅ Phone number updated in profile");
       } catch (profileError) {
-        console.error("[Profile] ❌ Failed to update phone in profile:", profileError)
+        console.error(
+          "[Profile] ❌ Failed to update phone in profile:",
+          profileError
+        );
         // Continue with registration even if profile update fails
       }
 
-      router.replace("/(tabs)")
+      router.replace("/(tabs)");
     } catch (error) {
-      console.error("[Register] ❌ Error:", error)
-      Alert.alert("Error", error instanceof Error ? error.message : "Failed to register. Please try again.")
+      console.error("[Register] ❌ Error:", error);
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to register. Please try again."
+      );
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -79,16 +92,28 @@ export default function RegisterScreen() {
         style={styles.container}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => router.push("/auth/login")}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push("/auth/login")}
+          >
             <Ionicons name="arrow-back" size={22} color="#2596be" />
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Image source={require("../../assets/images/logo.jpg")} style={styles.logo} resizeMode="contain" />
+            <Image
+              source={require("../../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to book and manage your appointments</Text>
+            <Text style={styles.subtitle}>
+              Sign up to book and manage your appointments
+            </Text>
           </View>
 
           {/* Full Name */}
@@ -143,8 +168,15 @@ export default function RegisterScreen() {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
               />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="#666" />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="#666"
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -155,7 +187,9 @@ export default function RegisterScreen() {
             onPress={handleRegister}
             disabled={registerMutation.isPending}
           >
-            <Text style={styles.buttonText}>{registerMutation.isPending ? "Loading..." : "Sign Up"}</Text>
+            <Text style={styles.buttonText}>
+              {registerMutation.isPending ? "Loading..." : "Sign Up"}
+            </Text>
           </TouchableOpacity>
 
           {/* Divider */}
@@ -179,7 +213,9 @@ export default function RegisterScreen() {
 
             <TouchableOpacity style={[styles.button, styles.socialButton]}>
               <Ionicons name="logo-facebook" size={18} color="#4267B2" />
-              <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+              <Text style={styles.socialButtonText}>
+                Continue with Facebook
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -193,7 +229,7 @@ export default function RegisterScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -348,4 +384,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 13,
   },
-})
+});
